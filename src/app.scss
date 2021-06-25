@@ -1,0 +1,97 @@
+html {
+  font-size: 10px;
+}
+
+body {
+  width: 100vw;
+  height: 100vw;
+  overflow: hidden;
+  margin: 0;
+}
+#svelte {
+  width: inherit;
+  height: inherit;
+  overflow: hidden;
+}
+
+header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+}
+
+nav {
+  display: flex;
+}
+
+main {
+  width: inherit;
+  height: inherit;
+  overflow: hidden;
+}
+
+.canvas {
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+}
+
+.render svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.handle {
+  position: relative;
+  cursor: move;
+}
+.toolbar {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  padding: 16px;
+  z-index: 3;
+}
+.tool {
+  &.is-selected {
+    color: red;
+  }
+}
+
+
+.point {
+  position: absolute;
+  z-index: 3;
+  border-radius: 50%;
+  width: 0;
+  height: 0;
+  &:after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background-color: blue;
+    z-index: 2;
+  }
+  &:before {
+    content: '';
+    position: absolute;
+    top: -11px;
+    left: -11px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: move;
+    // background-color: red;
+    border: solid 1px blue;
+    z-index: 1;
+  }
+}
