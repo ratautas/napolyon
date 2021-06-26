@@ -4,10 +4,11 @@ html {
 
 body {
   width: 100vw;
-  height: 100vw;
+  height: 100vh;
   overflow: hidden;
   margin: 0;
 }
+
 #svelte {
   width: inherit;
   height: inherit;
@@ -54,15 +55,21 @@ main {
   position: absolute;
   top: 30px;
   left: 30px;
-  padding: 16px;
+  padding: 8px;
   z-index: 3;
+  background-color: #eee;
+  border: solid 1px #ccc;
+  border-radius: 4px;
+  &:hover {
+    background-color: #fff;
+  }
 }
+
 .tool {
   &.is-selected {
     color: red;
   }
 }
-
 
 .point {
   position: absolute;

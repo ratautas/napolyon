@@ -1,7 +1,9 @@
 <script>
   import Icon from '@iconify/svelte';
+  import { saveAs } from 'file-saver';
   import { onMount } from 'svelte';
-  import { mode } from '$lib/stores.js';
+
+  import { modeState, svgState } from '$lib/stores.js';
 
   let toolbarEl;
   let x;
@@ -15,10 +17,14 @@
     y += movementY;
   };
 
-
-  const handleToolClick = (e, targetMode) => {
+  const handleAddClick = (e, targetMode) => {
     e.stopPropagation();
-    mode.toggle(targetMode)
+    modeState.toggle(targetMode);
+  };
+
+  const handleDowloadClick = () => {
+    const blob = new Blob([$svgState.outerHTML], { type: 'image/svg+xml' });
+    saveAs(blob, 'graph.svg');
   };
 
   onMount(() => {
@@ -43,10 +49,13 @@
   <div class="tools">
     <div
       class="tool"
-      class:is-selected={$mode === 'add'}
-      on:click={(e) => handleToolClick(e, 'add')}
+      class:is-selected={$modeState === 'add'}
+      on:click={(e) => handleAddClick(e, 'add')}
     >
       <Icon color="currentColor" icon="ph:share-network" width="32" height="32" />
+    </div>
+    <div class="tool" on:click={handleDowloadClick}>
+      <Icon color="currentColor" icon="ph:download-simple" width="32" height="32" />
     </div>
   </div>
   <Icon icon="ph:anchor" width="8" height="8" />

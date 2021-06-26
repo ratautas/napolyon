@@ -1,17 +1,8 @@
 import { writable, derived } from 'svelte/store';
 
-export const name = writable('world');
-
-export const greeting = derived(
-    name,
-    $name => `Hello ${$name}!`
-);
-
-export const mode = (() => {
-    const state = writable(null);
+export const modeState = (() => {
+    const state = writable('add');
     const { subscribe, set, update } = state;
-    const a = writable('sss');
-    console.log({a})
 
     return {
         subscribe,
@@ -26,4 +17,14 @@ export const mode = (() => {
             }
         ),
     };
-})()
+})();
+
+export const svgState = (() => {
+    const state = writable(null);
+    const { subscribe, set } = state;
+
+    return {
+        subscribe,
+        set: (svgEl) => set(svgEl),
+    };
+})();
