@@ -9,7 +9,7 @@
   import { onMount } from 'svelte';
 
   import ToolBar from '$lib/ToolBar/index.svelte';
-  import { modeState, svgState } from '$lib/stores.js';
+  import { mode, svgState } from '$lib/stores.js';
 
   // let src;
   let src =
@@ -62,14 +62,14 @@
   };
 
   const handleCanvasClick = ({ x, y }) => {
-    if ($modeState !== 'draw' || dragablePoint) return;
+    if ($mode !== 'draw' || dragablePoint) return;
     if (!drawablePolygon) {
       drawablePolygon = { id: nanoid(4), points: {} };
     }
 
     // if (getClosestPointInRange({ x, y }).id) {
     //   drawablePolygon = null;
-    //   modeState.set(null);
+    //   mode.set(null);
     //   return;
     // }
 
@@ -108,7 +108,7 @@
     if (!dragablePolygon || dragablePolygon.id !== id) return;
 
     drawablePolygon = null;
-    modeState.set(null);
+    mode.set(null);
 
     const { movementX, movementY } = e;
 
@@ -138,7 +138,7 @@
       drawablePolygon = null;
     }
     if (e.key === 'Enter') {
-      modeState.set(null);
+      mode.set(null);
     }
   };
 
@@ -170,7 +170,7 @@
   on:scroll={handleCanvasScroll}
   on:click={handleCanvasClick}
   on:mousemove={handleCanvasMousemove}
-  class:is-drawing={$modeState === 'draw'}
+  class:is-drawing={$mode === 'draw'}
 >
   {#if src}
     <div class="render">
@@ -196,7 +196,7 @@
             fill="red"
             stroke-width="1"
             stroke="blue"
-            class:is-drawing={$modeState === 'draw' && polygon.id === drawablePolygon?.id}
+            class:is-drawing={$mode === 'draw' && polygon.id === drawablePolygon?.id}
             class:is-dragging={polygon.id === dragablePolygon?.id}
             bind:this={polygonEls[i]}
             on:mousedown={(e) => handlePolygonMousedown({ e, id: polygon.id })}

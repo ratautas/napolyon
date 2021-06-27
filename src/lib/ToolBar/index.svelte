@@ -3,7 +3,7 @@
   import { saveAs } from 'file-saver';
   import { onMount } from 'svelte';
 
-  import { modeState, svgState } from '$lib/stores.js';
+  import { mode, toggleMode, svgState } from '$lib/stores.js';
 
   let toolbarEl;
   let x;
@@ -19,7 +19,7 @@
 
   const handleAddClick = (e, targetMode) => {
     e.stopPropagation();
-    modeState.toggle(targetMode);
+    mode.set($mode !== targetMode ? targetMode : null);
   };
 
   const handleDowloadClick = () => {
@@ -49,7 +49,7 @@
   <div class="tools">
     <div
       class="tool"
-      class:is-selected={$modeState === 'draw'}
+      class:is-selected={$mode === 'draw'}
       on:click={(e) => handleAddClick(e, 'draw')}
     >
       <Icon color="currentColor" icon="ph:share-network" width="32" height="32" />
