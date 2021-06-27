@@ -3,7 +3,7 @@
   import { saveAs } from 'file-saver';
   import { onMount } from 'svelte';
 
-  import { mode, toggleMode, svgState } from '$lib/stores.js';
+  import { mode, svgState } from '$lib/stores.js';
 
   let toolbarEl;
   let x;
