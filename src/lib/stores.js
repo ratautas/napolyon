@@ -1,7 +1,10 @@
 import { writable, derived } from 'svelte/store';
 
+export const mode = writable(null);
+
 export const modeState = (() => {
-    const state = writable('add');
+    // const state = writable('add');
+    const state = writable(null);
     const { subscribe, set, update } = state;
 
     return {

@@ -1,0 +1,2 @@
+- pen cursor icon (illustrator)
+- increse the size of the point when active

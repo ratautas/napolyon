@@ -1,5 +1,6 @@
 html {
   font-size: 10px;
+  // cursor: url('./pen-tool-cursor.svg'), auto;
 }
 
 body {
@@ -37,6 +38,9 @@ main {
   width: 100vw;
   height: 100vh;
   overflow: auto;
+  &.is-drawing {
+    cursor: copy;
+  }
 }
 
 .render svg {
@@ -100,5 +104,15 @@ main {
     // background-color: red;
     border: solid 1px blue;
     z-index: 1;
+  }
+}
+
+polygon {
+  &.is-drawing {
+    opacity: 0.2;
+  }
+  &.is-dragging {
+    opacity: 0.5;
+    cursor: move;
   }
 }

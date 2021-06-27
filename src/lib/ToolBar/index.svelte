@@ -49,8 +49,8 @@
   <div class="tools">
     <div
       class="tool"
-      class:is-selected={$modeState === 'add'}
-      on:click={(e) => handleAddClick(e, 'add')}
+      class:is-selected={$modeState === 'draw'}
+      on:click={(e) => handleAddClick(e, 'draw')}
     >
       <Icon color="currentColor" icon="ph:share-network" width="32" height="32" />
     </div>

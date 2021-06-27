@@ -18,10 +18,12 @@
   let imageWidth = 900;
   let imageHeight = 600;
   let svgEl;
+  let polygonEls = [];
   let polygons = {};
-  let editablePolygon;
-  let moveablePoint;
-  let moveablePolygon;
+  let drawablePolygon;
+  let dragablePoint;
+  let dragablePolygon;
+  let eventPath; // a bubble-up array path of event elements
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
@@ -41,7 +43,7 @@
   const RANGE_OFFSET = 10;
 
   const getClosestPointInRange = ({ x, y }) => {
-    return Object.values(editablePolygon.points)
+    return Object.values(drawablePolygon.points)
       .filter((point) => point.x > x - RANGE_OFFSET && point.x < x + RANGE_OFFSET)
       .filter((point) => point.y > y - RANGE_OFFSET && point.y < y + RANGE_OFFSET)
       .reduce(
@@ -60,40 +62,52 @@
   };
 
   const handleCanvasClick = ({ x, y }) => {
-    if ($modeState !== 'add' || moveablePoint) return;
-    if (!editablePolygon) {
-      editablePolygon = { id: nanoid(4), points: {} };
-    }
-    if (getClosestPointInRange({ x, y }).id) {
-      editablePolygon = null;
-      modeState.set(null);
-      return;
+    if ($modeState !== 'draw' || dragablePoint) return;
+    if (!drawablePolygon) {
+      drawablePolygon = { id: nanoid(4), points: {} };
     }
 
+    // if (getClosestPointInRange({ x, y }).id) {
+    //   drawablePolygon = null;
+    //   modeState.set(null);
+    //   return;
+    // }
+
     const newPointId = nanoid(4);
-    editablePolygon.points[newPointId] = { x, y, id: newPointId };
-    polygons[editablePolygon.id] = editablePolygon;
+    drawablePolygon.points[newPointId] = { x, y, id: newPointId };
+    polygons[drawablePolygon.id] = drawablePolygon;
+  };
+
+  const handleCanvasScroll = (e) => {
+    console.log(e);
+  };
+
+  const handleCanvasMousemove = (e) => {
+    eventPath = e.path;
+
+    // console.log(e.path.includes(svgEl));
   };
 
   const handlePointMousedown = ({ e, pointId, polygonId }) => {
-    moveablePoint = polygons[polygonId].points[pointId];
+    dragablePoint = polygons[polygonId].points[pointId];
   };
 
   const handlePointMousemove = ({ e, pointId, polygonId }) => {
-    if (!moveablePoint || moveablePoint.id !== pointId) return;
+    if (!dragablePoint || dragablePoint.id !== pointId) return;
+
     const { movementX, movementY } = e;
     polygons[polygonId].points[pointId].x += movementX;
     polygons[polygonId].points[pointId].y += movementY;
   };
 
   const handlePolygonMousedown = ({ e, id }) => {
-    moveablePolygon = polygons[id];
+    dragablePolygon = polygons[id];
   };
 
   const handlePolygonMousemove = ({ e, id }) => {
-    if (!moveablePolygon || moveablePolygon.id !== id) return;
+    if (!dragablePolygon || dragablePolygon.id !== id) return;
 
-    editablePolygon = null;
+    drawablePolygon = null;
     modeState.set(null);
 
     const { movementX, movementY } = e;
@@ -111,8 +125,21 @@
     );
   };
 
-  const handleCanvasScroll = (e) => {
-    console.log(e);
+  const handleWindowKeydown = (e) => {
+    if (e.key === 'Escape') {
+      polygons = Object.values(polygons).reduce(
+        (acc, polygon) => ({
+          ...acc,
+          ...(polygon.id !== drawablePolygon.id && { [polygon.id]: polygon })
+        }),
+        {}
+      );
+
+      drawablePolygon = null;
+    }
+    if (e.key === 'Enter') {
+      modeState.set(null);
+    }
   };
 
   $: renderPolygons = Object.entries(polygons).reduce((acc, [id, { points }]) => {
@@ -122,7 +149,7 @@
       {
         id,
         pointsArray,
-        points: pointsArray.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '')
+        points: pointsArray.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', '')
       }
     ];
   }, []);
@@ -132,11 +159,19 @@
   });
 </script>
 
+<svelte:window on:keydown={handleWindowKeydown} />
+
 <svelte:head>
   <title>Home</title>
 </svelte:head>
 
-<div class="canvas" on:scroll={handleCanvasScroll} on:click={handleCanvasClick}>
+<div
+  class="canvas"
+  on:scroll={handleCanvasScroll}
+  on:click={handleCanvasClick}
+  on:mousemove={handleCanvasMousemove}
+  class:is-drawing={$modeState === 'draw'}
+>
   {#if src}
     <div class="render">
       <img
@@ -158,11 +193,16 @@
         {#each renderPolygons as polygon, i}
           <polygon
             points={polygon.points}
-            style="fill:lime;stroke:purple;stroke-width:1"
+            fill="red"
+            stroke-width="1"
+            stroke="blue"
+            class:is-drawing={$modeState === 'draw' && polygon.id === drawablePolygon?.id}
+            class:is-dragging={polygon.id === dragablePolygon?.id}
+            bind:this={polygonEls[i]}
             on:mousedown={(e) => handlePolygonMousedown({ e, id: polygon.id })}
             on:mousemove={(e) => handlePolygonMousemove({ e, id: polygon.id })}
-            on:mouseup={() => (moveablePolygon = null)}
-            on:mouseleave={() => (moveablePolygon = null)}
+            on:mouseup={() => (dragablePolygon = null)}
+            on:mouseleave={() => (dragablePolygon = null)}
           />
         {/each}
       </svg>
@@ -173,8 +213,8 @@
             class="point"
             on:mousedown={(e) => handlePointMousedown({ e, pointId, polygonId })}
             on:mousemove={(e) => handlePointMousemove({ e, pointId, polygonId })}
-            on:mouseup={() => (moveablePoint = null)}
-            on:mouseleave={() => (moveablePoint = null)}
+            on:mouseup={() => (dragablePoint = null)}
+            on:mouseleave={() => (dragablePoint = null)}
           />
         {/each}
       {/each}
@@ -198,8 +238,8 @@
         class="point"
         on:mousedown={(e) => handlePointMousedown(e, i, id)}
         on:mousemove={(e) => handlePointMousemove(e, i, id)}
-        on:mouseup={() => (moveablePoint = null)}
-        on:mouseleave={() => (moveablePoint = null)}
+        on:mouseup={() => (dragablePoint = null)}
+        on:mouseleave={() => (dragablePoint = null)}
       />
     {/each}
   </div>
