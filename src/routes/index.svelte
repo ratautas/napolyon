@@ -9,7 +9,8 @@
   import { onMount } from 'svelte';
 
   import ToolBar from '$lib/ToolBar/index.svelte';
-  import { mode, renderSvg } from '$lib/stores.js';
+  import { mode, renderSvg, globalAttributes } from '$lib/stores.js';
+  import { attr } from 'svelte/internal';
 
   const RANGE_OFFSET = 10; // TODO - should be dynamic
 
@@ -64,18 +65,31 @@
 
   const handleCanvasClick = ({ x, y, path }) => {
     // last two elements from 'path' are Window and document and they don't have .match() method
-    const isTargetPolygon = path.some((el, i) => i < path.length - 2 && el.matches('polygon'));
-    const isTargetPoint = path.some((el, i) => i < path.length - 2 && el.matches('.point'));
+    const matchablePaths = path.filter((el, i) => i < path.length - 2);
+    const isTargetPolygon = matchablePaths.some((el) => el.matches('polygon'));
+    const isTargetPoint = matchablePaths.some((el) => el.matches('.point'));
 
-    if (isTargetPolygon) {
-      // selectedPolygon =
+    if (!isTargetPolygon && !isTargetPoint) {
+      selectedPolygon = null;
     }
 
     // if ($mode !== 'draw' || dragablePoint) return;
     if ($mode !== 'draw') return;
 
     if (!drawablePolygon) {
-      drawablePolygon = { id: nanoid(4), points: {} };
+      // console.log($globalAttributes);
+      const attributes = $globalAttributes.reduce((acc, { name, value }) => {
+        return {
+          ...acc,
+          [name]: value
+        };
+      }, {});
+      drawablePolygon = {
+        attributes,
+        id: nanoid(4),
+        points: {}
+        // attributes: $globalAttributes.reduce((acc,))
+      };
     }
 
     // if (getClosestPointInRange({ x, y }).id) {
@@ -118,8 +132,10 @@
   };
 
   const handlePolygonMouseup = ({ e, id }) => {
+    if (!drawablePolygon) {
+      selectedPolygon = polygons[id];
+    }
     dragablePolygon = null;
-    selectedPolygon = polygons[id];
   };
 
   const handlePolygonMousemove = ({ e, id }) => {
@@ -173,7 +189,7 @@
         }
       };
     }, {});
-    console.log(polygons)
+    console.log(polygons);
   };
 
   $: renderPolygons = Object.entries(polygons).reduce((acc, [id, { points, attributes }]) => {
@@ -184,7 +200,7 @@
         id,
         attributes,
         pointsArray,
-        points: pointsArray.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', ''),
+        points: pointsArray.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', '')
       }
     ];
   }, []);
@@ -283,5 +299,9 @@
   {:else}
     nope
   {/if}
-  <ToolBar on:apply-attribute-to-all-polygons={handleApplyAttributeToAllPolygons} />
+  <ToolBar
+    {selectedPolygon}
+    {polygons}
+    on:apply-attribute-to-all-polygons={handleApplyAttributeToAllPolygons}
+  />
 </div>

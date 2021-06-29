@@ -3,7 +3,10 @@
   import { saveAs } from 'file-saver';
   import { onMount, createEventDispatcher } from 'svelte';
 
-  import { mode, attributes, renderSvg, addAttribute } from '$lib/stores.js';
+  import { mode, globalAttributes, renderSvg, addAttribute } from '$lib/stores.js';
+
+  export let polygons;
+  export let selectedPolygon;
 
   const dispatch = createEventDispatcher();
 
@@ -13,6 +16,7 @@
   let isDragging = false;
   let newAttributeName = '';
   let newAttributeValue = '';
+  let newAttributeIsGlobal = true;
 
   const handleMousemove = (e) => {
     if (!isDragging) return;
@@ -34,16 +38,21 @@
   const handleAttributeAddClick = () => {
     addAttribute({
       name: newAttributeName,
-      value: newAttributeValue
+      value: newAttributeValue,
+      isGlobal: newAttributeIsGlobal
     });
+    if (newAttributeIsGlobal) {
+      dispatch('apply-attribute-to-all-polygons', attribute);
+    }
     newAttributeName = '';
     newAttributeValue = '';
+    newAttributeIsGlobal = true;
   };
 
-  $attributes.forEach((attribute) => {
+  $globalAttributes.forEach((attribute) => {
     console.log(attribute);
-    dispatch('apply-attribute-to-all-polygons', attribute)
-  })
+    dispatch('apply-attribute-to-all-polygons', attribute);
+  });
 
   onMount(() => {
     const clientRect = toolbarEl.getBoundingClientRect();
@@ -77,22 +86,41 @@
     </div>
   </div>
   <div class="attributes">
-    {#each $attributes as attribute, i}
+    ========= GLOBAL ATTRIBUTES =========
+    {#each $globalAttributes as attribute, i}
       <div class="attributes__row">
-        <input type="text" class="attributes__input" bind:value={attribute.name} />
+        {attribute.name} : {attribute.value}
+        <!-- <input type="text" class="attributes__input" bind:value={attribute.name} />
         <input type="text" class="attributes__input" bind:value={attribute.value} />
-        <button class="attributes__submit" on:click={() => dispatch('apply-attribute-to-all-polygons', attribute)}
-          >set to all</button
-        >
+        <input type="checkbox" bind:checked={attribute.isGlobal} />global? -->
+        <!-- <button
+          class="attributes__submit"
+          on:click={() => dispatch('apply-attribute-to-all-polygons', attribute)}>set to all</button
+        > -->
       </div>
     {/each}
-    =========
+    {#if selectedPolygon}
+      ========= COMPONENT ATTRIBUTES =========
+      {#each $globalAttributes as attribute, i}
+        <div class="attributes__row">
+          <input type="text" class="attributes__input" bind:value={attribute.name} />
+          <input type="text" class="attributes__input" bind:value={attribute.value} />
+          <input type="checkbox" bind:checked={attribute.isGlobal} />global?
+          <!-- <button
+          class="attributes__submit"
+          on:click={() => dispatch('apply-attribute-to-all-polygons', attribute)}>set to all</button
+        > -->
+        </div>
+      {/each}
+    ========= ADD NEW (COMPONENT) ATTRIBUTE =========
     <div class="attributes__row">
       <input type="text" class="attributes__input" bind:value={newAttributeName} />
       <input type="text" class="attributes__input" bind:value={newAttributeValue} />
+      <input type="checkbox" bind:checked={newAttributeIsGlobal} />global?
     </div>
     <button class="attributes__submit" on:click={handleAttributeAddClick}>add</button>
     <button class="attributes__submit">apply to all</button>
+    {/if}
   </div>
   <Icon icon="ph:anchor" width="8" height="8" />
   <Icon icon="ph:activity" width="8" height="8" />

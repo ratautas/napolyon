@@ -1,20 +1,25 @@
-import { writable } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 
 export const mode = writable(null);
 
 export const renderSvg = writable(null);
 
-export const attributes = writable([{
+export const globalAttributes = writable([{
   name: 'stroke-width',
-  value: '11'
+  value: '11',
+  isGlobal: true
 }, {
   name: 'fill',
-  value: 'red'
+  value: 'red',
+  isGlobal: true
 }, {
   name: 'stroke',
-  value: 'green'
+  value: 'green',
+  isGlobal: true
 },
 ]);
+
+// export const globalAttributes = derived(attributes, $attributes => $attributes.filter(({ isGlobal }) => isGlobal))
 
 export const addAttribute = ({ name, value }) => attributes.update(($attrs) => [...$attrs, { name, value }]);
 
