@@ -4,38 +4,18 @@ export const mode = writable(null);
 
 export const renderSvg = writable(null);
 
-// export const globalAttributes = writable([{
-//   name: 'stroke-width',
-//   value: '11',
-//   isGlobal: true
-// }, {
-//   name: 'fill',
-//   value: 'red',
-//   isGlobal: true
-// }, {
-//   name: 'stroke',
-//   value: 'green',
-//   isGlobal: true
-// },
-// ]);
+export const globalAttributes = writable({
+  'stroke-width': '11',
+  'stroke': 'green',
+  'fill': 'red'
+});
 
-export const globalAttributes = writable([{
-  name: 'stroke-width',
-  value: '11',
-  isGlobal: true
-}, {
-  name: 'fill',
-  value: 'red',
-  isGlobal: true
-}, {
-  name: 'stroke',
-  value: 'green',
-  isGlobal: true
-},
-]);
+export const globalAttributesArray = derived(globalAttributes, $globalAttributes =>
+  Object
+    .entries($globalAttributes)
+    .reduce((acc, [name, value]) => [...acc, { [name]: value }], []))
 
-// export const globalAttributes = derived(attributes, $attributes => $attributes.filter(({ isGlobal }) => isGlobal))
-
-export const addAttribute = ({ name, value }) => globalAttributes.update(($attrs) => [...$attrs, { name, value }]);
+export const addAttribute = ({ name, value }) =>
+  globalAttributes.update(($globalAttributes) => ({ ...$globalAttributes, [name]: value }))
 
 export const polygons = writable({});

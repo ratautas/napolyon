@@ -66,29 +66,27 @@
   const handleCanvasClick = ({ x, y, path }) => {
     // last two elements from 'path' are Window and document and they don't have .match() method
     const matchablePaths = path.filter((el, i) => i < path.length - 2);
-    const isTargetPolygon = matchablePaths.some((el) => el.matches('polygon'));
-    const isTargetPoint = matchablePaths.some((el) => el.matches('.point'));
+    const hasPolygonTarget = matchablePaths.some((el) => el.matches('polygon'));
+    const hasPointTarget = matchablePaths.some((el) => el.matches('.point'));
+    const hasToolbarTarget = matchablePaths.some((el) => el.matches('.toolbar'));
 
-    if (!isTargetPolygon && !isTargetPoint) {
+    if (!hasPolygonTarget && !hasPointTarget && !hasToolbarTarget) {
       selectedPolygon = null;
     }
 
-    // if ($mode !== 'draw' || dragablePoint) return;
-    if ($mode !== 'draw') return;
+    if (hasToolbarTarget) {
+      drawablePolygon = null;
+    }
+
+    if ($mode !== 'draw') {
+      return;
+    }
 
     if (!drawablePolygon) {
-      // console.log($globalAttributes);
-      const attributes = $globalAttributes.reduce((acc, { name, value }) => {
-        return {
-          ...acc,
-          [name]: value
-        };
-      }, {});
       drawablePolygon = {
-        attributes,
-        id: nanoid(4),
+        attributes: $globalAttributes,
+        id: nanoid(6),
         points: {}
-        // attributes: $globalAttributes.reduce((acc,))
       };
     }
 
@@ -98,7 +96,7 @@
     //   return;
     // }
 
-    const newPointId = nanoid(4);
+    const newPointId = nanoid(6);
     drawablePolygon.points[newPointId] = { x, y, id: newPointId };
     selectedPolygon = drawablePolygon;
     polygons[drawablePolygon.id] = drawablePolygon;
@@ -133,9 +131,6 @@
   };
 
   const handlePolygonMouseup = ({ e, id }) => {
-    // if (!drawablePolygon) {
-    //   selectedPolygon = polygons[id];
-    // }
     dragablePolygon = null;
   };
 
@@ -179,39 +174,22 @@
     }
   };
 
-  const handleApplyAttributeToAllPolygons = ({ detail }) => {
-    polygons = Object.entries(polygons).reduce((acc, [id, polygon]) => {
-      return {
-        ...acc,
-        [id]: {
-          ...polygon,
-          attributes: {
-            ...polygon.attributes,
-            [detail.name]: detail.value
-          }
-        }
-      };
-    }, {});
+  const handleAddAttribute = ({ detail }) => {
+    polygons[selectedPolygon.id].attributes[detail.name] = detail.value;
+    selectedPolygon = polygons[selectedPolygon.id];
   };
 
-  const handleAttributeValueChange = ({ name, value }) => {
-    const { id } = selectedPolygon;
-    polygons[id].attributes[name] = value;
+  const handleAttributeValueInput = ({ detail }) => {
+    polygons[selectedPolygon.id].attributes[detail.name] = detail.value;
   };
 
   $: renderPolygons = Object.entries(polygons).reduce((acc, [id, { points, attributes }]) => {
     const pointsArray = Object.values(points);
-    const attributesObject = Object.entries(attributes).reduce((acc, [name, value]) => {
-      return {
-        ...acc,
-        [name]: value
-      };
-    }, {});
     return [
       ...acc,
       {
         id,
-        attributes: attributesObject,
+        attributes,
         pointsArray,
         points: pointsArray.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', '')
       }
@@ -282,31 +260,6 @@
         {/each}
       {/each}
     </div>
-    <!--
-    <div class="render">
-    <img {src} alt="" bind:this={imageEl} on:load={handleImageLoad} />
-      {#if polygonPoints.length > 2}
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={imageWidth}
-        height={imageHeight}
-        viewBox={`0 0 ${imageWidth} ${imageHeight}`}
-      >
-        <polygon {points} style="fill:lime;stroke:purple;stroke-width:1" />
-      </svg>
-    {/if}
-    {#each polygonPoints as { x, y, id }, i}
-      <div
-        style={`top:${y}px;left:${x}px`}
-        class="point"
-        on:mousedown={(e) => handlePointMousedown(e, i, id)}
-        on:mousemove={(e) => handlePointMousemove(e, i, id)}
-        on:mouseup={() => (dragablePoint = null)}
-        on:mouseleave={() => (dragablePoint = null)}
-      />
-    {/each}
-  </div>
--->
   {:else if !src}
     <Dropzone multiple={false} on:drop={handleFilesSelect} />
   {:else}
@@ -315,7 +268,7 @@
   <ToolBar
     {selectedPolygon}
     {polygons}
-    on:apply-attribute-to-all-polygons={handleApplyAttributeToAllPolygons}
-    on:attribute-value-change={handleAttributeValueChange}
+    on:add-attribute={handleAddAttribute}
+    on:attribute-value-input={handleAttributeValueInput}
   />
 </div>

@@ -3,7 +3,13 @@
   import { saveAs } from 'file-saver';
   import { onMount, createEventDispatcher } from 'svelte';
 
-  import { mode, globalAttributes, renderSvg, addAttribute } from '$lib/stores.js';
+  import {
+    mode,
+    globalAttributes,
+    globalAttributesArray,
+    renderSvg,
+    addAttribute
+  } from '$lib/stores.js';
 
   export let polygons;
   export let selectedPolygon;
@@ -36,31 +42,24 @@
   };
 
   const handleAttributeAddClick = () => {
-    addAttribute({
+    const attributeToAdd = {
       name: newAttributeName,
       value: newAttributeValue
-    });
-    dispatch('apply-attribute-to-all-polygons', attribute);
+    };
+    dispatch('add-attribute', attributeToAdd);
+    if (newAttributeIsGlobal) {
+      addAttribute(attributeToAdd);
+    }
     newAttributeName = '';
     newAttributeValue = '';
   };
 
-  const handleNameInput = (e, attribute) => {
-    console.log(e, attribute);
-    dispatch('attribute-name-change', attribute);
-  };
-
   const handleValueInput = (e, attribute) => {
-    console.log(e, attribute);
-    dispatch('attribute-value-change', {
+    dispatch('attribute-value-input', {
       name: attribute.name,
       value: e.target.value
     });
   };
-
-  $globalAttributes.forEach((attribute) => {
-    dispatch('apply-attribute-to-all-polygons', attribute);
-  });
 
   onMount(() => {
     const clientRect = toolbarEl.getBoundingClientRect();
@@ -100,29 +99,16 @@
   </div>
   <div class="attributes">
     ========= GLOBAL ATTRIBUTES =========
-    {#each $globalAttributes as attribute, i}
+    {#each Object.entries($globalAttributes) as [name, value], i}
       <div class="attributes__row">
-        {attribute.name} : {attribute.value}
-        <!-- <input type="text" class="attributes__input" bind:value={attribute.name} />
-        <input type="text" class="attributes__input" bind:value={attribute.value} />
-        <input type="checkbox" bind:checked={attribute.isGlobal} />global? -->
-        <!-- <button
-          class="attributes__submit"
-          on:click={() => dispatch('apply-attribute-to-all-polygons', attribute)}>set to all</button
-        > -->
+        {name}: {value}
       </div>
     {/each}
     {#if selectedPolygon}
       ========= COMPONENT ATTRIBUTES =========
-      {console.log(selectedPolygonAttributes)}
       {#each selectedPolygonAttributes as attribute, i}
         <div class="attributes__row">
-          <input
-            type="text"
-            class="attributes__input"
-            value={attribute.name}
-            on:input={(e) => handleNameInput(e, attribute)}
-          />
+          {attribute.name}:
           <input
             type="text"
             class="attributes__input"
