@@ -100,6 +100,7 @@
 
     const newPointId = nanoid(4);
     drawablePolygon.points[newPointId] = { x, y, id: newPointId };
+    selectedPolygon = drawablePolygon;
     polygons[drawablePolygon.id] = drawablePolygon;
   };
 
@@ -132,9 +133,9 @@
   };
 
   const handlePolygonMouseup = ({ e, id }) => {
-    if (!drawablePolygon) {
-      selectedPolygon = polygons[id];
-    }
+    // if (!drawablePolygon) {
+    //   selectedPolygon = polygons[id];
+    // }
     dragablePolygon = null;
   };
 
@@ -168,10 +169,12 @@
         }),
         {}
       );
-
       drawablePolygon = null;
     }
     if (e.key === 'Enter') {
+      if (drawablePolygon) {
+        selectedPolygon = drawablePolygon;
+      }
       mode.set(null);
     }
   };
@@ -189,16 +192,26 @@
         }
       };
     }, {});
-    console.log(polygons);
+  };
+
+  const handleAttributeValueChange = ({ name, value }) => {
+    const { id } = selectedPolygon;
+    polygons[id].attributes[name] = value;
   };
 
   $: renderPolygons = Object.entries(polygons).reduce((acc, [id, { points, attributes }]) => {
     const pointsArray = Object.values(points);
+    const attributesObject = Object.entries(attributes).reduce((acc, [name, value]) => {
+      return {
+        ...acc,
+        [name]: value
+      };
+    }, {});
     return [
       ...acc,
       {
         id,
-        attributes,
+        attributes: attributesObject,
         pointsArray,
         points: pointsArray.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', '')
       }
@@ -303,5 +316,6 @@
     {selectedPolygon}
     {polygons}
     on:apply-attribute-to-all-polygons={handleApplyAttributeToAllPolygons}
+    on:attribute-value-change={handleAttributeValueChange}
   />
 </div>

@@ -38,19 +38,27 @@
   const handleAttributeAddClick = () => {
     addAttribute({
       name: newAttributeName,
-      value: newAttributeValue,
-      isGlobal: newAttributeIsGlobal
+      value: newAttributeValue
     });
-    if (newAttributeIsGlobal) {
-      dispatch('apply-attribute-to-all-polygons', attribute);
-    }
+    dispatch('apply-attribute-to-all-polygons', attribute);
     newAttributeName = '';
     newAttributeValue = '';
-    newAttributeIsGlobal = true;
+  };
+
+  const handleNameInput = (e, attribute) => {
+    console.log(e, attribute);
+    dispatch('attribute-name-change', attribute);
+  };
+
+  const handleValueInput = (e, attribute) => {
+    console.log(e, attribute);
+    dispatch('attribute-value-change', {
+      name: attribute.name,
+      value: e.target.value
+    });
   };
 
   $globalAttributes.forEach((attribute) => {
-    console.log(attribute);
     dispatch('apply-attribute-to-all-polygons', attribute);
   });
 
@@ -61,6 +69,11 @@
   });
 
   $: style = `left:${x}px;top:${y}px`;
+  $: selectedPolygonAttributes =
+    selectedPolygon &&
+    Object.entries(selectedPolygon.attributes).reduce((acc, [name, value]) => {
+      return [...acc, { name, value }];
+    }, []);
 </script>
 
 <div class="toolbar" {style} bind:this={toolbarEl}>
@@ -101,25 +114,31 @@
     {/each}
     {#if selectedPolygon}
       ========= COMPONENT ATTRIBUTES =========
-      {#each $globalAttributes as attribute, i}
+      {console.log(selectedPolygonAttributes)}
+      {#each selectedPolygonAttributes as attribute, i}
         <div class="attributes__row">
-          <input type="text" class="attributes__input" bind:value={attribute.name} />
-          <input type="text" class="attributes__input" bind:value={attribute.value} />
-          <input type="checkbox" bind:checked={attribute.isGlobal} />global?
-          <!-- <button
-          class="attributes__submit"
-          on:click={() => dispatch('apply-attribute-to-all-polygons', attribute)}>set to all</button
-        > -->
+          <input
+            type="text"
+            class="attributes__input"
+            value={attribute.name}
+            on:input={(e) => handleNameInput(e, attribute)}
+          />
+          <input
+            type="text"
+            class="attributes__input"
+            value={attribute.value}
+            on:input={(e) => handleValueInput(e, attribute)}
+          />
         </div>
       {/each}
-    ========= ADD NEW (COMPONENT) ATTRIBUTE =========
-    <div class="attributes__row">
-      <input type="text" class="attributes__input" bind:value={newAttributeName} />
-      <input type="text" class="attributes__input" bind:value={newAttributeValue} />
-      <input type="checkbox" bind:checked={newAttributeIsGlobal} />global?
-    </div>
-    <button class="attributes__submit" on:click={handleAttributeAddClick}>add</button>
-    <button class="attributes__submit">apply to all</button>
+      ========= ADD NEW (COMPONENT) ATTRIBUTE =========
+      <div class="attributes__row">
+        <input type="text" class="attributes__input" bind:value={newAttributeName} />
+        <input type="text" class="attributes__input" bind:value={newAttributeValue} />
+        <input type="checkbox" bind:checked={newAttributeIsGlobal} />global?
+      </div>
+      <button class="attributes__submit" on:click={handleAttributeAddClick}>add</button>
+      <button class="attributes__submit">apply to all</button>
     {/if}
   </div>
   <Icon icon="ph:anchor" width="8" height="8" />
