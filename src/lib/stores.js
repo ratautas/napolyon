@@ -1,13 +1,21 @@
-import { writable, derived } from 'svelte/store';
+import { writable } from 'svelte/store';
 
 export const mode = writable(null);
 
-export const svgState = (() => {
-    const state = writable(null);
-    const { subscribe, set } = state;
+export const renderSvg = writable(null);
 
-    return {
-        subscribe,
-        set: (svgEl) => set(svgEl),
-    };
-})();
+export const attributes = writable([{
+  name: 'stroke-width',
+  value: '11'
+}, {
+  name: 'fill',
+  value: 'red'
+}, {
+  name: 'stroke',
+  value: 'green'
+},
+]);
+
+export const addAttribute = ({ name, value }) => attributes.update(($attrs) => [...$attrs, { name, value }]);
+
+export const polygons = writable({});

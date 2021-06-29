@@ -9,7 +9,9 @@
   import { onMount } from 'svelte';
 
   import ToolBar from '$lib/ToolBar/index.svelte';
-  import { mode, svgState } from '$lib/stores.js';
+  import { mode, renderSvg } from '$lib/stores.js';
+
+  const RANGE_OFFSET = 10; // TODO - should be dynamic
 
   // let src;
   let src =
@@ -23,6 +25,7 @@
   let drawablePolygon;
   let dragablePoint;
   let dragablePolygon;
+  let selectedPolygon;
   let eventPath; // a bubble-up array path of event elements
 
   const handleImageLoad = (e) => {
@@ -39,8 +42,6 @@
       src = reader.result;
     };
   };
-
-  const RANGE_OFFSET = 10;
 
   const getClosestPointInRange = ({ x, y }) => {
     return Object.values(drawablePolygon.points)
@@ -61,8 +62,18 @@
       );
   };
 
-  const handleCanvasClick = ({ x, y }) => {
-    if ($mode !== 'draw' || dragablePoint) return;
+  const handleCanvasClick = ({ x, y, path }) => {
+    // last two elements from 'path' are Window and document and they don't have .match() method
+    const isTargetPolygon = path.some((el, i) => i < path.length - 2 && el.matches('polygon'));
+    const isTargetPoint = path.some((el, i) => i < path.length - 2 && el.matches('.point'));
+
+    if (isTargetPolygon) {
+      // selectedPolygon =
+    }
+
+    // if ($mode !== 'draw' || dragablePoint) return;
+    if ($mode !== 'draw') return;
+
     if (!drawablePolygon) {
       drawablePolygon = { id: nanoid(4), points: {} };
     }
@@ -100,8 +111,15 @@
     polygons[polygonId].points[pointId].y += movementY;
   };
 
+  const handlePolygonClick = ({ e, id }) => {};
+
   const handlePolygonMousedown = ({ e, id }) => {
     dragablePolygon = polygons[id];
+  };
+
+  const handlePolygonMouseup = ({ e, id }) => {
+    dragablePolygon = null;
+    selectedPolygon = polygons[id];
   };
 
   const handlePolygonMousemove = ({ e, id }) => {
@@ -142,20 +160,37 @@
     }
   };
 
-  $: renderPolygons = Object.entries(polygons).reduce((acc, [id, { points }]) => {
+  const handleApplyAttributeToAllPolygons = ({ detail }) => {
+    polygons = Object.entries(polygons).reduce((acc, [id, polygon]) => {
+      return {
+        ...acc,
+        [id]: {
+          ...polygon,
+          attributes: {
+            ...polygon.attributes,
+            [detail.name]: detail.value
+          }
+        }
+      };
+    }, {});
+    console.log(polygons)
+  };
+
+  $: renderPolygons = Object.entries(polygons).reduce((acc, [id, { points, attributes }]) => {
     const pointsArray = Object.values(points);
     return [
       ...acc,
       {
         id,
+        attributes,
         pointsArray,
-        points: pointsArray.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', '')
+        points: pointsArray.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', ''),
       }
     ];
   }, []);
 
   onMount(() => {
-    svgState.set(svgEl);
+    renderSvg.set(svgEl);
   });
 </script>
 
@@ -193,15 +228,14 @@
         {#each renderPolygons as polygon, i}
           <polygon
             points={polygon.points}
-            fill="red"
-            stroke-width="1"
-            stroke="blue"
+            {...polygon.attributes}
             class:is-drawing={$mode === 'draw' && polygon.id === drawablePolygon?.id}
             class:is-dragging={polygon.id === dragablePolygon?.id}
             bind:this={polygonEls[i]}
+            on:click={(e) => handlePolygonClick({ e, id: polygon.id })}
             on:mousedown={(e) => handlePolygonMousedown({ e, id: polygon.id })}
             on:mousemove={(e) => handlePolygonMousemove({ e, id: polygon.id })}
-            on:mouseup={() => (dragablePolygon = null)}
+            on:mouseup={(e) => handlePolygonMouseup({ e, id: polygon.id })}
             on:mouseleave={() => (dragablePolygon = null)}
           />
         {/each}
@@ -249,5 +283,5 @@
   {:else}
     nope
   {/if}
-  <ToolBar />
+  <ToolBar on:apply-attribute-to-all-polygons={handleApplyAttributeToAllPolygons} />
 </div>
