@@ -9,12 +9,11 @@
     renderSvg,
     addAttribute,
     isSnapEnabled,
+    selectedPolygon,
     snapRadius
   } from '$lib/stores.js';
 
   // export let polygons;
-  export let selectedPolygon;
-
   const dispatch = createEventDispatcher();
 
   let toolbarEl;
@@ -70,8 +69,8 @@
 
   $: style = `left:${x}px;top:${y}px`;
   $: selectedPolygonAttributes =
-    selectedPolygon &&
-    Object.entries(selectedPolygon.attributes).reduce(
+    $selectedPolygon &&
+    Object.entries($selectedPolygon.attributes).reduce(
       (acc, [name, value]) => [...acc, { name, value }],
       []
     );
@@ -112,7 +111,7 @@
     disabled={!$isSnapEnabled}
     on:input={(e) => snapRadius.set(e.target.value)}
   />
-  Selected polygon id: {selectedPolygon?.id}
+  Selected polygon id: {$selectedPolygon?.id}
   <div class="attributes">
     ========= GLOBAL ATTRIBUTES =========
     {#each Object.entries($globalAttributes) as [name, value], i}
@@ -120,7 +119,7 @@
         {name}: {value}
       </div>
     {/each}
-    {#if selectedPolygon}
+    {#if $selectedPolygon}
       ========= COMPONENT ATTRIBUTES =========
       {#each selectedPolygonAttributes as attribute, i}
         <div class="attributes__row">

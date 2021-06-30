@@ -9,8 +9,21 @@
   import { onMount } from 'svelte';
 
   import ToolBar from '$lib/ToolBar/index.svelte';
-  import { mode, renderSvg, globalAttributes, snapRadius, isSnapEnabled } from '$lib/stores.js';
-  import { attr } from 'svelte/internal';
+  import {
+    mode,
+    renderSvg,
+    globalAttributes,
+    snapRadius,
+    isSnapEnabled,
+    polygons,
+    renderPolygons,
+    drawablePolygon,
+    dragablePolygon,
+    selectedPolygon,
+    hoveredPolygon,
+    dragablePoint,
+    polygonsMap
+  } from '$lib/stores.js';
 
   // let src;
   let src =
@@ -19,75 +32,9 @@
   let imageWidth = 900;
   let imageHeight = 600;
   let svgEl;
-  let polygonEls = [];
-  let polygons = {
-    L8EIvC: {
-      attributes: {
-        'stroke-width': '1',
-        stroke: 'rgba(255,255,255,.8)',
-        fill: 'rgba(0,0,0,.5)'
-      },
-      id: 'L8EIvC',
-      points: {
-        LsJQaN: {
-          x: 615,
-          y: 45,
-          id: 'LsJQaN'
-        },
-        QyO1oa: {
-          x: 865,
-          y: 65,
-          id: 'QyO1oa'
-        },
-        jRfjxP: {
-          x: 865,
-          y: 245,
-          id: 'jRfjxP'
-        },
-        i0spdb: {
-          x: 560,
-          y: 107,
-          id: 'i0spdb'
-        }
-      }
-    },
-    DaNhAj: {
-      attributes: {
-        'stroke-width': '1',
-        stroke: 'rgba(255,255,255,.8)',
-        fill: 'rgba(0,0,0,.5)'
-      },
-      id: 'DaNhAj',
-      points: {
-        YKdSHB: {
-          x: 678,
-          y: 247,
-          id: 'YKdSHB'
-        },
-        IHLh3o: {
-          x: 870,
-          y: 295,
-          id: 'IHLh3o'
-        },
-        ABqVA8: {
-          x: 858,
-          y: 497,
-          id: 'ABqVA8'
-        },
-        WH2UKA: {
-          x: 681,
-          y: 475,
-          id: 'WH2UKA'
-        }
-      }
-    }
-  };
-  let drawablePolygon;
-  let dragablePolygon;
-  let selectedPolygon;
-  let hoveredPolygon;
-  let dragablePoint;
-  let eventPath; // a bubble-up array path of event elements
+
+  let dragStartX = 0;
+  let dragStartY = 0;
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
@@ -134,149 +81,168 @@
 
     // unset selectedPolygon if clicked outside polygon/point/toolbar
     if (!hasPolygonTarget && !hasPointTarget && !hasToolbarTarget) {
-      selectedPolygon = null;
+      selectedPolygon.set(null);
     }
 
     // unset drawablePolygon if clicked on toolbar/point
     if (hasToolbarTarget || hasPointTarget) {
-      drawablePolygon = null;
+      drawablePolygon.set(null);
     }
 
     if ($mode !== 'draw') return;
 
-    if (!drawablePolygon) {
-      selectedPolygon = null;
-      drawablePolygon = {
+    if (!$drawablePolygon) {
+      selectedPolygon.set(null);
+      drawablePolygon.set({
         attributes: $globalAttributes,
         id: nanoid(6),
         points: {}
-      };
+      });
     }
 
     const newPointId = nanoid(6);
     const closestPoint =
       $isSnapEnabled &&
-      Object.entries(polygons)
+      $polygonsMap
         // TODO - instead of filtering out drawablePolygon, replace and do not create a new point on same polygon
-        .filter(([id]) => id !== drawablePolygon.id)
-        .reduce((acc, [id, { points }]) => findClosestPoint({ points, x, y }) ?? acc, null);
+        .filter(({ id }) => id !== $drawablePolygon.id)
+        .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
-    const newPoint = {
+    drawablePolygon.addPoint({
       x: closestPoint?.x ?? x,
       y: closestPoint?.y ?? y,
       id: newPointId
-    };
+    });
 
-    drawablePolygon.points[newPointId] = newPoint;
-    selectedPolygon = drawablePolygon;
-    polygons[drawablePolygon.id] = drawablePolygon;
+    selectedPolygon.set($drawablePolygon);
+    polygons.addPolygon($drawablePolygon);
   };
 
   const handleCanvasScroll = (e) => {
     console.log(e);
   };
 
-  const handleCanvasMousemove = (e) => {
-    const { movementX, movementY, path } = e;
+  const handleCanvasMousedown = (e) => {
+    dragStartX = e.x;
+    dragStartY = e.y;
+  };
 
-    if (!!dragablePoint && !!selectedPolygon) {
-      polygons[selectedPolygon.id].points[dragablePoint.id].x += movementX;
-      polygons[selectedPolygon.id].points[dragablePoint.id].y += movementY;
+  const handleCanvasMouseup = (e) => {
+    selectedPolygon.set($polygons[$selectedPolygon?.id]);
+
+    if (!!$dragablePolygon) {
+      dragablePolygon.set(null);
+    }
+
+    if ($dragablePoint) {
+      if ($isSnapEnabled) {
+        const closestPoint = $polygonsMap
+          .filter((id) => id !== $selectedPolygon?.id)
+          .reduce(
+            (acc, { points }) =>
+              findClosestPoint({ points, x: $dragablePoint.x, y: $dragablePoint.y }) ?? acc,
+            null
+          );
+        console.log(closestPoint);
+
+        if (closestPoint) {
+          polygons.movePoint($selectedPolygon, $dragablePoint, closestPoint.x, closestPoint.y);
+          // dont just polygons[polygon.id].points[point.id] = closestPoint as we need to keep the id
+          // polygons[polygon.id].points[point.id].x = closestPoint.x;
+          // polygons[polygon.id].points[point.id].y = closestPoint.y;
+        }
+      }
+      dragablePoint.set(null);
+    }
+  };
+
+  const handleCanvasMousemove = (e) => {
+    // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
+    if (!!$dragablePoint && !!$selectedPolygon) {
+      const x = $dragablePoint.x + e.x - dragStartX;
+      const y = $dragablePoint.y + e.y - dragStartY;
+      polygons.movePoint($selectedPolygon, $dragablePoint, x, y);
+      // selectedPolygon.set($polygons[$selectedPolygon.id]);
       return;
     }
 
-    if (!!dragablePolygon) {
-      drawablePolygon = null;
+    if (!!$dragablePolygon) {
+      drawablePolygon.set(null);
       mode.set(null);
-      const { id } = dragablePolygon;
-
-      polygons[id].points = Object.values(polygons[id].points).reduce(
-        (acc, point) => ({
-          ...acc,
-          [point.id]: {
-            ...point,
-            x: (point.x += movementX),
-            y: (point.y += movementY)
-          }
-        }),
-        {}
-      );
+      polygons.moveAllPoints($dragablePolygon, e.x - dragStartX, e.y - dragStartY);
+      // dragablePolygon.set($polygons[$dragablePolygon.id]);
+      return;
     }
-  };
-
-  const handlePointMousedown = ({ e, point, polygon }) => {
-    dragablePoint = polygons[polygon.id].points[point.id];
-  };
-
-  const handlePointMouseup = ({ e, point, polygon }) => {
-    if (!dragablePoint) return;
-    dragablePoint = null;
-
-    if (!$isSnapEnabled) return;
-
-    const closestPoint = Object.entries(polygons)
-      .filter(([id]) => id !== polygon.id)
-      .reduce(
-        (acc, [id, { points }]) => findClosestPoint({ points, x: point.x, y: point.y }) ?? acc,
-        null
-      );
-
-    if (closestPoint) {
-      // dont just polygons[polygon.id].points[point.id] = closestPoint as we need to keep the id
-      polygons[polygon.id].points[point.id].x = closestPoint.x;
-      polygons[polygon.id].points[point.id].y = closestPoint.y;
-    }
-  };
-
-  const handlePointMouseleave = ({ e, point, polygon }) => {
-    const hasPointTarget = e.path
-      .filter((el, i) => i < path.length - 2)
-      .some((el) => el.matches('.point'));
-
-    if (!hasPointTarget) {
-      dragablePoint = null;
-    }
-  };
-
-  const handlePolygonClick = ({ e, id }) => {};
-
-  const handlePolygonMousedown = ({ e, polygon }) => {
-    dragablePolygon = polygons[polygon.id];
-    selectedPolygon = polygons[polygon.id];
-  };
-
-  const handlePolygonMouseup = ({ e, polygon }) => {
-    dragablePolygon = null;
   };
 
   const handlePolygonMouseenter = ({ e, polygon }) => {
-    hoveredPolygon = polygon;
+    hoveredPolygon.set(polygon);
+  };
+
+  const handlePolygonMousedown = ({ e, polygon }) => {
+    dragablePolygon.set($polygons[polygon.id]);
+    selectedPolygon.set($polygons[polygon.id]);
   };
 
   const handlePolygonMouseleave = ({ e, polygon }) => {
     const hasPolygonTarget = e.path
-      .filter((el, i) => i < path.length - 2)
+      .filter((el, i) => i < e.path.length - 2)
       .some((el) => el.matches('polygon'));
     if (!hasPolygonTarget) {
-      dragablePolygon = null;
-      hoveredPolygon = null;
+      dragablePolygon.set(null);
+      hoveredPolygon.set(null);
+    }
+  };
+
+  const handlePointMousedown = ({ e, point, polygon }) => {
+    dragablePoint.set($polygons[polygon.id].points[point.id]);
+  };
+
+  const handlePointMouseup = ({ e, point, polygon }) => {
+    // if (!$dragablePoint) return;
+    // dragablePoint.set(null);
+    // if (!$isSnapEnabled) return;
+    // const closestPoint = $polygonsMap
+    //   .filter((id) => id !== polygon.id)
+    //   .reduce(
+    //     (acc, { points }) => findClosestPoint({ points, x: point.x, y: point.y }) ?? acc,
+    //     null
+    //   );
+    // if (closestPoint) {
+    //   // dont just polygons[polygon.id].points[point.id] = closestPoint as we need to keep the id
+    //   // polygons[polygon.id].points[point.id].x = closestPoint.x;
+    //   // polygons[polygon.id].points[point.id].y = closestPoint.y;
+    // }
+  };
+
+  const handlePointMouseleave = ({ e, point, polygon }) => {
+    const hasPointTarget = e.path
+      .filter((el, i) => i < e.path.length - 2)
+      .some((el) => el.matches('.point'));
+
+    if (!hasPointTarget) {
+      dragablePoint.set(null);
     }
   };
 
   const handleWindowKeydown = (e) => {
     if (e.key === 'Escape') {
-      polygons = Object.values(polygons).reduce(
+      polygons = $polygonsMap.reduce(
         (acc, polygon) => ({
           ...acc,
-          ...(polygon.id !== drawablePolygon.id && { [polygon.id]: polygon })
+          ...(polygon.id !== $drawablePolygon.id && { [polygon.id]: polygon })
         }),
         {}
       );
-      drawablePolygon = null;
+      // escape drawing state
+      drawablePolygon.set(null);
+      mode.set(null);
+      // additional escape if dragging gets out of hand
+      dragablePolygon.set(null);
     }
     if (e.key === 'Enter') {
-      if (drawablePolygon) {
-        selectedPolygon = drawablePolygon;
+      if ($drawablePolygon) {
+        selectedPolygon.set($drawablePolygon);
       }
       mode.set(null);
     }
@@ -284,7 +250,7 @@
 
   const handleAddAttribute = ({ detail }) => {
     polygons[selectedPolygon.id].attributes[detail.name] = detail.value;
-    selectedPolygon = polygons[selectedPolygon.id];
+    selectedPolygon.set(polygons[selectedPolygon.id]);
   };
 
   const handleAttributeValueInput = ({ detail }) => {
@@ -303,20 +269,6 @@
     }, {});
   };
 
-  $: renderPolygons = Object.entries(polygons).reduce((acc, [id, { points, attributes }]) => {
-    const pointsArray = Object.values(points);
-    window.polygons = polygons;
-    return [
-      ...acc,
-      {
-        id,
-        attributes,
-        pointsArray,
-        points: pointsArray.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', '')
-      }
-    ];
-  }, []);
-
   onMount(() => {
     renderSvg.set(svgEl);
   });
@@ -332,7 +284,9 @@
   class="canvas"
   on:scroll={handleCanvasScroll}
   on:click={handleCanvasClick}
+  on:mousedown={handleCanvasMousedown}
   on:mousemove={handleCanvasMousemove}
+  on:mouseup={handleCanvasMouseup}
   class:is-drawing={$mode === 'draw'}
   style={`--snapRadius:${$snapRadius}px`}
 >
@@ -354,27 +308,24 @@
         viewBox={`0 0 ${imageWidth} ${imageHeight}`}
         bind:this={svgEl}
       >
-        {#each renderPolygons as polygon, i}
+        {#each $renderPolygons as polygon, i}
           <polygon
             points={polygon.points}
             id={polygon.id}
             {...polygon.attributes}
-            class:is-drawing={$mode === 'draw' && polygon.id === drawablePolygon?.id}
-            class:is-dragging={polygon.id === dragablePolygon?.id}
-            class:is-hovered={polygon.id === hoveredPolygon?.id}
-            class:is-selected={polygon.id === selectedPolygon?.id}
-            bind:this={polygonEls[i]}
-            on:click={(e) => handlePolygonClick({ e, polygon })}
+            class:is-drawing={$mode === 'draw' && polygon.id === $drawablePolygon?.id}
+            class:is-dragging={polygon.id === $dragablePolygon}
+            class:is-hovered={polygon.id === $hoveredPolygon?.id}
+            class:is-selected={polygon.id === $selectedPolygon?.id}
             on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
-            on:mouseup={(e) => handlePolygonMouseup({ e, polygon })}
             on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon })}
             on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon })}
           />
         {/each}
       </svg>
-      {#each renderPolygons as polygon, polygonIndex}
-        {#if polygon.id === selectedPolygon?.id || polygon.id === drawablePolygon?.id}
-          {#each polygon.pointsArray as point, pointIndex}
+      {#each $renderPolygons as polygon, polygonIndex}
+        {#if polygon.id === $selectedPolygon?.id || polygon.id === $drawablePolygon?.id}
+          {#each polygon.pointsMap as point, pointIndex}
             <div
               style={`left:${point.x}px;top:${point.y}px;`}
               class="point"
