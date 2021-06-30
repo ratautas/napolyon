@@ -232,6 +232,7 @@
     const hasPointTarget = e.path
       .filter((el, i) => i < path.length - 2)
       .some((el) => el.matches('.point'));
+
     if (!hasPointTarget) {
       dragablePoint = null;
     }
@@ -247,11 +248,6 @@
   const handlePolygonMouseup = ({ e, polygon }) => {
     dragablePolygon = null;
   };
-
-  // const handlePolygonMousemove = ({ e, polygon }) => {
-  //   if (!dragablePolygon || dragablePolygon.id !== polygon.id) return;
-
-  // };
 
   const handlePolygonMouseenter = ({ e, polygon }) => {
     hoveredPolygon = polygon;
@@ -370,7 +366,6 @@
             bind:this={polygonEls[i]}
             on:click={(e) => handlePolygonClick({ e, polygon })}
             on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
-            on:mousemove={(e) => handlePolygonMousemove({ e, polygon })}
             on:mouseup={(e) => handlePolygonMouseup({ e, polygon })}
             on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon })}
             on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon })}
