@@ -12,8 +12,6 @@
   import { mode, renderSvg, globalAttributes, snapRadius, isSnapEnabled } from '$lib/stores.js';
   import { attr } from 'svelte/internal';
 
-  const RANGE_OFFSET = 10; // TODO - should be dynamic
-
   // let src;
   let src =
     'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
@@ -46,8 +44,8 @@
 
   const getClosestPointInRange = ({ x, y }) => {
     return Object.values(drawablePolygon.points)
-      .filter((point) => point.x > x - RANGE_OFFSET && point.x < x + RANGE_OFFSET)
-      .filter((point) => point.y > y - RANGE_OFFSET && point.y < y + RANGE_OFFSET)
+      .filter((point) => point.x > x - $snapRadius && point.x < x + $snapRadius)
+      .filter((point) => point.y > y - $snapRadius && point.y < y + $snapRadius)
       .reduce(
         (acc, point) => {
           const diffX = point.x - x;
@@ -58,7 +56,7 @@
           return acc == null || diff <= acc.diff ? { ...point, diff } : acc;
         },
         {
-          diff: RANGE_OFFSET
+          diff: $snapRadius
         }
       );
   };
@@ -228,8 +226,8 @@
   on:click={handleCanvasClick}
   on:mousemove={handleCanvasMousemove}
   class:is-drawing={$mode === 'draw'}
+  style={`--snapRadius:${$snapRadius}px`}
 >
-{$snapRadius} {$isSnapEnabled}
   {#if src}
     <div class="render">
       <img

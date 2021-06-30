@@ -95,10 +95,10 @@ main {
   &:before {
     content: '';
     position: absolute;
-    top: -11px;
-    left: -11px;
-    width: 20px;
-    height: 20px;
+    top: calc((var(--snapRadius) * -1) - 1px);
+    left: calc((var(--snapRadius) * -1) - 1px);
+    width: calc(var(--snapRadius) * 2);
+    height: calc(var(--snapRadius) * 2);
     border-radius: 50%;
     cursor: move;
     // background-color: red;
