@@ -9,7 +9,7 @@
   import { onMount } from 'svelte';
 
   import ToolBar from '$lib/ToolBar/index.svelte';
-  import { mode, renderSvg, globalAttributes } from '$lib/stores.js';
+  import { mode, renderSvg, globalAttributes, snapRadius, isSnapEnabled } from '$lib/stores.js';
   import { attr } from 'svelte/internal';
 
   const RANGE_OFFSET = 10; // TODO - should be dynamic
@@ -24,9 +24,9 @@
   let polygonEls = [];
   let polygons = {};
   let drawablePolygon;
-  let dragablePoint;
   let dragablePolygon;
   let selectedPolygon;
+  let dragablePoint;
   let eventPath; // a bubble-up array path of event elements
 
   const handleImageLoad = (e) => {
@@ -83,6 +83,7 @@
     }
 
     if (!drawablePolygon) {
+      selectedPolygon = null;
       drawablePolygon = {
         attributes: $globalAttributes,
         id: nanoid(6),
@@ -128,6 +129,7 @@
 
   const handlePolygonMousedown = ({ e, id }) => {
     dragablePolygon = polygons[id];
+    selectedPolygon = polygons[id];
   };
 
   const handlePolygonMouseup = ({ e, id }) => {
@@ -180,10 +182,23 @@
   };
 
   const handleAttributeValueInput = ({ detail }) => {
-    polygons[selectedPolygon.id].attributes[detail.name] = detail.value;
+    selectedPolygon.attributes[detail.name] = detail.value;
+    polygons = Object.entries(polygons).reduce((acc, [id, polygon]) => {
+      return {
+        ...acc,
+        [id]: {
+          ...polygon,
+          attributes: {
+            ...polygon.attributes,
+            ...(id === selectedPolygon.id && { [detail.name]: detail.value })
+          }
+        }
+      };
+    }, {});
   };
 
   $: renderPolygons = Object.entries(polygons).reduce((acc, [id, { points, attributes }]) => {
+    console.log({ id, attributes });
     const pointsArray = Object.values(points);
     return [
       ...acc,
@@ -214,6 +229,7 @@
   on:mousemove={handleCanvasMousemove}
   class:is-drawing={$mode === 'draw'}
 >
+{$snapRadius} {$isSnapEnabled}
   {#if src}
     <div class="render">
       <img
@@ -235,6 +251,7 @@
         {#each renderPolygons as polygon, i}
           <polygon
             points={polygon.points}
+            id={polygon.id}
             {...polygon.attributes}
             class:is-drawing={$mode === 'draw' && polygon.id === drawablePolygon?.id}
             class:is-dragging={polygon.id === dragablePolygon?.id}
@@ -248,16 +265,18 @@
         {/each}
       </svg>
       {#each renderPolygons as { pointsArray, id: polygonId }, polygonIndex}
-        {#each pointsArray as { x, y, id: pointId }, pointIndex}
-          <div
-            style={`top:${y}px;left:${x}px`}
-            class="point"
-            on:mousedown={(e) => handlePointMousedown({ e, pointId, polygonId })}
-            on:mousemove={(e) => handlePointMousemove({ e, pointId, polygonId })}
-            on:mouseup={() => (dragablePoint = null)}
-            on:mouseleave={() => (dragablePoint = null)}
-          />
-        {/each}
+        {#if polygonId === selectedPolygon?.id || polygonId === drawablePolygon?.id}
+          {#each pointsArray as { x, y, id: pointId }, pointIndex}
+            <div
+              style={`top:${y}px;left:${x}px`}
+              class="point"
+              on:mousedown={(e) => handlePointMousedown({ e, pointId, polygonId })}
+              on:mousemove={(e) => handlePointMousemove({ e, pointId, polygonId })}
+              on:mouseup={() => (dragablePoint = null)}
+              on:mouseleave={() => (dragablePoint = null)}
+            />
+          {/each}
+        {/if}
       {/each}
     </div>
   {:else if !src}

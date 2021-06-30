@@ -1,13 +1,15 @@
 import { writable, derived } from 'svelte/store';
 
 export const mode = writable(null);
+export const isSnapEnabled = writable(false);
+export const snapRadius = writable(10);
 
 export const renderSvg = writable(null);
 
 export const globalAttributes = writable({
-  'stroke-width': '11',
-  'stroke': 'green',
-  'fill': 'red'
+  'stroke-width': '1',
+  'stroke': 'rgba(255,255,255,.8)',
+  'fill': 'rgba(0,0,0,.5)'
 });
 
 export const globalAttributesArray = derived(globalAttributes, $globalAttributes =>

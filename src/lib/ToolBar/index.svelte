@@ -6,12 +6,13 @@
   import {
     mode,
     globalAttributes,
-    globalAttributesArray,
     renderSvg,
-    addAttribute
+    addAttribute,
+    isSnapEnabled,
+    snapRadius
   } from '$lib/stores.js';
 
-  export let polygons;
+  // export let polygons;
   export let selectedPolygon;
 
   const dispatch = createEventDispatcher();
@@ -70,9 +71,10 @@
   $: style = `left:${x}px;top:${y}px`;
   $: selectedPolygonAttributes =
     selectedPolygon &&
-    Object.entries(selectedPolygon.attributes).reduce((acc, [name, value]) => {
-      return [...acc, { name, value }];
-    }, []);
+    Object.entries(selectedPolygon.attributes).reduce(
+      (acc, [name, value]) => [...acc, { name, value }],
+      []
+    );
 </script>
 
 <div class="toolbar" {style} bind:this={toolbarEl}>
@@ -97,6 +99,20 @@
       <Icon color="currentColor" icon="ph:download-simple" width="32" height="32" />
     </div>
   </div>
+  <input
+    type="checkbox"
+    value={$isSnapEnabled}
+    on:input={(e) => isSnapEnabled.set(!!e.target.checked)}
+  />
+  <input
+    type="range"
+    min="1"
+    max="50"
+    value={$snapRadius}
+    disabled={!$isSnapEnabled}
+    on:input={(e) => snapRadius.set(e.target.value)}
+  />
+  Selected polygon id: {selectedPolygon?.id}
   <div class="attributes">
     ========= GLOBAL ATTRIBUTES =========
     {#each Object.entries($globalAttributes) as [name, value], i}
