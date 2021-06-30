@@ -105,14 +105,22 @@ main {
     border: solid 1px blue;
     z-index: 1;
   }
+  &:focus {
+    z-index: 2;
+  }
 }
 
 polygon {
+  position: relative;
   &.is-drawing {
     opacity: 0.2;
   }
   &.is-dragging {
     opacity: 0.5;
     cursor: move;
+    z-index: 2;
+  }
+  &.is-hovered {
+    z-index: 2;
   }
 }

@@ -1,7 +1,7 @@
 import { writable, derived } from 'svelte/store';
 
 export const mode = writable(null);
-export const isSnapEnabled = writable(false);
+export const isSnapEnabled = writable(true);
 export const snapRadius = writable(10);
 
 export const renderSvg = writable(null);

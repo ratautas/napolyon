@@ -85,6 +85,7 @@
   let drawablePolygon;
   let dragablePolygon;
   let selectedPolygon;
+  let hoveredPolygon;
   let dragablePoint;
   let eventPath; // a bubble-up array path of event elements
 
@@ -158,7 +159,7 @@
       Object.entries(polygons)
         // TODO - instead of filtering out drawablePolygon, replace and do not create a new point on same polygon
         .filter(([id]) => id !== drawablePolygon.id)
-        .reduce((acc, [id, { points }]) => findClosestPoint({ points, x, y }) ?? acc, {});
+        .reduce((acc, [id, { points }]) => findClosestPoint({ points, x, y }) ?? acc, null);
 
     const newPoint = {
       x: closestPoint?.x ?? x,
@@ -176,24 +177,35 @@
   };
 
   const handleCanvasMousemove = (e) => {
-    eventPath = e.path;
+    const { movementX, movementY, path } = e;
 
-    // console.log(e.path.includes(svgEl));
+    if (!!dragablePoint && !!selectedPolygon) {
+      polygons[selectedPolygon.id].points[dragablePoint.id].x += movementX;
+      polygons[selectedPolygon.id].points[dragablePoint.id].y += movementY;
+      return;
+    }
+
+    if (!!dragablePolygon) {
+      drawablePolygon = null;
+      mode.set(null);
+      const { id } = dragablePolygon;
+
+      polygons[id].points = Object.values(polygons[id].points).reduce(
+        (acc, point) => ({
+          ...acc,
+          [point.id]: {
+            ...point,
+            x: (point.x += movementX),
+            y: (point.y += movementY)
+          }
+        }),
+        {}
+      );
+    }
   };
 
   const handlePointMousedown = ({ e, point, polygon }) => {
     dragablePoint = polygons[polygon.id].points[point.id];
-  };
-
-  const handlePointMousemove = ({ e, point, polygon }) => {
-    if (!dragablePoint || dragablePoint.id !== point.id) return;
-    const { movementX, movementY } = e;
-    // dragablePoint.x += movementX;
-    // dragablePoint.y += movementY;
-    // polygons[polygon.id].points[point.id] = dragablePoint;
-
-    polygons[polygon.id].points[point.id].x += movementX;
-    polygons[polygon.id].points[point.id].y += movementY;
   };
 
   const handlePointMouseup = ({ e, point, polygon }) => {
@@ -204,7 +216,10 @@
 
     const closestPoint = Object.entries(polygons)
       .filter(([id]) => id !== polygon.id)
-      .reduce((acc, [id, { points }]) => findClosestPoint({ points, x: point.x, y: point.y }), {});
+      .reduce(
+        (acc, [id, { points }]) => findClosestPoint({ points, x: point.x, y: point.y }) ?? acc,
+        null
+      );
 
     if (closestPoint) {
       // dont just polygons[polygon.id].points[point.id] = closestPoint as we need to keep the id
@@ -214,40 +229,42 @@
   };
 
   const handlePointMouseleave = ({ e, point, polygon }) => {
-    if (dragablePoint?.id !== point.id) return;
-    dragablePoint = null;
+    const hasPointTarget = e.path
+      .filter((el, i) => i < path.length - 2)
+      .some((el) => el.matches('.point'));
+    if (!hasPointTarget) {
+      dragablePoint = null;
+    }
   };
 
   const handlePolygonClick = ({ e, id }) => {};
 
-  const handlePolygonMousedown = ({ e, id }) => {
-    dragablePolygon = polygons[id];
-    selectedPolygon = polygons[id];
+  const handlePolygonMousedown = ({ e, polygon }) => {
+    dragablePolygon = polygons[polygon.id];
+    selectedPolygon = polygons[polygon.id];
   };
 
-  const handlePolygonMouseup = ({ e, id }) => {
+  const handlePolygonMouseup = ({ e, polygon }) => {
     dragablePolygon = null;
   };
 
-  const handlePolygonMousemove = ({ e, id }) => {
-    if (!dragablePolygon || dragablePolygon.id !== id) return;
+  // const handlePolygonMousemove = ({ e, polygon }) => {
+  //   if (!dragablePolygon || dragablePolygon.id !== polygon.id) return;
 
-    drawablePolygon = null;
-    mode.set(null);
+  // };
 
-    const { movementX, movementY } = e;
+  const handlePolygonMouseenter = ({ e, polygon }) => {
+    hoveredPolygon = polygon;
+  };
 
-    polygons[id].points = Object.values(polygons[id].points).reduce(
-      (acc, point) => ({
-        ...acc,
-        [point.id]: {
-          ...point,
-          x: (point.x += movementX),
-          y: (point.y += movementY)
-        }
-      }),
-      {}
-    );
+  const handlePolygonMouseleave = ({ e, polygon }) => {
+    const hasPolygonTarget = e.path
+      .filter((el, i) => i < path.length - 2)
+      .some((el) => el.matches('polygon'));
+    if (!hasPolygonTarget) {
+      dragablePolygon = null;
+      hoveredPolygon = null;
+    }
   };
 
   const handleWindowKeydown = (e) => {
@@ -348,12 +365,15 @@
             {...polygon.attributes}
             class:is-drawing={$mode === 'draw' && polygon.id === drawablePolygon?.id}
             class:is-dragging={polygon.id === dragablePolygon?.id}
+            class:is-hovered={polygon.id === hoveredPolygon?.id}
+            class:is-selected={polygon.id === selectedPolygon?.id}
             bind:this={polygonEls[i]}
-            on:click={(e) => handlePolygonClick({ e, id: polygon.id })}
-            on:mousedown={(e) => handlePolygonMousedown({ e, id: polygon.id })}
-            on:mousemove={(e) => handlePolygonMousemove({ e, id: polygon.id })}
-            on:mouseup={(e) => handlePolygonMouseup({ e, id: polygon.id })}
-            on:mouseleave={() => (dragablePolygon = null)}
+            on:click={(e) => handlePolygonClick({ e, polygon })}
+            on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
+            on:mousemove={(e) => handlePolygonMousemove({ e, polygon })}
+            on:mouseup={(e) => handlePolygonMouseup({ e, polygon })}
+            on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon })}
+            on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon })}
           />
         {/each}
       </svg>
@@ -364,8 +384,8 @@
               style={`left:${point.x}px;top:${point.y}px;`}
               class="point"
               id={point.id}
+              tabindex="0"
               on:mousedown={(e) => handlePointMousedown({ e, point, polygon })}
-              on:mousemove={(e) => handlePointMousemove({ e, point, polygon })}
               on:mouseup={(e) => handlePointMouseup({ e, point, polygon })}
               on:mouseleave={(e) => handlePointMouseleave({ e, point, polygon })}
             />

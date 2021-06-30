@@ -101,7 +101,7 @@
   </div>
   <input
     type="checkbox"
-    value={$isSnapEnabled}
+    checked={$isSnapEnabled}
     on:input={(e) => isSnapEnabled.set(!!e.target.checked)}
   />
   <input
