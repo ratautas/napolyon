@@ -20,7 +20,68 @@
   let imageHeight = 600;
   let svgEl;
   let polygonEls = [];
-  let polygons = {};
+  let polygons = {
+    L8EIvC: {
+      attributes: {
+        'stroke-width': '1',
+        stroke: 'rgba(255,255,255,.8)',
+        fill: 'rgba(0,0,0,.5)'
+      },
+      id: 'L8EIvC',
+      points: {
+        LsJQaN: {
+          x: 615,
+          y: 45,
+          id: 'LsJQaN'
+        },
+        QyO1oa: {
+          x: 865,
+          y: 65,
+          id: 'QyO1oa'
+        },
+        jRfjxP: {
+          x: 865,
+          y: 245,
+          id: 'jRfjxP'
+        },
+        i0spdb: {
+          x: 560,
+          y: 107,
+          id: 'i0spdb'
+        }
+      }
+    },
+    DaNhAj: {
+      attributes: {
+        'stroke-width': '1',
+        stroke: 'rgba(255,255,255,.8)',
+        fill: 'rgba(0,0,0,.5)'
+      },
+      id: 'DaNhAj',
+      points: {
+        YKdSHB: {
+          x: 678,
+          y: 247,
+          id: 'YKdSHB'
+        },
+        IHLh3o: {
+          x: 870,
+          y: 295,
+          id: 'IHLh3o'
+        },
+        ABqVA8: {
+          x: 858,
+          y: 497,
+          id: 'ABqVA8'
+        },
+        WH2UKA: {
+          x: 681,
+          y: 475,
+          id: 'WH2UKA'
+        }
+      }
+    }
+  };
   let drawablePolygon;
   let dragablePolygon;
   let selectedPolygon;
@@ -42,8 +103,8 @@
     };
   };
 
-  const getClosestPointInRange = ({ x, y }) => {
-    return Object.values(drawablePolygon.points)
+  const findClosestPoint = ({ points, x, y }) => {
+    const closestPoint = Object.values(points)
       .filter((point) => point.x > x - $snapRadius && point.x < x + $snapRadius)
       .filter((point) => point.y > y - $snapRadius && point.y < y + $snapRadius)
       .reduce(
@@ -56,9 +117,11 @@
           return acc == null || diff <= acc.diff ? { ...point, diff } : acc;
         },
         {
+          // initial (max) diff
           diff: $snapRadius
         }
       );
+    return closestPoint.id ? closestPoint : null;
   };
 
   const handleCanvasClick = ({ x, y, path }) => {
@@ -68,17 +131,17 @@
     const hasPointTarget = matchablePaths.some((el) => el.matches('.point'));
     const hasToolbarTarget = matchablePaths.some((el) => el.matches('.toolbar'));
 
+    // unset selectedPolygon if clicked outside polygon/point/toolbar
     if (!hasPolygonTarget && !hasPointTarget && !hasToolbarTarget) {
       selectedPolygon = null;
     }
 
-    if (hasToolbarTarget) {
+    // unset drawablePolygon if clicked on toolbar/point
+    if (hasToolbarTarget || hasPointTarget) {
       drawablePolygon = null;
     }
 
-    if ($mode !== 'draw') {
-      return;
-    }
+    if ($mode !== 'draw') return;
 
     if (!drawablePolygon) {
       selectedPolygon = null;
@@ -89,14 +152,21 @@
       };
     }
 
-    // if (getClosestPointInRange({ x, y }).id) {
-    //   drawablePolygon = null;
-    //   mode.set(null);
-    //   return;
-    // }
-
     const newPointId = nanoid(6);
-    drawablePolygon.points[newPointId] = { x, y, id: newPointId };
+    const closestPoint =
+      $isSnapEnabled &&
+      Object.entries(polygons)
+        // TODO - instead of filtering out drawablePolygon, replace and do not create a new point on same polygon
+        .filter(([id]) => id !== drawablePolygon.id)
+        .reduce((acc, [id, { points }]) => findClosestPoint({ points, x, y }) ?? acc, {});
+
+    const newPoint = {
+      x: closestPoint?.x ?? x,
+      y: closestPoint?.y ?? y,
+      id: newPointId
+    };
+
+    drawablePolygon.points[newPointId] = newPoint;
     selectedPolygon = drawablePolygon;
     polygons[drawablePolygon.id] = drawablePolygon;
   };
@@ -111,16 +181,41 @@
     // console.log(e.path.includes(svgEl));
   };
 
-  const handlePointMousedown = ({ e, pointId, polygonId }) => {
-    dragablePoint = polygons[polygonId].points[pointId];
+  const handlePointMousedown = ({ e, point, polygon }) => {
+    dragablePoint = polygons[polygon.id].points[point.id];
   };
 
-  const handlePointMousemove = ({ e, pointId, polygonId }) => {
-    if (!dragablePoint || dragablePoint.id !== pointId) return;
-
+  const handlePointMousemove = ({ e, point, polygon }) => {
+    if (!dragablePoint || dragablePoint.id !== point.id) return;
     const { movementX, movementY } = e;
-    polygons[polygonId].points[pointId].x += movementX;
-    polygons[polygonId].points[pointId].y += movementY;
+    // dragablePoint.x += movementX;
+    // dragablePoint.y += movementY;
+    // polygons[polygon.id].points[point.id] = dragablePoint;
+
+    polygons[polygon.id].points[point.id].x += movementX;
+    polygons[polygon.id].points[point.id].y += movementY;
+  };
+
+  const handlePointMouseup = ({ e, point, polygon }) => {
+    if (!dragablePoint) return;
+    dragablePoint = null;
+
+    if (!$isSnapEnabled) return;
+
+    const closestPoint = Object.entries(polygons)
+      .filter(([id]) => id !== polygon.id)
+      .reduce((acc, [id, { points }]) => findClosestPoint({ points, x: point.x, y: point.y }), {});
+
+    if (closestPoint) {
+      // dont just polygons[polygon.id].points[point.id] = closestPoint as we need to keep the id
+      polygons[polygon.id].points[point.id].x = closestPoint.x;
+      polygons[polygon.id].points[point.id].y = closestPoint.y;
+    }
+  };
+
+  const handlePointMouseleave = ({ e, point, polygon }) => {
+    if (dragablePoint?.id !== point.id) return;
+    dragablePoint = null;
   };
 
   const handlePolygonClick = ({ e, id }) => {};
@@ -196,8 +291,8 @@
   };
 
   $: renderPolygons = Object.entries(polygons).reduce((acc, [id, { points, attributes }]) => {
-    console.log({ id, attributes });
     const pointsArray = Object.values(points);
+    window.polygons = polygons;
     return [
       ...acc,
       {
@@ -262,16 +357,17 @@
           />
         {/each}
       </svg>
-      {#each renderPolygons as { pointsArray, id: polygonId }, polygonIndex}
-        {#if polygonId === selectedPolygon?.id || polygonId === drawablePolygon?.id}
-          {#each pointsArray as { x, y, id: pointId }, pointIndex}
+      {#each renderPolygons as polygon, polygonIndex}
+        {#if polygon.id === selectedPolygon?.id || polygon.id === drawablePolygon?.id}
+          {#each polygon.pointsArray as point, pointIndex}
             <div
-              style={`top:${y}px;left:${x}px`}
+              style={`left:${point.x}px;top:${point.y}px;`}
               class="point"
-              on:mousedown={(e) => handlePointMousedown({ e, pointId, polygonId })}
-              on:mousemove={(e) => handlePointMousemove({ e, pointId, polygonId })}
-              on:mouseup={() => (dragablePoint = null)}
-              on:mouseleave={() => (dragablePoint = null)}
+              id={point.id}
+              on:mousedown={(e) => handlePointMousedown({ e, point, polygon })}
+              on:mousemove={(e) => handlePointMousemove({ e, point, polygon })}
+              on:mouseup={(e) => handlePointMouseup({ e, point, polygon })}
+              on:mouseleave={(e) => handlePointMouseleave({ e, point, polygon })}
             />
           {/each}
         {/if}
