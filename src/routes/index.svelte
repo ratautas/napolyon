@@ -108,6 +108,8 @@
         .filter(({ id }) => id !== $drawablePolygon.id)
         .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
+    console.log(closestPoint);
+
     drawablePolygon.addPoint({
       x: closestPoint?.x ?? x,
       y: closestPoint?.y ?? y,
@@ -127,33 +129,25 @@
     dragStartY = e.y;
   };
 
-  const handleCanvasMouseup = (e) => {
-    selectedPolygon.set($polygons[$selectedPolygon?.id]);
-
+  const handleCanvasMouseup = ({ x, y }) => {
     if (!!$dragablePolygon) {
       dragablePolygon.set(null);
     }
 
     if ($dragablePoint) {
       if ($isSnapEnabled) {
+        console.log($polygonsMap);
         const closestPoint = $polygonsMap
-          .filter((id) => id !== $selectedPolygon?.id)
-          .reduce(
-            (acc, { points }) =>
-              findClosestPoint({ points, x: $dragablePoint.x, y: $dragablePoint.y }) ?? acc,
-            null
-          );
-        console.log(closestPoint);
+          .filter(({ id }) => id !== $selectedPolygon?.id)
+          .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
         if (closestPoint) {
           polygons.movePoint($selectedPolygon, $dragablePoint, closestPoint.x, closestPoint.y);
-          // dont just polygons[polygon.id].points[point.id] = closestPoint as we need to keep the id
-          // polygons[polygon.id].points[point.id].x = closestPoint.x;
-          // polygons[polygon.id].points[point.id].y = closestPoint.y;
         }
       }
       dragablePoint.set(null);
     }
+    selectedPolygon.set($polygons[$selectedPolygon?.id]);
   };
 
   const handleCanvasMousemove = (e) => {
@@ -162,7 +156,6 @@
       const x = $dragablePoint.x + e.x - dragStartX;
       const y = $dragablePoint.y + e.y - dragStartY;
       polygons.movePoint($selectedPolygon, $dragablePoint, x, y);
-      // selectedPolygon.set($polygons[$selectedPolygon.id]);
       return;
     }
 
