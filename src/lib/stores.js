@@ -1,4 +1,4 @@
-import { get, writable, derived } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 
 export const mode = writable(null);
 export const isSnapEnabled = writable(true);
@@ -20,30 +20,8 @@ export const globalAttributesArray = derived(globalAttributes, $globalAttributes
 export const addAttribute = ({ name, value }) =>
   globalAttributes.update(($globalAttributes) => ({ ...$globalAttributes, [name]: value }))
 
-export const dragablePolygon = writable(null);
-export const selectedPolygon = writable(null);
-export const hoveredPolygon = writable(null);
-export const dragablePoint = writable(null);
 
-export const drawablePolygon = (() => {
-  const { subscribe, set, update } = writable(null);
-
-  return {
-    subscribe,
-    addPoint: (newPoint) => update(($polygon) => {
-      return {
-        ...$polygon,
-        points: {
-          ...$polygon.points,
-          [newPoint.id]: newPoint
-        }
-      }
-    }),
-    set: (val) => set(val)
-  };
-})()
-
-const polygonsStore = writable({
+export const polygonsStore = writable({
   L8EIvC: {
     attributes: {
       'stroke-width': '1',
@@ -109,12 +87,16 @@ const polygonsStore = writable({
 export const polygons = {
   subscribe: polygonsStore.subscribe,
   addPolygon: (polygon) => polygonsStore.update($polygons => {
+    // $polygons[polygon.id] = polygon;
+    // return $polygons;
     return {
       ...$polygons,
       [polygon.id]: polygon,
     }
   }),
   addPoint: (polygon, point) => polygonsStore.update($polygons => {
+    // $polygons[polygon.id].points[point.id] = point;
+    // return $polygons;
     return {
       ...$polygons,
       [polygon.id]: {
@@ -126,7 +108,24 @@ export const polygons = {
       },
     }
   }),
+  addAttribute: (polygon, attribute) => polygonsStore.update($polygons => {
+    // $polygons[polygon.id].attributes[attribute.name] = attribute.value;
+    // return $polygons;
+    return {
+      ...$polygons,
+      [polygon.id]: {
+        ...polygon,
+        attributes: {
+          ...polygon.attributes,
+          [attribute.name]: attribute.value
+        }
+      },
+    }
+  }),
   movePoint: (polygon, point, x, y) => polygonsStore.update($polygons => {
+    // $polygons[polygon.id].points[point.id].x = x;
+    // $polygons[polygon.id].points[point.id].y = y;
+    // return $polygons;
     return {
       ...$polygons,
       [polygon.id]: {
@@ -157,16 +156,16 @@ export const polygons = {
   set: (val) => polygonsStore.set(val)
 };
 
+// convert polygons and their points to arrays (maps)
 export const polygonsMap = derived([polygonsStore],
   ([$polygonsStore]) => Object.values($polygonsStore).reduce((acc, polygon) => {
     return [...acc, {
       ...polygon,
-      // pointsMap: polygon.points ? Object.values(polygon.points) : [],
       pointsMap: Object.values(polygon.points),
-      // pointsMap: [{ x: 1, y: 1, id: 1 }]
     }]
   }, []));
 
+// flaten points object to renderable sring
 export const renderPolygons = derived([polygonsMap],
   ([$polygonsMap]) => $polygonsMap.map((polygon) => {
     return {
@@ -174,3 +173,38 @@ export const renderPolygons = derived([polygonsMap],
       points: polygon.pointsMap.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', ''),
     }
   }));
+
+export const selectedPolygon = writable(null);
+export const dragablePolygon = writable(null);
+export const hoveredPolygon = writable(null);
+export const dragablePoint = writable(null);
+
+export const drawablePolygon = (() => {
+  const { subscribe, set, update } = writable(null);
+
+  return {
+    subscribe,
+    addPoint: (newPoint) => update(($polygon) => {
+      return {
+        ...$polygon,
+        points: {
+          ...$polygon.points,
+          [newPoint.id]: newPoint
+        }
+      }
+    }),
+    set: (val) => set(val)
+  };
+})();
+
+// export const selectedPolygonId = writable(null);
+// export const selectedPolygon = derived(
+//   [polygonsStore, selectedPolygonId],
+//   ([$polygonsStore, $selectedPolygonId]) => $polygonsStore[$selectedPolygonId]
+// );
+
+export const attributeStore = writable({
+  'stroke-width': '1',
+  stroke: 'rgba(255,255,255,.8)',
+  fill: 'rgba(0,0,0,.5)'
+});

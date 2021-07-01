@@ -1,7 +1,7 @@
 <script>
   import Icon from '@iconify/svelte';
   import { saveAs } from 'file-saver';
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { onMount } from 'svelte';
 
   import {
     mode,
@@ -10,11 +10,10 @@
     addAttribute,
     isSnapEnabled,
     selectedPolygon,
+    selectedPolygonId,
     snapRadius,
     polygons
   } from '$lib/stores.js';
-
-  const dispatch = createEventDispatcher();
 
   let toolbarEl;
   let x;
@@ -46,10 +45,13 @@
       name: newAttributeName,
       value: newAttributeValue
     };
-    dispatch('add-attribute', attributeToAdd);
+    
+    polygons.addAttribute($selectedPolygon, attributeToAdd);
+
     if (newAttributeIsGlobal) {
       addAttribute(attributeToAdd);
     }
+
     newAttributeName = '';
     newAttributeValue = '';
   };

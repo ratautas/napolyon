@@ -92,7 +92,7 @@
     if ($mode !== 'draw') return;
 
     if (!$drawablePolygon) {
-      selectedPolygon.set(null);
+      selectedPolygonId.set(null);
       drawablePolygon.set({
         attributes: $globalAttributes,
         id: nanoid(6),
@@ -151,7 +151,6 @@
 
     if ($dragablePoint) {
       if ($isSnapEnabled) {
-        console.log($polygonsMap);
         const closestPoint = $polygonsMap
           .filter(({ id }) => id !== $selectedPolygon?.id)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
@@ -162,7 +161,7 @@
       }
       dragablePoint.set(null);
     }
-    selectedPolygon.set($polygons[$selectedPolygon?.id]);
+    // selectedPolygon.set($polygons[$selectedPolygon?.id]);
   };
 
   const handlePolygonMouseenter = ({ e, polygon }) => {
@@ -271,7 +270,7 @@
             id={polygon.id}
             {...polygon.attributes}
             class:is-drawing={$mode === 'draw' && polygon.id === $drawablePolygon?.id}
-            class:is-dragging={polygon.id === $dragablePolygon}
+            class:is-dragging={polygon.id === $dragablePolygon?.id}
             class:is-hovered={polygon.id === $hoveredPolygon?.id}
             class:is-selected={polygon.id === $selectedPolygon?.id}
             on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
