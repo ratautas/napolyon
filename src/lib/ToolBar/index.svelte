@@ -10,10 +10,10 @@
     addAttribute,
     isSnapEnabled,
     selectedPolygon,
-    snapRadius
+    snapRadius,
+    polygons
   } from '$lib/stores.js';
 
-  // export let polygons;
   const dispatch = createEventDispatcher();
 
   let toolbarEl;
@@ -52,13 +52,6 @@
     }
     newAttributeName = '';
     newAttributeValue = '';
-  };
-
-  const handleValueInput = (e, attribute) => {
-    dispatch('attribute-value-input', {
-      name: attribute.name,
-      value: e.target.value
-    });
   };
 
   onMount(() => {
@@ -127,8 +120,7 @@
           <input
             type="text"
             class="attributes__input"
-            value={attribute.value}
-            on:input={(e) => handleValueInput(e, attribute)}
+            bind:value={$polygons[$selectedPolygon.id].attributes[attribute.name]}
           />
         </div>
       {/each}

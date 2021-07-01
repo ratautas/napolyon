@@ -108,8 +108,6 @@
         .filter(({ id }) => id !== $drawablePolygon.id)
         .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
-    console.log(closestPoint);
-
     drawablePolygon.addPoint({
       x: closestPoint?.x ?? x,
       y: closestPoint?.y ?? y,
@@ -127,6 +125,23 @@
   const handleCanvasMousedown = (e) => {
     dragStartX = e.x;
     dragStartY = e.y;
+  };
+
+  const handleCanvasMousemove = (e) => {
+    // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
+    if (!!$dragablePoint && !!$selectedPolygon) {
+      const x = $dragablePoint.x + e.x - dragStartX;
+      const y = $dragablePoint.y + e.y - dragStartY;
+      polygons.movePoint($selectedPolygon, $dragablePoint, x, y);
+      return;
+    }
+
+    if (!!$dragablePolygon) {
+      drawablePolygon.set(null);
+      mode.set(null);
+      polygons.moveAllPoints($dragablePolygon, e.x - dragStartX, e.y - dragStartY);
+      return;
+    }
   };
 
   const handleCanvasMouseup = ({ x, y }) => {
@@ -150,24 +165,6 @@
     selectedPolygon.set($polygons[$selectedPolygon?.id]);
   };
 
-  const handleCanvasMousemove = (e) => {
-    // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
-    if (!!$dragablePoint && !!$selectedPolygon) {
-      const x = $dragablePoint.x + e.x - dragStartX;
-      const y = $dragablePoint.y + e.y - dragStartY;
-      polygons.movePoint($selectedPolygon, $dragablePoint, x, y);
-      return;
-    }
-
-    if (!!$dragablePolygon) {
-      drawablePolygon.set(null);
-      mode.set(null);
-      polygons.moveAllPoints($dragablePolygon, e.x - dragStartX, e.y - dragStartY);
-      // dragablePolygon.set($polygons[$dragablePolygon.id]);
-      return;
-    }
-  };
-
   const handlePolygonMouseenter = ({ e, polygon }) => {
     hoveredPolygon.set(polygon);
   };
@@ -189,23 +186,6 @@
 
   const handlePointMousedown = ({ e, point, polygon }) => {
     dragablePoint.set($polygons[polygon.id].points[point.id]);
-  };
-
-  const handlePointMouseup = ({ e, point, polygon }) => {
-    // if (!$dragablePoint) return;
-    // dragablePoint.set(null);
-    // if (!$isSnapEnabled) return;
-    // const closestPoint = $polygonsMap
-    //   .filter((id) => id !== polygon.id)
-    //   .reduce(
-    //     (acc, { points }) => findClosestPoint({ points, x: point.x, y: point.y }) ?? acc,
-    //     null
-    //   );
-    // if (closestPoint) {
-    //   // dont just polygons[polygon.id].points[point.id] = closestPoint as we need to keep the id
-    //   // polygons[polygon.id].points[point.id].x = closestPoint.x;
-    //   // polygons[polygon.id].points[point.id].y = closestPoint.y;
-    // }
   };
 
   const handlePointMouseleave = ({ e, point, polygon }) => {
@@ -244,22 +224,6 @@
   const handleAddAttribute = ({ detail }) => {
     polygons[selectedPolygon.id].attributes[detail.name] = detail.value;
     selectedPolygon.set(polygons[selectedPolygon.id]);
-  };
-
-  const handleAttributeValueInput = ({ detail }) => {
-    selectedPolygon.attributes[detail.name] = detail.value;
-    polygons = Object.entries(polygons).reduce((acc, [id, polygon]) => {
-      return {
-        ...acc,
-        [id]: {
-          ...polygon,
-          attributes: {
-            ...polygon.attributes,
-            ...(id === selectedPolygon.id && { [detail.name]: detail.value })
-          }
-        }
-      };
-    }, {});
   };
 
   onMount(() => {
@@ -325,7 +289,6 @@
               id={point.id}
               tabindex="0"
               on:mousedown={(e) => handlePointMousedown({ e, point, polygon })}
-              on:mouseup={(e) => handlePointMouseup({ e, point, polygon })}
               on:mouseleave={(e) => handlePointMouseleave({ e, point, polygon })}
             />
           {/each}
@@ -337,10 +300,5 @@
   {:else}
     nope
   {/if}
-  <ToolBar
-    {selectedPolygon}
-    {polygons}
-    on:add-attribute={handleAddAttribute}
-    on:attribute-value-input={handleAttributeValueInput}
-  />
+  <ToolBar on:add-attribute={handleAddAttribute} />
 </div>
