@@ -10,7 +10,6 @@
     addAttribute,
     isSnapEnabled,
     selectedPolygon,
-    selectedPolygonId,
     snapRadius,
     polygons
   } from '$lib/stores.js';

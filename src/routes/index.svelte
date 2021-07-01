@@ -92,7 +92,7 @@
     if ($mode !== 'draw') return;
 
     if (!$drawablePolygon) {
-      selectedPolygonId.set(null);
+      selectedPolygon.set(null);
       drawablePolygon.set({
         attributes: $globalAttributes,
         id: nanoid(6),
@@ -161,7 +161,7 @@
       }
       dragablePoint.set(null);
     }
-    // selectedPolygon.set($polygons[$selectedPolygon?.id]);
+    selectedPolygon.set($polygons[$selectedPolygon?.id]);
   };
 
   const handlePolygonMouseenter = ({ e, polygon }) => {
