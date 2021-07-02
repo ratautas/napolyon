@@ -6,6 +6,11 @@ export const snapRadius = writable(10);
 
 export const renderSvg = writable(null);
 
+export const selectedPolygon = writable(null);
+export const dragablePolygon = writable(null);
+export const hoveredPolygon = writable(null);
+export const dragablePoint = writable(null);
+
 export const globalAttributes = writable({
   'stroke-width': '1',
   'stroke': 'rgba(255,255,255,.8)',
@@ -126,6 +131,7 @@ export const polygons = {
     // $polygons[polygon.id].points[point.id].x = x;
     // $polygons[polygon.id].points[point.id].y = y;
     // return $polygons;
+    // dragablePoint.set({ id: point.id, x, y });
     return {
       ...$polygons,
       [polygon.id]: {
@@ -174,11 +180,6 @@ export const renderPolygons = derived([polygonsMap],
     }
   }));
 
-export const selectedPolygon = writable(null);
-export const dragablePolygon = writable(null);
-export const hoveredPolygon = writable(null);
-export const dragablePoint = writable(null);
-
 export const drawablePolygon = (() => {
   const { subscribe, set, update } = writable(null);
 
@@ -198,10 +199,10 @@ export const drawablePolygon = (() => {
 })();
 
 // export const selectedPolygonId = writable(null);
-// export const selectedPolygon = derived(
-//   [polygonsStore, selectedPolygonId],
-//   ([$polygonsStore, $selectedPolygonId]) => $polygonsStore[$selectedPolygonId]
-// );
+export const selectedPollie = derived(
+  [polygonsStore, selectedPolygon],
+  ([$polygonsStore, $selectedPolygon]) => $selectedPolygon && $polygonsStore[$selectedPolygon.id]
+);
 
 export const attributeStore = writable({
   'stroke-width': '1',

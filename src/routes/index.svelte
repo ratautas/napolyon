@@ -22,7 +22,8 @@
     selectedPolygon,
     hoveredPolygon,
     dragablePoint,
-    polygonsMap
+    polygonsMap,
+    selectedPollie
   } from '$lib/stores.js';
 
   // let src;
@@ -132,6 +133,10 @@
     if (!!$dragablePoint && !!$selectedPolygon) {
       const x = $dragablePoint.x + e.x - dragStartX;
       const y = $dragablePoint.y + e.y - dragStartY;
+      // const x = e.x - dragStartX;
+      // const y = e.y - dragStartY;
+      // dragablePoint.set({...$dragablePoint, x, y})
+      // polygons.movePoint($selectedPolygon, $dragablePoint, x, y);
       polygons.movePoint($selectedPolygon, $dragablePoint, x, y);
       return;
     }
@@ -144,13 +149,14 @@
     }
   };
 
-  const handleCanvasMouseup = ({ x, y }) => {
+  const handleCanvasMouseup = (e) => {
     if (!!$dragablePolygon) {
       dragablePolygon.set(null);
     }
 
     if ($dragablePoint) {
       if ($isSnapEnabled) {
+        const { x, y } = $selectedPollie.points[$dragablePoint.id];
         const closestPoint = $polygonsMap
           .filter(({ id }) => id !== $selectedPolygon?.id)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
@@ -271,7 +277,7 @@
         viewBox={`0 0 ${imageWidth} ${imageHeight}`}
         bind:this={svgEl}
       >
-      <!-- classes, styles and id should be removed -->
+        <!-- classes, styles and id should be removed -->
         {#each $renderPolygons as polygon, i}
           <polygon
             points={polygon.points}
