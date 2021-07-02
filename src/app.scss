@@ -1,8 +1,12 @@
 // @import 'carbon-components-svelte/css/g10';
 @import 'carbon-components-svelte/css/all.css';
 
+:root {
+  --e: cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
 html {
-  font-size: 100%;
+  font-size: 16px;
   // cursor: url('./pen-tool-cursor.svg'), auto;
 }
 
@@ -54,24 +58,26 @@ main {
   bottom: 0;
 }
 
+.buttons {
+  padding: 1rem;
+}
+
 .handle {
   position: relative;
-  padding: 1rem;
   cursor: move;
+  display: inline-flex;
 }
+
 .toolbar {
   position: absolute;
-  top: 30px;
-  left: 30px;
+  top: 2rem;
+  left: 2rem;
   z-index: 3;
-  background-color: #eee;
+  background-color: #fff;
   border: solid 1px #ccc;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   z-index: 4;
-  width: 360px;
-  &:hover {
-    background-color: #fff;
-  }
+  width: 24rem;
 }
 
 .tool {
@@ -84,21 +90,29 @@ main {
   position: absolute;
   z-index: 3;
   border-radius: 50%;
-  width: 2px;
-  height: 2px;
-  transform: translate(-1px, -1px);
+  width: 0;
+  height: 0;
+  // transform: translate(-1px, -1px);
   cursor: move;
   background-color: blue;
+
   &:after {
     content: '';
     position: absolute;
-    top: -5px;
-    left: -5px;
-    width: 10px;
-    height: 10px;
+    top: -9px;
+    left: -9px;
+    width: 2px;
+    height: 2px;
     border-radius: 50%;
     z-index: 2;
+    border-radius: 50%;
+    border: solid 8px rgba(255, 255, 255, 0.2);
+    background-color: #000;
+    opacity: 0.2;
+    transform: scale(0.5);
+    transition: transform 160ms var(--e), opacity 120ms var(--e);
   }
+
   &:before {
     content: '';
     position: absolute;
@@ -107,12 +121,28 @@ main {
     width: calc(var(--snapRadius) * 2);
     height: calc(var(--snapRadius) * 2);
     border-radius: 50%;
-    // background-color: red;
-    border: solid 1px blue;
+    border: dashed 1px #fff;
     z-index: 1;
+    transition: transform 160ms var(--e), opacity 120ms var(--e);
+    transform: scale(0);
+    opacity: 0.5;
   }
+
   &:focus {
     z-index: 2;
+  }
+
+  &:hover {
+    &:after {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  &.is-dragable {
+    &:before {
+      transform: scale(1);
+    }
   }
 }
 
@@ -153,6 +183,6 @@ polygon {
 }
 
 .code {
-  margin: -.5rem -1rem -1.5rem -1rem;
+  margin: -0.5rem -1rem -1.5rem -1rem;
   width: calc(100% + 2rem);
 }

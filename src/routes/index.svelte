@@ -18,13 +18,13 @@
     polygons,
     renderPolygons,
     drawablePolygon,
+    selectedPolygon,
     selectedPolygonId,
     dragablePolygon,
     dragablePolygonId,
     hoveredPolygonId,
     dragablePointId,
-    polygonsMap,
-    selectedPolygon
+    polygonsMap
   } from '$lib/stores.js';
 
   // let src;
@@ -178,6 +178,7 @@
   };
 
   const handlePointMousedown = ({ e, point, polygon }) => {
+    selectedPolygonId.set(polygon.id);
     dragablePointId.set(point.id);
   };
 
@@ -282,18 +283,18 @@
         {/each}
       </svg>
       {#each $renderPolygons as polygon, polygonIndex}
-        {#if polygon.id === $selectedPolygonId || polygon.id === $drawablePolygon?.id}
-          {#each polygon.pointsMap as point, pointIndex}
-            <div
-              style={`left:${point.x}px;top:${point.y}px;`}
-              class="point"
-              id={point.id}
-              tabindex="0"
-              on:mousedown={(e) => handlePointMousedown({ e, point, polygon })}
-              on:mouseleave={(e) => handlePointMouseleave({ e, point, polygon })}
-            />
-          {/each}
-        {/if}
+        {#each polygon.pointsMap as point, pointIndex}
+          <div
+            style={`left:${point.x}px;top:${point.y}px;`}
+            class="point"
+            class:is-polygon-selected={polygon.id === $selectedPolygonId}
+            class:is-dragable={point.id === $dragablePointId}
+            id={point.id}
+            tabindex="0"
+            on:mousedown={(e) => handlePointMousedown({ e, point, polygon })}
+            on:mouseleave={(e) => handlePointMouseleave({ e, point, polygon })}
+          />
+        {/each}
       {/each}
     </div>
   {:else if !src}
