@@ -18,8 +18,8 @@
     polygons,
     renderPolygons,
     drawablePolygon,
-    dragablePolygon,
     selectedPolygon,
+    dragablePolygonId,
     hoveredPolygonId,
     dragablePointId,
     polygonsMap,
@@ -135,17 +135,17 @@
       return;
     }
 
-    if (!!$dragablePolygon) {
+    if (!!$dragablePolygonId) {
       drawablePolygon.set(null);
       mode.set(null);
-      polygons.moveAllPoints($dragablePolygon, x - dragStartX, y - dragStartY);
+      polygons.moveAllPoints($dragablePolygonId, x - dragStartX, y - dragStartY);
       return;
     }
   };
 
   const handleCanvasMouseup = (e) => {
-    if (!!$dragablePolygon) {
-      dragablePolygon.set(null);
+    if (!!$dragablePolygonId) {
+      dragablePolygonId.set(null);
     }
 
     if ($dragablePointId) {
@@ -169,7 +169,7 @@
   };
 
   const handlePolygonMousedown = ({ e, polygon }) => {
-    dragablePolygon.set($polygons[polygon.id]);
+    dragablePolygonId.set($polygons[polygon.id]);
     selectedPolygon.set($polygons[polygon.id]);
   };
 
@@ -178,7 +178,7 @@
       .filter((el, i) => i < e.path.length - 2)
       .some((el) => el.matches('polygon'));
     if (!hasPolygonTarget) {
-      dragablePolygon.set(null);
+      dragablePolygonId.set(null);
       hoveredPolygonId.set(null);
     }
   };
@@ -210,7 +210,7 @@
       drawablePolygon.set(null);
       mode.set(null);
       // additional escape if dragging gets out of hand
-      dragablePolygon.set(null);
+      dragablePolygonId.set(null);
     }
     if (e.key === 'Enter') {
       if ($drawablePolygon) {
@@ -278,7 +278,7 @@
             id={polygon.id}
             {...polygon.attributes}
             class:is-drawing={$mode === 'draw' && polygon.id === $drawablePolygon?.id}
-            class:is-dragging={polygon.id === $dragablePolygon?.id}
+            class:is-dragging={polygon.id === $dragablePolygonId}
             class:is-hovered={polygon.id === $hoveredPolygonId}
             class:is-selected={polygon.id === $selectedPolygon?.id}
             on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}

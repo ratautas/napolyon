@@ -7,9 +7,10 @@ export const snapRadius = writable(10);
 export const renderSvg = writable(null);
 
 export const selectedPolygon = writable(null);
-export const dragablePolygon = writable(null);
+
 export const hoveredPolygonId = writable(null);
 export const dragablePointId = writable(null);
+export const dragablePolygonId = writable(null);
 
 export const globalAttributes = writable({
   'stroke-width': '1',
@@ -209,6 +210,13 @@ export const hoveredPolygon = derived(
   [polygonsStore, hoveredPolygonId],
   ([$polygonsStore, $hoveredPolygonId]) => $polygonsStore[$hoveredPolygonId]
 );
+
+export const dragablePolygon = derived(
+  [polygonsStore, dragablePolygonId],
+  ([$polygonsStore, $dragablePolygonId]) => $polygonsStore[$dragablePolygonId]
+);
+
+
 
 export const attributeStore = writable({
   'stroke-width': '1',
