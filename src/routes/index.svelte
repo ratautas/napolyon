@@ -228,6 +228,7 @@
   onMount(() => {
     renderSvg.set(svgEl);
   });
+  $: selectedPolygonCssRender = `<style>polygon[points=""]{fill:red;}</style>`;
 </script>
 
 <svelte:window on:keydown={handleWindowKeydown} />
@@ -246,6 +247,12 @@
   class:is-drawing={$mode === 'draw'}
   style={`--snapRadius:${$snapRadius}px`}
 >
+  <!-- this is inserted as style tag to avoid redunand style attribute in <polygons> -->
+  {#if $selectedPolygon}
+    {@html selectedPolygonCssRender}
+  {/if}
+
+  <ToolBar on:add-attribute={handleAddAttribute} />
   {#if src}
     <div class="render">
       <img
@@ -264,6 +271,7 @@
         viewBox={`0 0 ${imageWidth} ${imageHeight}`}
         bind:this={svgEl}
       >
+      <!-- classes, styles and id should be removed -->
         {#each $renderPolygons as polygon, i}
           <polygon
             points={polygon.points}
@@ -299,5 +307,4 @@
   {:else}
     nope
   {/if}
-  <ToolBar on:add-attribute={handleAddAttribute} />
 </div>

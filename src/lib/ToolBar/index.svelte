@@ -76,11 +76,11 @@
       (acc, [name, value]) => [...acc, { name, value }],
       []
     );
-  $: cssString = Object.entries($globalAttributes).reduce(
-    (acc, [name, value]) => `${acc}\t${name}: ${value};\n`,
+  $: globalCssString = Object.entries($globalAttributes).reduce(
+    (acc, [name, value]) => `${acc}  ${name}: ${value};\n`,
     ''
   );
-  $: cssCode = `polygon {\n${cssString}}`;
+  $: globalCssRender = `polygon {\n${globalCssString}}`;
 </script>
 
 <div class="toolbar" {style} bind:this={toolbarEl}>
@@ -96,7 +96,7 @@
       kind="ghost"
       tooltipPosition="bottom"
       tooltipAlignment="center"
-      iconDescription="Drag Toolbar"
+      iconDescription="Click & Drag Toolbar"
       icon={Switcher24}
     />
     {$selectedPolygon?.id}
@@ -114,26 +114,25 @@
     </div>
   </div>
   <Accordion>
-    <AccordionItem title="Snap to Points">
+    <AccordionItem>
+      <svelte:fragment slot="title">
+        Snap to other points: {$isSnapEnabled ? 'ON' : 'OFF'}
+      </svelte:fragment>
       <div class="snap">
-        <div class="snap__toggle">
-          <Toggle labelA="" labelB="" hideLabel bind:toggled={$isSnapEnabled} />
-        </div>
+        <Toggle class="snap__toggle" labelA="" labelB="" bind:toggled={$isSnapEnabled} />
         <Slider
           light
-          min={2}
-          max={50}
+          min={1}
+          max={100}
           hideTextInput
-          labelText="Snap Radius"
+          labelText="Radius (select a <polygon> for preview)"
           bind:value={$snapRadius}
           disabled={!$isSnapEnabled}
         />
       </div>
     </AccordionItem>
     <AccordionItem title="CSS Code">
-      <div class="">
-        <CodeSnippet type="multi" code={cssCode} />
-      </div>
+      <CodeSnippet class="code" type="multi" code={globalCssRender} />
     </AccordionItem>
   </Accordion>
   <div class="attributes">

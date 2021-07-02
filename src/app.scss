@@ -56,17 +56,19 @@ main {
 
 .handle {
   position: relative;
+  padding: 1rem;
   cursor: move;
 }
 .toolbar {
   position: absolute;
   top: 30px;
   left: 30px;
-  padding: 8px;
   z-index: 3;
   background-color: #eee;
   border: solid 1px #ccc;
   border-radius: 4px;
+  z-index: 4;
+  width: 360px;
   &:hover {
     background-color: #fff;
   }
@@ -82,8 +84,6 @@ main {
   position: absolute;
   z-index: 3;
   border-radius: 50%;
-  // width: 0;
-  // height: 0;
   width: 2px;
   height: 2px;
   transform: translate(-1px, -1px);
@@ -134,10 +134,9 @@ polygon {
 .snap {
   display: flex;
   align-items: center;
-  padding-left: 1rem;
 
   &__toggle {
-    margin-right: 2rem;
+    margin-right: 1rem;
   }
 }
 
@@ -146,13 +145,14 @@ polygon {
   align-items: center;
 }
 
-.toolbar {
-  width: 400px;
-}
-
 @media all {
   .bx--accordion__content {
-    // padding-right: 1rem;
-    padding: 0;
+    padding-right: 1rem;
+    // padding: 0;
   }
+}
+
+.code {
+  margin: -.5rem -1rem -1.5rem -1rem;
+  width: calc(100% + 2rem);
 }
