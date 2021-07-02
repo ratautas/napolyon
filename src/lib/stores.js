@@ -8,7 +8,7 @@ export const renderSvg = writable(null);
 
 export const selectedPolygon = writable(null);
 export const dragablePolygon = writable(null);
-export const hoveredPolygon = writable(null);
+export const hoveredPolygonId = writable(null);
 export const dragablePointId = writable(null);
 
 export const globalAttributes = writable({
@@ -203,6 +203,11 @@ export const selectedPollie = derived(
 export const dragablePoint = derived(
   [selectedPollie, dragablePointId],
   ([$selectedPollie, $dragablePointId]) => $selectedPollie && $selectedPollie.points[$dragablePointId]
+);
+
+export const hoveredPolygon = derived(
+  [polygonsStore, hoveredPolygonId],
+  ([$polygonsStore, $hoveredPolygonId]) => $polygonsStore[$hoveredPolygonId]
 );
 
 export const attributeStore = writable({

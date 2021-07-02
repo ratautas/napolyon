@@ -20,8 +20,7 @@
     drawablePolygon,
     dragablePolygon,
     selectedPolygon,
-    hoveredPolygon,
-    dragablePoint,
+    hoveredPolygonId,
     dragablePointId,
     polygonsMap,
     selectedPollie
@@ -166,7 +165,7 @@
   };
 
   const handlePolygonMouseenter = ({ e, polygon }) => {
-    hoveredPolygon.set(polygon);
+    hoveredPolygonId.set(polygon.id);
   };
 
   const handlePolygonMousedown = ({ e, polygon }) => {
@@ -180,7 +179,7 @@
       .some((el) => el.matches('polygon'));
     if (!hasPolygonTarget) {
       dragablePolygon.set(null);
-      hoveredPolygon.set(null);
+      hoveredPolygonId.set(null);
     }
   };
 
@@ -280,7 +279,7 @@
             {...polygon.attributes}
             class:is-drawing={$mode === 'draw' && polygon.id === $drawablePolygon?.id}
             class:is-dragging={polygon.id === $dragablePolygon?.id}
-            class:is-hovered={polygon.id === $hoveredPolygon?.id}
+            class:is-hovered={polygon.id === $hoveredPolygonId}
             class:is-selected={polygon.id === $selectedPolygon?.id}
             on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
             on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon })}
