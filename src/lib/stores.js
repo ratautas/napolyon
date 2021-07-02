@@ -9,7 +9,7 @@ export const renderSvg = writable(null);
 export const selectedPolygon = writable(null);
 export const dragablePolygon = writable(null);
 export const hoveredPolygon = writable(null);
-export const dragablePoint = writable(null);
+export const dragablePointId = writable(null);
 
 export const globalAttributes = writable({
   'stroke-width': '1',
@@ -127,18 +127,14 @@ export const polygons = {
       },
     }
   }),
-  movePoint: (polygon, point, x, y) => polygonsStore.update($polygons => {
-    // $polygons[polygon.id].points[point.id].x = x;
-    // $polygons[polygon.id].points[point.id].y = y;
-    // return $polygons;
-    // dragablePoint.set({ id: point.id, x, y });
+  movePoint: (polygon, pointId, x, y) => polygonsStore.update($polygons => {
     return {
       ...$polygons,
       [polygon.id]: {
         ...polygon,
         points: {
           ...polygon.points,
-          [point.id]: { ...point, x, y }
+          [pointId]: { id: pointId, x, y }
         }
       },
     }
@@ -202,6 +198,11 @@ export const drawablePolygon = (() => {
 export const selectedPollie = derived(
   [polygonsStore, selectedPolygon],
   ([$polygonsStore, $selectedPolygon]) => $selectedPolygon && $polygonsStore[$selectedPolygon.id]
+);
+
+export const dragablePoint = derived(
+  [selectedPollie, dragablePointId],
+  ([$selectedPollie, $dragablePointId]) => $selectedPollie && $selectedPollie.points[$dragablePointId]
 );
 
 export const attributeStore = writable({

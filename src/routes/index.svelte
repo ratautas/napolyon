@@ -22,6 +22,7 @@
     selectedPolygon,
     hoveredPolygon,
     dragablePoint,
+    dragablePointId,
     polygonsMap,
     selectedPollie
   } from '$lib/stores.js';
@@ -128,23 +129,17 @@
     dragStartY = e.y;
   };
 
-  const handleCanvasMousemove = (e) => {
+  const handleCanvasMousemove = ({ x, y }) => {
     // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
-    if (!!$dragablePoint && !!$selectedPolygon) {
-      const x = $dragablePoint.x + e.x - dragStartX;
-      const y = $dragablePoint.y + e.y - dragStartY;
-      // const x = e.x - dragStartX;
-      // const y = e.y - dragStartY;
-      // dragablePoint.set({...$dragablePoint, x, y})
-      // polygons.movePoint($selectedPolygon, $dragablePoint, x, y);
-      polygons.movePoint($selectedPolygon, $dragablePoint, x, y);
+    if (!!$dragablePointId && !!$selectedPolygon) {
+      polygons.movePoint($selectedPolygon, $dragablePointId, x, y);
       return;
     }
 
     if (!!$dragablePolygon) {
       drawablePolygon.set(null);
       mode.set(null);
-      polygons.moveAllPoints($dragablePolygon, e.x - dragStartX, e.y - dragStartY);
+      polygons.moveAllPoints($dragablePolygon, x - dragStartX, y - dragStartY);
       return;
     }
   };
@@ -154,18 +149,18 @@
       dragablePolygon.set(null);
     }
 
-    if ($dragablePoint) {
+    if ($dragablePointId) {
       if ($isSnapEnabled) {
-        const { x, y } = $selectedPollie.points[$dragablePoint.id];
+        const { x, y } = $selectedPollie.points[$dragablePointId];
         const closestPoint = $polygonsMap
           .filter(({ id }) => id !== $selectedPolygon?.id)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
         if (closestPoint) {
-          polygons.movePoint($selectedPolygon, $dragablePoint, closestPoint.x, closestPoint.y);
+          polygons.movePoint($selectedPolygon, $dragablePointId, closestPoint.x, closestPoint.y);
         }
       }
-      dragablePoint.set(null);
+      dragablePointId.set(null);
     }
     selectedPolygon.set($polygons[$selectedPolygon?.id]);
   };
@@ -190,7 +185,7 @@
   };
 
   const handlePointMousedown = ({ e, point, polygon }) => {
-    dragablePoint.set($polygons[polygon.id].points[point.id]);
+    dragablePointId.set(point.id);
   };
 
   const handlePointMouseleave = ({ e, point, polygon }) => {
@@ -199,7 +194,7 @@
       .some((el) => el.matches('.point'));
 
     if (!hasPointTarget) {
-      dragablePoint.set(null);
+      dragablePointId.set(null);
     }
   };
 
