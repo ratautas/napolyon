@@ -86,19 +86,21 @@ main {
   }
 }
 // only applied during drawing phase
-.is-forced-style {
-  polygon {
-    position: relative;
-    &.is-drawing {
-    }
-    &.is-dragging {
-    }
-    &.is-hovered {
-      stroke: #0080f3;
-    }
-    &.is-selected {
-      // stroke: #0080f3;
-    }
+polygon {
+  position: relative;
+  stroke-width: 1;
+  stroke: rgba(255,255,255,.8);
+  fill: rgba(0,0,0,.5);
+  
+  &.is-drawing {
+  }
+  &.is-dragging {
+  }
+  &.is-hovered {
+    stroke: #0080f3;
+  }
+  &.is-selected {
+    // stroke: #0080f3;
   }
 }
 

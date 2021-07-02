@@ -2,11 +2,6 @@ import { writable, derived } from 'svelte/store';
 
 const MOCK_INITIAL_POLYGONS = {
   L8EIvC: {
-    attributes: {
-      'stroke-width': '1',
-      stroke: 'rgba(255,255,255,.8)',
-      fill: 'rgba(0,0,0,.5)'
-    },
     id: 'L8EIvC',
     points: {
       LsJQaN: {
@@ -32,11 +27,6 @@ const MOCK_INITIAL_POLYGONS = {
     }
   },
   DaNhAj: {
-    attributes: {
-      'stroke-width': '1',
-      stroke: 'rgba(255,255,255,.8)',
-      fill: 'rgba(0,0,0,.5)'
-    },
     id: 'DaNhAj',
     points: {
       YKdSHB: {
@@ -74,11 +64,7 @@ export const dragablePolygonId = writable(null);
 export const selectedPolygonId = writable(null);
 export const dragablePointId = writable(null);
 
-export const globalAttributes = writable({
-  'stroke-width': '1',
-  'stroke': 'rgba(255,255,255,.8)',
-  'fill': 'rgba(0,0,0,.5)'
-});
+export const globalAttributes = writable({});
 
 export const globalAttributesArray = derived(globalAttributes, $globalAttributes =>
   Object

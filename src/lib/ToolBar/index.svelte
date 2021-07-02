@@ -75,6 +75,7 @@
   $: style = `left:${x}px;top:${y}px`;
   $: selectedPolygonAttributes =
     $selectedPolygon &&
+    $selectedPolygon.attributes &&
     Object.entries($selectedPolygon.attributes).reduce(
       (acc, [name, value]) => [...acc, { name, value }],
       []
@@ -140,11 +141,11 @@
         />
       </div>
     </AccordionItem>
-    <AccordionItem title="CSS Code">
+    <!-- <AccordionItem title="CSS Code">
       <CodeSnippet class="code" type="multi" code={globalCssRender} />
-    </AccordionItem>
+    </AccordionItem> -->
     <AccordionItem title="Polygon Attributes" disabled={!$selectedPolygonId}>
-      {#if $selectedPolygonId}
+      {#if $selectedPolygonId && selectedPolygonAttributes}
         {#each selectedPolygonAttributes as attribute, i}
           <TextInput
             inline

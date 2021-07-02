@@ -1,9 +1,11 @@
-- pass only ID to selected/dragable/drawable and derive from IDs
-
+- pass only ID to $drawable and derive from IDs
 - pen cursor icon (illustrator)
-
 - use [points="xyz"] selectors for styling instead of classnames
-- use 'global' editable css instead of attributes for styling
+- highlight potentiall snappable point
+- Carbon dropzone
 
 Next iteration:
-- 
+- convert points/polygons to array
+- insert point between points
+- undo / redo
+- split polygons and points etc to small components 

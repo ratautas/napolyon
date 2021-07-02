@@ -34,7 +34,6 @@
   let imageWidth = 900;
   let imageHeight = 600;
   let svgEl;
-  let isForcedStyle = true;
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
@@ -236,7 +235,6 @@
   onMount(() => {
     renderSvg.set(svgEl);
   });
-  $: selectedPolygonCssRender = `<style>polygon[points=""]{fill:red;}</style>`;
 </script>
 
 <svelte:window on:keydown={handleWindowKeydown} />
@@ -255,14 +253,9 @@
   class:is-drawing={$mode === 'draw'}
   style={`--snapRadius:${$snapRadius}px`}
 >
-  <!-- this is inserted as style tag to avoid redunand style attribute in <polygons> -->
-  {#if $selectedPolygon}
-    {@html selectedPolygonCssRender}
-  {/if}
-
   <ToolBar on:add-attribute={handleAddAttribute} />
   {#if src}
-    <div class="render" class:is-forced-style={isForcedStyle}>
+    <div class="render">
       <img
         {src}
         alt=""
@@ -311,9 +304,7 @@
         {/each}
       {/each}
     </div>
-  {:else if !src}
-    <Dropzone multiple={false} on:drop={handleFilesSelect} />
   {:else}
-    nope
+    <Dropzone multiple={false} on:drop={handleFilesSelect} />
   {/if}
 </div>
