@@ -12,10 +12,8 @@ const config = {
 		// adapter: adapter(),
 		adapter: adapter({
 			// default options are shown
-			// pages: 'build',
-			pages: 'docs',
-			// assets: 'build',
-			assets: 'docs',
+			pages: 'build',
+			assets: 'build',
 			fallback: null
 		}),
 		vite: {
