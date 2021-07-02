@@ -18,6 +18,7 @@
     addAttribute,
     isSnapEnabled,
     selectedPolygon,
+    selectedPolygonId,
     snapRadius,
     polygons
   } from '$lib/stores.js';
@@ -99,7 +100,7 @@
       iconDescription="Click & Drag Toolbar"
       icon={Switcher24}
     />
-    {$selectedPolygon?.id}
+    {$selectedPolygonId}
   </div>
   <div class="tools">
     <div

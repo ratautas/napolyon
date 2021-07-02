@@ -18,12 +18,13 @@
     polygons,
     renderPolygons,
     drawablePolygon,
-    selectedPolygon,
+    selectedPolygonId,
+    dragablePolygon,
     dragablePolygonId,
     hoveredPolygonId,
     dragablePointId,
     polygonsMap,
-    selectedPollie
+    selectedPolygon
   } from '$lib/stores.js';
 
   // let src;
@@ -33,9 +34,6 @@
   let imageWidth = 900;
   let imageHeight = 600;
   let svgEl;
-
-  let dragStartX = 0;
-  let dragStartY = 0;
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
@@ -80,9 +78,9 @@
     const hasPointTarget = matchablePaths.some((el) => el.matches('.point'));
     const hasToolbarTarget = matchablePaths.some((el) => el.matches('.toolbar'));
 
-    // unset selectedPolygon if clicked outside polygon/point/toolbar
+    // unset selectedPolygonId if clicked outside polygon/point/toolbar
     if (!hasPolygonTarget && !hasPointTarget && !hasToolbarTarget) {
-      selectedPolygon.set(null);
+      selectedPolygonId.set(null);
     }
 
     // unset drawablePolygon if clicked on toolbar/point
@@ -93,7 +91,7 @@
     if ($mode !== 'draw') return;
 
     if (!$drawablePolygon) {
-      selectedPolygon.set(null);
+      selectedPolygonId.set(null);
       drawablePolygon.set({
         attributes: $globalAttributes,
         id: nanoid(6),
@@ -115,7 +113,7 @@
       id: newPointId
     });
 
-    selectedPolygon.set($drawablePolygon);
+    selectedPolygonId.set($drawablePolygon.id);
     polygons.addPolygon($drawablePolygon);
   };
 
@@ -123,12 +121,9 @@
     console.log(e);
   };
 
-  const handleCanvasMousedown = (e) => {
-    dragStartX = e.x;
-    dragStartY = e.y;
-  };
+  const handleCanvasMousedown = (e) => {};
 
-  const handleCanvasMousemove = ({ x, y }) => {
+  const handleCanvasMousemove = ({ x, y, movementX, movementY }) => {
     // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
     if (!!$dragablePointId && !!$selectedPolygon) {
       polygons.movePoint($selectedPolygon, $dragablePointId, x, y);
@@ -138,7 +133,7 @@
     if (!!$dragablePolygonId) {
       drawablePolygon.set(null);
       mode.set(null);
-      polygons.moveAllPoints($dragablePolygonId, x - dragStartX, y - dragStartY);
+      polygons.moveAllPoints($dragablePolygon, movementX, movementY);
       return;
     }
   };
@@ -150,9 +145,9 @@
 
     if ($dragablePointId) {
       if ($isSnapEnabled) {
-        const { x, y } = $selectedPollie.points[$dragablePointId];
+        const { x, y } = $selectedPolygon.points[$dragablePointId];
         const closestPoint = $polygonsMap
-          .filter(({ id }) => id !== $selectedPolygon?.id)
+          .filter(({ id }) => id !== $selectedPolygonId)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
         if (closestPoint) {
@@ -161,7 +156,6 @@
       }
       dragablePointId.set(null);
     }
-    selectedPolygon.set($polygons[$selectedPolygon?.id]);
   };
 
   const handlePolygonMouseenter = ({ e, polygon }) => {
@@ -169,8 +163,8 @@
   };
 
   const handlePolygonMousedown = ({ e, polygon }) => {
-    dragablePolygonId.set($polygons[polygon.id]);
-    selectedPolygon.set($polygons[polygon.id]);
+    dragablePolygonId.set(polygon.id);
+    selectedPolygonId.set(polygon.id);
   };
 
   const handlePolygonMouseleave = ({ e, polygon }) => {
@@ -214,7 +208,7 @@
     }
     if (e.key === 'Enter') {
       if ($drawablePolygon) {
-        selectedPolygon.set($drawablePolygon);
+        selectedPolygonId.set($drawablePolygon.id);
       }
       mode.set(null);
     }
@@ -222,7 +216,7 @@
 
   const handleAddAttribute = ({ detail }) => {
     polygons[selectedPolygon.id].attributes[detail.name] = detail.value;
-    selectedPolygon.set(polygons[selectedPolygon.id]);
+    // selectedPolygonId.set(polygons[selectedPolygon.id]);
   };
 
   onMount(() => {
@@ -280,7 +274,7 @@
             class:is-drawing={$mode === 'draw' && polygon.id === $drawablePolygon?.id}
             class:is-dragging={polygon.id === $dragablePolygonId}
             class:is-hovered={polygon.id === $hoveredPolygonId}
-            class:is-selected={polygon.id === $selectedPolygon?.id}
+            class:is-selected={polygon.id === $selectedPolygonId}
             on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
             on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon })}
             on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon })}
@@ -288,7 +282,7 @@
         {/each}
       </svg>
       {#each $renderPolygons as polygon, polygonIndex}
-        {#if polygon.id === $selectedPolygon?.id || polygon.id === $drawablePolygon?.id}
+        {#if polygon.id === $selectedPolygonId || polygon.id === $drawablePolygon?.id}
           {#each polygon.pointsMap as point, pointIndex}
             <div
               style={`left:${point.x}px;top:${point.y}px;`}

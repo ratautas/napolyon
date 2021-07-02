@@ -1,33 +1,6 @@
 import { writable, derived } from 'svelte/store';
 
-export const mode = writable(null);
-export const isSnapEnabled = writable(true);
-export const snapRadius = writable(10);
-
-export const renderSvg = writable(null);
-
-export const selectedPolygon = writable(null);
-
-export const hoveredPolygonId = writable(null);
-export const dragablePointId = writable(null);
-export const dragablePolygonId = writable(null);
-
-export const globalAttributes = writable({
-  'stroke-width': '1',
-  'stroke': 'rgba(255,255,255,.8)',
-  'fill': 'rgba(0,0,0,.5)'
-});
-
-export const globalAttributesArray = derived(globalAttributes, $globalAttributes =>
-  Object
-    .entries($globalAttributes)
-    .reduce((acc, [name, value]) => [...acc, { [name]: value }], []))
-
-export const addAttribute = ({ name, value }) =>
-  globalAttributes.update(($globalAttributes) => ({ ...$globalAttributes, [name]: value }))
-
-
-export const polygonsStore = writable({
+const MOCK_INITIAL_POLYGONS = {
   L8EIvC: {
     attributes: {
       'stroke-width': '1',
@@ -88,7 +61,56 @@ export const polygonsStore = writable({
       }
     }
   }
+};
+
+export const mode = writable(null);
+export const isSnapEnabled = writable(true);
+export const snapRadius = writable(10);
+
+export const renderSvg = writable(null);
+
+export const hoveredPolygonId = writable(null);
+export const dragablePolygonId = writable(null);
+export const selectedPolygonId = writable(null);
+export const dragablePointId = writable(null);
+
+export const globalAttributes = writable({
+  'stroke-width': '1',
+  'stroke': 'rgba(255,255,255,.8)',
+  'fill': 'rgba(0,0,0,.5)'
 });
+
+export const globalAttributesArray = derived(globalAttributes, $globalAttributes =>
+  Object
+    .entries($globalAttributes)
+    .reduce((acc, [name, value]) => [...acc, { [name]: value }], []))
+
+export const addAttribute = ({ name, value }) =>
+  globalAttributes.update(($globalAttributes) => ({ ...$globalAttributes, [name]: value }))
+
+
+export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
+
+export const selectedPolygon = derived(
+  [polygonsStore, selectedPolygonId],
+  ([$polygonsStore, $selectedPolygonId]) => $polygonsStore[$selectedPolygonId]
+);
+
+export const dragablePoint = derived(
+  [selectedPolygon, dragablePointId],
+  ([$selectedPolygon, $dragablePointId]) => $selectedPolygon && $selectedPolygon.points[$dragablePointId]
+);
+
+export const hoveredPolygon = derived(
+  [polygonsStore, hoveredPolygonId],
+  ([$polygonsStore, $hoveredPolygonId]) => $polygonsStore[$hoveredPolygonId]
+);
+
+export const dragablePolygon = derived(
+  [polygonsStore, dragablePolygonId],
+  ([$polygonsStore, $dragablePolygonId]) => $polygonsStore[$dragablePolygonId]
+);
+
 
 export const polygons = {
   subscribe: polygonsStore.subscribe,
@@ -182,11 +204,11 @@ export const drawablePolygon = (() => {
 
   return {
     subscribe,
-    addPoint: (newPoint) => update(($polygon) => {
+    addPoint: (newPoint) => update(($drawablePolygon) => {
       return {
-        ...$polygon,
+        ...$drawablePolygon,
         points: {
-          ...$polygon.points,
+          ...$drawablePolygon.points,
           [newPoint.id]: newPoint
         }
       }
@@ -194,28 +216,6 @@ export const drawablePolygon = (() => {
     set: (val) => set(val)
   };
 })();
-
-// export const selectedPolygonId = writable(null);
-export const selectedPollie = derived(
-  [polygonsStore, selectedPolygon],
-  ([$polygonsStore, $selectedPolygon]) => $selectedPolygon && $polygonsStore[$selectedPolygon.id]
-);
-
-export const dragablePoint = derived(
-  [selectedPollie, dragablePointId],
-  ([$selectedPollie, $dragablePointId]) => $selectedPollie && $selectedPollie.points[$dragablePointId]
-);
-
-export const hoveredPolygon = derived(
-  [polygonsStore, hoveredPolygonId],
-  ([$polygonsStore, $hoveredPolygonId]) => $polygonsStore[$hoveredPolygonId]
-);
-
-export const dragablePolygon = derived(
-  [polygonsStore, dragablePolygonId],
-  ([$polygonsStore, $dragablePolygonId]) => $polygonsStore[$dragablePolygonId]
-);
-
 
 
 export const attributeStore = writable({
