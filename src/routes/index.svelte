@@ -143,6 +143,9 @@
     const hasPolygonTarget = e.path
       .filter((el, i) => i < e.path.length - 2)
       .some((el) => el.matches('polygon'));
+    const hasToolbarTarget = e.path
+      .filter((el, i) => i < e.path.length - 2)
+      .some((el) => el.matches('.toolbar'));
 
     if (!!$dragablePolygonId) {
       dragablePolygonId.set(null);
@@ -162,7 +165,7 @@
       dragablePointId.set(null);
     }
 
-    if (!hasPolygonTarget) {
+    if (!hasPolygonTarget && !hasToolbarTarget) {
       selectedPolygonId.set(null);
       hoveredPolygonId.set(null);
     }

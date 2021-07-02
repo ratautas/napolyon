@@ -65,7 +65,7 @@ const MOCK_INITIAL_POLYGONS = {
 
 export const mode = writable(null);
 export const isSnapEnabled = writable(true);
-export const snapRadius = writable(10);
+export const snapRadius = writable(20);
 
 export const renderSvg = writable(null);
 
@@ -115,68 +115,32 @@ export const dragablePolygon = derived(
 export const polygons = {
   subscribe: polygonsStore.subscribe,
   addPolygon: (polygon) => polygonsStore.update($polygons => {
-    // $polygons[polygon.id] = polygon;
-    // return $polygons;
-    return {
-      ...$polygons,
-      [polygon.id]: polygon,
-    }
+    $polygons[polygon.id] = polygon;
+    return $polygons;
   }),
   addPoint: (polygon, point) => polygonsStore.update($polygons => {
-    // $polygons[polygon.id].points[point.id] = point;
-    // return $polygons;
-    return {
-      ...$polygons,
-      [polygon.id]: {
-        ...polygon,
-        points: {
-          ...polygon.points,
-          point,
-        }
-      },
-    }
+    $polygons[polygon.id].points[point.id] = point;
+    return $polygons;
   }),
   addAttribute: (polygon, attribute) => polygonsStore.update($polygons => {
-    // $polygons[polygon.id].attributes[attribute.name] = attribute.value;
-    // return $polygons;
-    return {
-      ...$polygons,
-      [polygon.id]: {
-        ...polygon,
-        attributes: {
-          ...polygon.attributes,
-          [attribute.name]: attribute.value
-        }
-      },
-    }
+    $polygons[polygon.id].attributes[attribute.name] = attribute.value;
+    return $polygons;
   }),
   movePoint: (polygon, pointId, x, y) => polygonsStore.update($polygons => {
-    return {
-      ...$polygons,
-      [polygon.id]: {
-        ...polygon,
-        points: {
-          ...polygon.points,
-          [pointId]: { id: pointId, x, y }
-        }
-      },
-    }
+    $polygons[polygon.id].points[pointId].x = x;
+    $polygons[polygon.id].points[pointId].y = y;
+    return $polygons;
   }),
   moveAllPoints: (polygon, x, y) => polygonsStore.update($polygons => {
-    return {
-      ...$polygons,
-      [polygon.id]: {
-        ...polygon,
-        points: Object.values(polygon.points).reduce((acc, point) => ({
-          ...acc,
-          [point.id]: {
-            ...point,
-            x: point.x + x,
-            y: point.y + y,
-          }
-        }), {})
-      },
-    }
+    $polygons[polygon.id].points = Object.values(polygon.points).reduce((acc, point) => ({
+      ...acc,
+      [point.id]: {
+        ...point,
+        x: point.x + x,
+        y: point.y + y,
+      }
+    }), {});
+    return $polygons;
   }),
   set: (val) => polygonsStore.set(val)
 };
@@ -216,7 +180,6 @@ export const drawablePolygon = (() => {
     set: (val) => set(val)
   };
 })();
-
 
 export const attributeStore = writable({
   'stroke-width': '1',

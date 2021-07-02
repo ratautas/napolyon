@@ -143,7 +143,7 @@
     <AccordionItem title="CSS Code">
       <CodeSnippet class="code" type="multi" code={globalCssRender} />
     </AccordionItem>
-    <AccordionItem title="Selected Polygon Attributes" disabled={!$selectedPolygonId}>
+    <AccordionItem title="Polygon Attributes" disabled={!$selectedPolygonId}>
       {#if $selectedPolygonId}
         {#each selectedPolygonAttributes as attribute, i}
           <TextInput
