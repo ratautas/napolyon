@@ -34,6 +34,7 @@
   let imageWidth = 900;
   let imageHeight = 600;
   let svgEl;
+  let isForcedStyle = true;
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
@@ -139,6 +140,10 @@
   };
 
   const handleCanvasMouseup = (e) => {
+    const hasPolygonTarget = e.path
+      .filter((el, i) => i < e.path.length - 2)
+      .some((el) => el.matches('polygon'));
+
     if (!!$dragablePolygonId) {
       dragablePolygonId.set(null);
     }
@@ -155,6 +160,11 @@
         }
       }
       dragablePointId.set(null);
+    }
+
+    if (!hasPolygonTarget) {
+      selectedPolygonId.set(null);
+      hoveredPolygonId.set(null);
     }
   };
 
@@ -249,7 +259,7 @@
 
   <ToolBar on:add-attribute={handleAddAttribute} />
   {#if src}
-    <div class="render">
+    <div class="render" class:is-forced-style={isForcedStyle}>
       <img
         {src}
         alt=""
@@ -288,6 +298,7 @@
             style={`left:${point.x}px;top:${point.y}px;`}
             class="point"
             class:is-polygon-selected={polygon.id === $selectedPolygonId}
+            class:is-polygon-hovered={polygon.id === $hoveredPolygonId}
             class:is-dragable={point.id === $dragablePointId}
             id={point.id}
             tabindex="0"
