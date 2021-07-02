@@ -1,5 +1,13 @@
 <script>
-  import Icon from '@iconify/svelte';
+  import Accordion from 'carbon-components-svelte/src/Accordion/Accordion.svelte';
+  import AccordionItem from 'carbon-components-svelte/src/Accordion/AccordionItem.svelte';
+  import Button from 'carbon-components-svelte/src/Button/Button.svelte';
+  import CodeSnippet from 'carbon-components-svelte/src/CodeSnippet/CodeSnippet.svelte';
+  import TextInput from 'carbon-components-svelte/src/TextInput/TextInput.svelte';
+  import Toggle from 'carbon-components-svelte/src/Toggle/Toggle.svelte';
+  import Slider from 'carbon-components-svelte/src/Slider/Slider.svelte';
+
+  import Switcher24 from 'carbon-icons-svelte/lib/Switcher24';
   import { saveAs } from 'file-saver';
   import { onMount } from 'svelte';
 
@@ -44,7 +52,7 @@
       name: newAttributeName,
       value: newAttributeValue
     };
-    
+
     polygons.addAttribute($selectedPolygon, attributeToAdd);
 
     if (newAttributeIsGlobal) {
@@ -68,9 +76,15 @@
       (acc, [name, value]) => [...acc, { name, value }],
       []
     );
+  $: cssString = Object.entries($globalAttributes).reduce(
+    (acc, [name, value]) => `${acc}\t${name}: ${value};\n`,
+    ''
+  );
+  $: cssCode = `polygon {\n${cssString}}`;
 </script>
 
 <div class="toolbar" {style} bind:this={toolbarEl}>
+  <!-- TODO: replace it with drag pattern -->
   <div
     class="handle"
     on:mousemove={handleMousemove}
@@ -78,7 +92,14 @@
     on:mouseup={() => (isDragging = false)}
     on:mouseleave={() => (isDragging = false)}
   >
-    <Icon icon="ph:dots-nine-thin" width="32" height="32" />
+    <Button
+      kind="ghost"
+      tooltipPosition="bottom"
+      tooltipAlignment="center"
+      iconDescription="Drag Toolbar"
+      icon={Switcher24}
+    />
+    {$selectedPolygon?.id}
   </div>
   <div class="tools">
     <div
@@ -86,44 +107,46 @@
       class:is-selected={$mode === 'draw'}
       on:click={(e) => handleAddClick(e, 'draw')}
     >
-      <Icon color="currentColor" icon="ph:share-network" width="32" height="32" />
+      <!-- <Icon color="currentColor" icon="ph:share-network" width="32" height="32" /> -->
     </div>
     <div class="tool" on:click={handleDowloadClick}>
-      <Icon color="currentColor" icon="ph:download-simple" width="32" height="32" />
+      <!-- <Icon color="currentColor" icon="ph:download-simple" width="32" height="32" /> -->
     </div>
   </div>
-  <input
-    type="checkbox"
-    checked={$isSnapEnabled}
-    on:input={(e) => isSnapEnabled.set(!!e.target.checked)}
-  />
-  <input
-    type="range"
-    min="1"
-    max="50"
-    value={$snapRadius}
-    disabled={!$isSnapEnabled}
-    on:input={(e) => snapRadius.set(e.target.value)}
-  />
-  Selected polygon id: {$selectedPolygon?.id}
-  <div class="attributes">
-    ========= GLOBAL ATTRIBUTES =========
-    {#each Object.entries($globalAttributes) as [name, value], i}
-      <div class="attributes__row">
-        {name}: {value}
-      </div>
-    {/each}
-    {#if $selectedPolygon}
-      ========= COMPONENT ATTRIBUTES =========
-      {#each selectedPolygonAttributes as attribute, i}
-        <div class="attributes__row">
-          {attribute.name}:
-          <input
-            type="text"
-            class="attributes__input"
-            bind:value={$polygons[$selectedPolygon.id].attributes[attribute.name]}
-          />
+  <Accordion>
+    <AccordionItem title="Snap to Points">
+      <div class="snap">
+        <div class="snap__toggle">
+          <Toggle labelA="" labelB="" hideLabel bind:toggled={$isSnapEnabled} />
         </div>
+        <Slider
+          light
+          min={2}
+          max={50}
+          hideTextInput
+          labelText="Snap Radius"
+          bind:value={$snapRadius}
+          disabled={!$isSnapEnabled}
+        />
+      </div>
+    </AccordionItem>
+    <AccordionItem title="CSS Code">
+      <div class="">
+        <CodeSnippet type="multi" code={cssCode} />
+      </div>
+    </AccordionItem>
+  </Accordion>
+  <div class="attributes">
+    {#if $selectedPolygon && false}
+      {#each selectedPolygonAttributes as attribute, i}
+        <TextInput
+          inline
+          light
+          required
+          size="sm"
+          labelText={attribute.name}
+          bind:value={$polygons[$selectedPolygon.id].attributes[attribute.name]}
+        />
       {/each}
       ========= ADD NEW (COMPONENT) ATTRIBUTE =========
       <div class="attributes__row">
@@ -135,24 +158,4 @@
       <button class="attributes__submit">apply to all</button>
     {/if}
   </div>
-  <Icon icon="ph:anchor" width="8" height="8" />
-  <Icon icon="ph:activity" width="8" height="8" />
-  <Icon icon="ph:archive-box" width="8" height="8" />
-  <Icon icon="ph:cursor" width="8" height="8" />
-  <Icon icon="ph:flag" width="8" height="8" />
-  <Icon icon="ph:git-diff" width="8" height="8" />
-  <Icon icon="ph:intersect" width="8" height="8" />
-  <Icon icon="ph:knife" width="8" height="8" />
-  <Icon icon="ph:path" width="8" height="8" />
-  <Icon icon="ph:pen" width="8" height="8" />
-  <Icon icon="ph:pen-nib" width="8" height="8" />
-  <Icon icon="ph:pen-nib-straight" width="8" height="8" />
-  <Icon icon="ph:pencil" width="8" height="8" />
-  <Icon icon="ph:pencil-simple" width="8" height="8" />
-  <Icon icon="ph:plus" width="8" height="8" />
-  <Icon icon="ph:plus-minus" width="8" height="8" />
-  <Icon icon="ph:share-network" width="8" height="8" />
 </div>
-
-<style lang="scss">
-</style>

@@ -199,13 +199,13 @@
 
   const handleWindowKeydown = (e) => {
     if (e.key === 'Escape') {
-      polygons = $polygonsMap.reduce(
-        (acc, polygon) => ({
-          ...acc,
-          ...(polygon.id !== $drawablePolygon.id && { [polygon.id]: polygon })
-        }),
-        {}
-      );
+      // polygons = $polygonsMap.reduce(
+      //   (acc, polygon) => ({
+      //     ...acc,
+      //     ...(polygon.id !== $drawablePolygon.id && { [polygon.id]: polygon })
+      //   }),
+      //   {}
+      // );
       // escape drawing state
       drawablePolygon.set(null);
       mode.set(null);

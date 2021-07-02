@@ -1,5 +1,8 @@
+// @import 'carbon-components-svelte/css/g10';
+@import 'carbon-components-svelte/css/all.css';
+
 html {
-  font-size: 10px;
+  font-size: 100%;
   // cursor: url('./pen-tool-cursor.svg'), auto;
 }
 
@@ -79,17 +82,21 @@ main {
   position: absolute;
   z-index: 3;
   border-radius: 50%;
-  width: 0;
-  height: 0;
+  // width: 0;
+  // height: 0;
+  width: 2px;
+  height: 2px;
+  transform: translate(-1px, -1px);
+  cursor: move;
+  background-color: blue;
   &:after {
     content: '';
     position: absolute;
-    top: -1px;
-    left: -1px;
-    width: 2px;
-    height: 2px;
+    top: -5px;
+    left: -5px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    background-color: blue;
     z-index: 2;
   }
   &:before {
@@ -100,7 +107,6 @@ main {
     width: calc(var(--snapRadius) * 2);
     height: calc(var(--snapRadius) * 2);
     border-radius: 50%;
-    cursor: move;
     // background-color: red;
     border: solid 1px blue;
     z-index: 1;
@@ -122,5 +128,31 @@ polygon {
   }
   &.is-hovered {
     z-index: 2;
+  }
+}
+
+.snap {
+  display: flex;
+  align-items: center;
+  padding-left: 1rem;
+
+  &__toggle {
+    margin-right: 2rem;
+  }
+}
+
+.klass {
+  display: flex;
+  align-items: center;
+}
+
+.toolbar {
+  width: 400px;
+}
+
+@media all {
+  .bx--accordion__content {
+    // padding-right: 1rem;
+    padding: 0;
   }
 }

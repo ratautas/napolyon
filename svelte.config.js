@@ -1,12 +1,26 @@
+import adapter from "@sveltejs/adapter-static";
+import { optimizeImports, optimizeCss, presetCarbon, icons } from "carbon-preprocess-svelte";
+// import { presetCarbon } from "carbon-preprocess-svelte";
 import sveltePreprocess from 'svelte-preprocess';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: sveltePreprocess(),
+	// preprocess: [optimizeImports()],
+	preprocess: [sveltePreprocess(), ...presetCarbon(), optimizeImports(), icons(),],
 	kit: {
-		// hydrate the <div id="svelte"> element in src/app.html
-		target: '#svelte'
-	}
+		target: "#svelte",
+		// adapter: adapter(),
+		adapter: adapter({
+			// default options are shown
+			pages: 'build',
+			assets: 'build',
+			fallback: null
+		}),
+		vite: {
+			optimizeDeps: { include: ["clipboard-copy"] },
+			plugins: [process.env.NODE_ENV === "production" && optimizeCss()],
+		},
+	},
 };
 
 export default config;
