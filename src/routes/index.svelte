@@ -4,7 +4,7 @@
 </script>
 
 <script>
-  import Dropzone from 'svelte-file-dropzone';
+  // import Dropzone from 'svelte-file-dropzone';
   import { nanoid } from 'nanoid';
   import { onMount } from 'svelte';
 
@@ -341,6 +341,6 @@
       {/each}
     </div>
   {:else}
-    <Dropzone multiple={false} on:drop={handleFilesSelect} />
+    <!-- <Dropzone multiple={false} on:drop={handleFilesSelect} /> -->
   {/if}
 </div>

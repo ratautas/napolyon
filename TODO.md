@@ -10,4 +10,5 @@ Next iteration:
 - convert points/polygons to array
 - insert point between points
 - undo / redo
+- use paths instead of polygons
 - split polygons and points etc to small components 
