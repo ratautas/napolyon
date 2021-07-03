@@ -122,9 +122,18 @@ export const polygons = {
     $polygons[polygonId].attributes[attribute.name] = attribute.value;
     return $polygons;
   }),
+  deleteLocalAttribute: (polygonId, attribute) => polygonsStore.update($polygons => {
+    $polygons[polygonId].attributes = Object.entries($polygons[polygonId].attributes)
+      .reduce((acc, [name, value]) => {
+        return {
+          ...acc,
+          ...(attribute.name !== name ? { [name]: value } : {}),
+        }
+      }, {});
+    return $polygons;
+  }),
   addGlobalAttribute: (attribute) => polygonsStore.update($polygons => {
     return Object.values($polygons).reduce((acc, polygon) => {
-      console.log(attribute.name)
       return {
         ...acc,
         [polygon.id]: {
@@ -138,14 +147,6 @@ export const polygons = {
         }
       }
     }, {});
-  }),
-  deleteAttribute: (polygonId, attribute) => polygonsStore.update($polygons => {
-    $polygons[polygonId].attributes = Object.values($polygons[polygonId].attributes)
-      .reduce((acc, { name }) => ({
-        ...acc,
-        ...(attribute.name === name ? attribute : {}),
-      }), {});
-    return $polygons;
   }),
   movePoint: (polygon, pointId, x, y) => polygonsStore.update($polygons => {
     $polygons[polygon.id].points[pointId].x = x;

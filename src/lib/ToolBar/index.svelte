@@ -167,7 +167,7 @@
     <!-- <AccordionItem title="CSS Code">
       <CodeSnippet class="code" type="multi" code={globalCssRender} />
     </AccordionItem> -->
-    <AccordionItem title="Polygon Attributes" open disabled={!$selectedPolygonId}>
+    <AccordionItem title="Polygon Attributes">
       <Form>
         {#if $selectedPolygonId && selectedPolygonAttributes}
           {#each selectedPolygonAttributes as attribute, i}
@@ -185,40 +185,40 @@
                 tooltipAlignment="center"
                 iconDescription="Click & Drag Toolbar"
                 size="small"
-                on:click={() => polygons.deleteAttribute($selectedPolygonId, attribute)}
+                on:click={() => polygons.deleteLocalAttribute($selectedPolygonId, attribute)}
                 icon={TrashCan16}
               />
             </div>
           {/each}
         {/if}
       </Form>
-      <Form on:submit={handleaddLocalAttributeSubmit}>
-        <div style="display:flex">
-          <TextInput
-            required
-            light
-            size="sm"
-            placeholder="Attribute Name"
-            bind:value={newAttributeName}
-          />
-          <TextInput
-            required
-            light
-            size="sm"
-            placeholder="Attribute Value"
-            bind:value={newAttributeValue}
-          />
-        </div>
-        <div style="display:flex">
-          <Button size="sm" type="submit">Add</Button>
-          <Toggle
-            class="snap__toggle"
-            labelA=""
-            labelB="Is Global"
-            bind:toggled={isNewAttributeGlobal}
-          />
-        </div>
-      </Form>
+          <Form on:submit={handleaddLocalAttributeSubmit}>
+            <div style="display:flex">
+              <TextInput
+                required
+                light
+                size="sm"
+                placeholder="Attribute Name"
+                bind:value={newAttributeName}
+              />
+              <TextInput
+                required
+                light
+                size="sm"
+                placeholder="Attribute Value"
+                bind:value={newAttributeValue}
+              />
+            </div>
+            <div style="display:flex">
+              <Button size="sm" type="submit">Add</Button>
+              <Toggle
+                class="snap__toggle"
+                labelA=""
+                labelB="Is Global"
+                bind:toggled={isNewAttributeGlobal}
+              />
+            </div>
+          </Form>
     </AccordionItem>
   </Accordion>
 </div>
