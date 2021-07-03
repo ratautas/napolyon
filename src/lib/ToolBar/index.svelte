@@ -9,7 +9,7 @@
   import ToolBarButtons from '$lib/ToolBar/ToolBarButtons.svelte';
   import ToolBarAttributes from '$lib/ToolBar/ToolBarAttributes.svelte';
 
-  import { isSnapEnabled, snapRadius, toolbarX, toolbarY } from '$lib/stores.js';
+  import { isSnapEnabled, snapRadius, toolbarX, toolbarY, selectedPolygonId } from '$lib/stores.js';
 
   let toolbarEl;
 
@@ -45,8 +45,10 @@
     <!-- <AccordionItem title="CSS Code">
       <CodeSnippet class="code" type="multi" code={globalCssRender} />
     </AccordionItem> -->
-    <AccordionItem title="Polygon Attributes" open>
-      <ToolBarAttributes />
-    </AccordionItem>
+    {#if $selectedPolygonId}
+      <AccordionItem title="Polygon Attributes" open>
+        <ToolBarAttributes />
+      </AccordionItem>
+    {/if}
   </Accordion>
 </div>

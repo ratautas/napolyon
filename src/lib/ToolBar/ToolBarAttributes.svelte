@@ -5,20 +5,16 @@
   import Form from 'carbon-components-svelte/src/Form/Form.svelte';
 
   import TrashCan16 from 'carbon-icons-svelte/lib/TrashCan16';
+  import Add16 from 'carbon-icons-svelte/lib/Add16';
 
-  import {
-    mode,
-    selectedPolygon,
-    selectedPolygonId,
-    polygons,
-    globalAttributes
-  } from '$lib/stores.js';
+  import { selectedPolygon, selectedPolygonId, polygons, globalAttributes } from '$lib/stores.js';
 
+  let isNewOpen = false;
   let newAttributeName = '';
   let newAttributeValue = '';
   let isNewAttributeGlobal = true;
 
-  const handleaddLocalAttributeSubmit = () => {
+  const handleAddAttributeSubmit = () => {
     const attributeToAdd = {
       name: newAttributeName,
       value: newAttributeValue
@@ -36,62 +32,70 @@
   };
 
   $: selectedPolygonAttributes =
-    $selectedPolygon &&
-    $selectedPolygon.attributes &&
+    $selectedPolygonId &&
     Object.entries($selectedPolygon.attributes).reduce(
       (acc, [name, value]) => [...acc, { name, value }],
       []
     );
 </script>
 
-<Form>
-  {#if $selectedPolygonId && selectedPolygonAttributes}
-    {#each selectedPolygonAttributes as attribute, i}
-      <div style="display:flex">
-        <TextInput required light disabled size="sm" value={attribute.name} />
+<div class="attributes">
+  <Form>
+    {#if selectedPolygonAttributes?.length}
+      {#each selectedPolygonAttributes as attribute, i}
+        <div class="attributes__row">
+          <TextInput required light disabled size="sm" value={attribute.name} />
+          <TextInput
+            required
+            light
+            size="sm"
+            bind:value={$polygons[$selectedPolygonId].attributes[attribute.name]}
+          />
+          <Button
+            kind="ghost"
+            tooltipPosition="bottom"
+            tooltipAlignment="center"
+            iconDescription="Remove Attribute"
+            size="small"
+            on:click={() => polygons.deleteLocalAttribute($selectedPolygonId, attribute)}
+            icon={TrashCan16}
+          />
+        </div>
+      {/each}
+    {/if}
+    {#if !isNewOpen}
+      <Button size="small" icon={Add16} on:click={() => (isNewOpen = true)}>Add Attribute</Button>
+    {/if}
+  </Form>
+</div>
+{#if isNewOpen}
+  <div class="attributes">
+    <Form on:submit={handleAddAttributeSubmit}>
+      <div class="attributes__row">
         <TextInput
           required
           light
           size="sm"
-          bind:value={$polygons[$selectedPolygonId].attributes[attribute.name]}
+          placeholder="Attribute Name"
+          bind:value={newAttributeName}
         />
-        <Button
-          kind="danger-tertiary"
-          tooltipPosition="bottom"
-          tooltipAlignment="center"
-          iconDescription="Click & Drag Toolbar"
-          size="small"
-          on:click={() => polygons.deleteLocalAttribute($selectedPolygonId, attribute)}
-          icon={TrashCan16}
+        <TextInput
+          required
+          light
+          size="sm"
+          placeholder="Attribute Value"
+          bind:value={newAttributeValue}
+        />
+        <Button size="small" icon={Add16} />
+      </div>
+      <div class="attributes__row">
+        <Toggle
+          class="snap__toggle"
+          labelA=""
+          labelB="Add To All Polygons"
+          bind:toggled={isNewAttributeGlobal}
         />
       </div>
-    {/each}
-  {/if}
-</Form>
-<Form on:submit={handleaddLocalAttributeSubmit}>
-  <div style="display:flex">
-    <TextInput
-      required
-      light
-      size="sm"
-      placeholder="Attribute Name"
-      bind:value={newAttributeName}
-    />
-    <TextInput
-      required
-      light
-      size="sm"
-      placeholder="Attribute Value"
-      bind:value={newAttributeValue}
-    />
+    </Form>
   </div>
-  <div style="display:flex">
-    <Button size="small" type="submit">Add</Button>
-    <Toggle
-      class="snap__toggle"
-      labelA=""
-      labelB="Add To All Polygons"
-      bind:toggled={isNewAttributeGlobal}
-    />
-  </div>
-</Form>
+{/if}
