@@ -17,15 +17,11 @@
     isToolbarDragging
   } from '$lib/stores.js';
 
-  let x;
-  let y;
-  let isDragging = false;
-
-  const handleMousemove = (e) => {
-    if (!isDragging) return;
-    const { movementX, movementY } = e;
-    x += movementX;
-    y += movementY;
+  const clearAttributes = () => {
+    $renderSvg.querySelectorAll('polygon').forEach((polygonEl) => {
+      polygonEl.removeAttribute('class');
+      polygonEl.removeAttribute('id');
+    });
   };
 
   const handleAddClick = (e, targetMode) => {
@@ -37,6 +33,7 @@
     selectedPolygonId.set(null);
     hoveredPolygonId.set(null);
     await tick();
+    clearAttributes();
     await navigator.clipboard.writeText($renderSvg.outerHTML);
   };
 
@@ -44,6 +41,7 @@
     selectedPolygonId.set(null);
     hoveredPolygonId.set(null);
     await tick();
+    clearAttributes();
     const blob = new Blob([$renderSvg.outerHTML], { type: 'image/svg+xml' });
     saveAs(blob, 'graph.svg');
   };
