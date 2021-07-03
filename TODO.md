@@ -1,8 +1,8 @@
 - pass only ID to $drawable and derive from IDs
 - pen cursor icon (illustrator)
 - use [points="xyz"] selectors for styling instead of classnames
-- highlight potentiall snappable point
 - Carbon dropzone
+- handlePolygonMouseleave doesn't deselect
 
 Next iteration:
 - convert points/polygons to array

@@ -62,7 +62,9 @@ export const renderSvg = writable(null);
 export const hoveredPolygonId = writable(null);
 export const dragablePolygonId = writable(null);
 export const selectedPolygonId = writable(null);
+
 export const dragablePointId = writable(null);
+export const closestSnapablePointId = writable(null);
 
 export const globalAttributes = writable({});
 

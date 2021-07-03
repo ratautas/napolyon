@@ -24,6 +24,7 @@
     dragablePolygonId,
     hoveredPolygonId,
     dragablePointId,
+    closestSnapablePointId,
     polygonsMap
   } from '$lib/stores.js';
 
@@ -127,6 +128,16 @@
     // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
     if (!!$dragablePointId && !!$selectedPolygon) {
       polygons.movePoint($selectedPolygon, $dragablePointId, x, y);
+      if ($isSnapEnabled) {
+        const closestPoint = $polygonsMap
+          .filter(({ id }) => id !== $selectedPolygonId)
+          .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
+          if (closestPoint) {
+            closestSnapablePointId.set(closestPoint.id);
+          } else if (closestSnapablePointId) {
+            closestSnapablePointId.set(null);
+          }
+       }
       return;
     }
 
@@ -168,6 +179,8 @@
       selectedPolygonId.set(null);
       hoveredPolygonId.set(null);
     }
+
+    closestSnapablePointId.set(null);
   };
 
   const handlePolygonMouseenter = ({ e, polygon }) => {
@@ -295,6 +308,7 @@
             class="point"
             class:is-polygon-selected={polygon.id === $selectedPolygonId}
             class:is-polygon-hovered={polygon.id === $hoveredPolygonId}
+            class:is-closest-snapable={point.id === $closestSnapablePointId}
             class:is-dragable={point.id === $dragablePointId}
             id={point.id}
             tabindex="0"

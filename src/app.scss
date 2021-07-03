@@ -89,9 +89,9 @@ main {
 polygon {
   position: relative;
   stroke-width: 1;
-  stroke: rgba(255,255,255,.8);
-  fill: rgba(0,0,0,.5);
-  
+  stroke: rgba(255, 255, 255, 0.8);
+  fill: rgba(0, 0, 0, 0.5);
+
   &.is-drawing {
   }
   &.is-dragging {
@@ -150,18 +150,16 @@ polygon {
     }
   }
 
-  &.is-dragable {
-    &:before {
-      transform: scale(1);
-    }
-  }
   &.is-polygon-hovered {
     z-index: 4;
     &:after {
       transform: scale(0.5);
     }
   }
-  &.is-polygon-selected {
+
+  &.is-dragable,
+  &.is-polygon-selected,
+  &.is-closest-snapable {
     z-index: 5;
     &:after {
       transform: scale(1);
