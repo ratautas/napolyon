@@ -16,6 +16,8 @@
   import { saveAs } from 'file-saver';
   import { onMount } from 'svelte';
 
+  import ToolBarButtons from '$lib/ToolBar/ToolBarButtons.svelte';
+
   import {
     mode,
     renderSvg,
@@ -104,48 +106,8 @@
 
 <div class="toolbar" {style} bind:this={toolbarEl}>
   <!-- TODO: replace it with drag pattern -->
-  <div class="buttons">
-    <div
-      class="handle"
-      on:mousemove={handleMousemove}
-      on:mousedown={() => (isDragging = true)}
-      on:mouseup={() => (isDragging = false)}
-      on:mouseleave={() => (isDragging = false)}
-    >
-      <Button
-        kind="ghost"
-        tooltipPosition="bottom"
-        tooltipAlignment="center"
-        iconDescription="Click & Drag Toolbar"
-        icon={Switcher24}
-      />
-    </div>
-    <Button
-      kind="ghost"
-      tooltipPosition="bottom"
-      tooltipAlignment="center"
-      iconDescription="Add New Polygon"
-      icon={AreaCustom24}
-      isSelected={$mode === 'draw'}
-      on:click={(e) => handleAddClick(e, 'draw')}
-    />
-    <Button
-      kind="ghost"
-      tooltipPosition="bottom"
-      tooltipAlignment="center"
-      iconDescription="Copy SVG Code"
-      icon={CopyFile24}
-      on:click={handleCopyClick}
-    />
-    <Button
-      kind="ghost"
-      tooltipPosition="bottom"
-      tooltipAlignment="center"
-      iconDescription="Download SVG File"
-      icon={CloudDownload24}
-      on:click={handleDowloadClick}
-    />
-  </div>
+  <ToolBarButtons />
+
   <Accordion>
     <AccordionItem>
       <svelte:fragment slot="title">
@@ -156,7 +118,7 @@
         <Slider
           disabled={!$isSnapEnabled}
           hideTextInput
-          labelText="Radius -- select a polygon for preview"
+          labelText="Snap Radius"
           light
           max={100}
           min={1}
@@ -167,7 +129,7 @@
     <!-- <AccordionItem title="CSS Code">
       <CodeSnippet class="code" type="multi" code={globalCssRender} />
     </AccordionItem> -->
-    <AccordionItem title="Polygon Attributes">
+    <AccordionItem title="Polygon Attributes" open>
       <Form>
         {#if $selectedPolygonId && selectedPolygonAttributes}
           {#each selectedPolygonAttributes as attribute, i}
@@ -192,33 +154,33 @@
           {/each}
         {/if}
       </Form>
-          <Form on:submit={handleaddLocalAttributeSubmit}>
-            <div style="display:flex">
-              <TextInput
-                required
-                light
-                size="sm"
-                placeholder="Attribute Name"
-                bind:value={newAttributeName}
-              />
-              <TextInput
-                required
-                light
-                size="sm"
-                placeholder="Attribute Value"
-                bind:value={newAttributeValue}
-              />
-            </div>
-            <div style="display:flex">
-              <Button size="sm" type="submit">Add</Button>
-              <Toggle
-                class="snap__toggle"
-                labelA=""
-                labelB="Is Global"
-                bind:toggled={isNewAttributeGlobal}
-              />
-            </div>
-          </Form>
+      <Form on:submit={handleaddLocalAttributeSubmit}>
+        <div style="display:flex">
+          <TextInput
+            required
+            light
+            size="sm"
+            placeholder="Attribute Name"
+            bind:value={newAttributeName}
+          />
+          <TextInput
+            required
+            light
+            size="sm"
+            placeholder="Attribute Value"
+            bind:value={newAttributeValue}
+          />
+        </div>
+        <div style="display:flex">
+          <Button size="small" type="submit">Add</Button>
+          <Toggle
+            class="snap__toggle"
+            labelA=""
+            labelB="Add To All Polygons"
+            bind:toggled={isNewAttributeGlobal}
+          />
+        </div>
+      </Form>
     </AccordionItem>
   </Accordion>
 </div>
