@@ -59,6 +59,10 @@ export const mode = writable(null);
 export const isSnapEnabled = writable(true);
 export const snapRadius = writable(20);
 
+export const isToolbarDragging = writable(false);
+export const toolbarX = writable(30);
+export const toolbarY = writable(30);
+
 export const renderSvg = writable(null);
 
 export const hoveredPolygonId = writable(null);

@@ -7,11 +7,14 @@
   import CopyFile24 from 'carbon-icons-svelte/lib/CopyFile24';
   import { saveAs } from 'file-saver';
 
+  import { tick } from 'svelte';
+
   import {
     mode,
     renderSvg,
     selectedPolygonId,
     hoveredPolygonId,
+    isToolbarDragging
   } from '$lib/stores.js';
 
   let x;
@@ -33,12 +36,14 @@
   const handleCopyClick = async () => {
     selectedPolygonId.set(null);
     hoveredPolygonId.set(null);
+    await tick();
     await navigator.clipboard.writeText($renderSvg.outerHTML);
   };
 
-  const handleDowloadClick = () => {
+  const handleDowloadClick = async () => {
     selectedPolygonId.set(null);
     hoveredPolygonId.set(null);
+    await tick();
     const blob = new Blob([$renderSvg.outerHTML], { type: 'image/svg+xml' });
     saveAs(blob, 'graph.svg');
   };
@@ -46,13 +51,7 @@
 
 <!-- TODO: replace it with drag pattern -->
 <div class="buttons">
-  <div
-    class="handle"
-    on:mousemove={handleMousemove}
-    on:mousedown={() => (isDragging = true)}
-    on:mouseup={() => (isDragging = false)}
-    on:mouseleave={() => (isDragging = false)}
-  >
+  <div class="handle" on:mousedown={() => isToolbarDragging.set(true)}>
     <Button
       kind="ghost"
       tooltipPosition="bottom"

@@ -25,7 +25,10 @@
     hoveredPolygonId,
     dragablePointId,
     closestSnapablePointId,
-    polygonsMap
+    polygonsMap,
+    isToolbarDragging,
+    toolbarX,
+    toolbarY
   } from '$lib/stores.js';
 
   // let src;
@@ -125,6 +128,12 @@
   const handleCanvasMousedown = (e) => {};
 
   const handleCanvasMousemove = ({ x, y, movementX, movementY }) => {
+    if ($isToolbarDragging) {
+      toolbarX.set($toolbarX + movementX);
+      toolbarY.set($toolbarY + movementY);
+      return;
+    }
+
     // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
     if (!!$dragablePointId && !!$selectedPolygon) {
       polygons.movePoint($selectedPolygon, $dragablePointId, x, y);
@@ -157,7 +166,11 @@
       .filter((el, i) => i < e.path.length - 2)
       .some((el) => el.matches('.toolbar'));
 
-    if (!!$dragablePolygonId) {
+    if (hasToolbarTarget && $isToolbarDragging) {
+      isToolbarDragging.set(false);
+    }
+
+    if ($dragablePolygonId) {
       dragablePolygonId.set(null);
     }
 
