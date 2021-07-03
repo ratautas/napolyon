@@ -12,7 +12,7 @@
   import {
     mode,
     renderSvg,
-    globalAttributes,
+    attributesStore,
     snapRadius,
     isSnapEnabled,
     polygons,
@@ -94,7 +94,7 @@
     if (!$drawablePolygon) {
       selectedPolygonId.set(null);
       drawablePolygon.set({
-        attributes: $globalAttributes,
+        attributes: $attributesStore,
         id: nanoid(6),
         points: {}
       });
@@ -240,11 +240,6 @@
     }
   };
 
-  const handleAddAttribute = ({ detail }) => {
-    polygons[selectedPolygon.id].attributes[detail.name] = detail.value;
-    // selectedPolygonId.set(polygons[selectedPolygon.id]);
-  };
-
   onMount(() => {
     renderSvg.set(svgEl);
   });
@@ -266,7 +261,7 @@
   class:is-drawing={$mode === 'draw'}
   style={`--snapRadius:${$snapRadius}px`}
 >
-  <ToolBar on:add-attribute={handleAddAttribute} />
+  <ToolBar />
   {#if src}
     <div class="render">
       <img

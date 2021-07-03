@@ -6,23 +6,26 @@
   import TextInput from 'carbon-components-svelte/src/TextInput/TextInput.svelte';
   import Toggle from 'carbon-components-svelte/src/Toggle/Toggle.svelte';
   import Slider from 'carbon-components-svelte/src/Slider/Slider.svelte';
+  import Form from 'carbon-components-svelte/src/Form/Form.svelte';
 
+  import TrashCan16 from 'carbon-icons-svelte/lib/TrashCan16';
   import AreaCustom24 from 'carbon-icons-svelte/lib/AreaCustom24';
   import CloudDownload24 from 'carbon-icons-svelte/lib/CloudDownload24';
   import Switcher24 from 'carbon-icons-svelte/lib/Switcher24';
+  import CopyFile24 from 'carbon-icons-svelte/lib/CopyFile24';
   import { saveAs } from 'file-saver';
   import { onMount } from 'svelte';
 
   import {
     mode,
-    globalAttributes,
     renderSvg,
-    addAttribute,
     isSnapEnabled,
     selectedPolygon,
     selectedPolygonId,
+    hoveredPolygonId,
     snapRadius,
-    polygons
+    polygons,
+    attributes
   } from '$lib/stores.js';
 
   let toolbarEl;
@@ -31,7 +34,7 @@
   let isDragging = false;
   let newAttributeName = '';
   let newAttributeValue = '';
-  let newAttributeIsGlobal = true;
+  let isNewAttributeGlobal = true;
 
   const handleMousemove = (e) => {
     if (!isDragging) return;
@@ -45,21 +48,32 @@
     mode.set($mode !== targetMode ? targetMode : null);
   };
 
+  const handleCopyClick = async () => {
+    selectedPolygonId.set(null);
+    hoveredPolygonId.set(null);
+    await navigator.clipboard.writeText($renderSvg.outerHTML);
+  };
+
   const handleDowloadClick = () => {
+    selectedPolygonId.set(null);
+    hoveredPolygonId.set(null);
+    // $renderSvg.removeAttribute('class');
     const blob = new Blob([$renderSvg.outerHTML], { type: 'image/svg+xml' });
     saveAs(blob, 'graph.svg');
   };
 
-  const handleAttributeAddClick = () => {
+  const handleAddAttributeSubmit = () => {
     const attributeToAdd = {
       name: newAttributeName,
       value: newAttributeValue
     };
 
-    polygons.addAttribute($selectedPolygon, attributeToAdd);
+    console.log($selectedPolygonId);
 
-    if (newAttributeIsGlobal) {
-      addAttribute(attributeToAdd);
+    polygons.addAttribute($selectedPolygonId, attributeToAdd);
+
+    if (isNewAttributeGlobal) {
+      attributes.add(attributeToAdd);
     }
 
     newAttributeName = '';
@@ -80,14 +94,15 @@
       (acc, [name, value]) => [...acc, { name, value }],
       []
     );
-  $: globalCssString = Object.entries($globalAttributes).reduce(
-    (acc, [name, value]) => `${acc}  ${name}: ${value};\n`,
-    ''
-  );
-  $: globalCssRender = `polygon {\n${globalCssString}}`;
+  // $: globalCssString = $attributesMap.reduce(
+  //   (acc, [name, value]) => `${acc}  ${name}: ${value};\n`,
+  //   ''
+  // );
+  // $: globalCssRender = `polygon {\n${globalCssString}}`;
 </script>
 
 <div class="toolbar" {style} bind:this={toolbarEl}>
+  {$selectedPolygonId}
   <!-- TODO: replace it with drag pattern -->
   <div class="buttons">
     <div
@@ -113,6 +128,14 @@
       icon={AreaCustom24}
       isSelected={$mode === 'draw'}
       on:click={(e) => handleAddClick(e, 'draw')}
+    />
+    <Button
+      kind="ghost"
+      tooltipPosition="bottom"
+      tooltipAlignment="center"
+      iconDescription="Copy SVG Code"
+      icon={CopyFile24}
+      on:click={handleCopyClick}
     />
     <Button
       kind="ghost"
@@ -144,27 +167,58 @@
     <!-- <AccordionItem title="CSS Code">
       <CodeSnippet class="code" type="multi" code={globalCssRender} />
     </AccordionItem> -->
-    <AccordionItem title="Polygon Attributes" disabled={!$selectedPolygonId}>
-      {#if $selectedPolygonId && selectedPolygonAttributes}
-        {#each selectedPolygonAttributes as attribute, i}
+    <AccordionItem title="Polygon Attributes" open disabled={!$selectedPolygonId}>
+      <Form>
+        {#if $selectedPolygonId && selectedPolygonAttributes}
+          {#each selectedPolygonAttributes as attribute, i}
+            <div style="display:flex">
+              <TextInput required light disabled size="sm" value={attribute.name} />
+              <TextInput
+                required
+                light
+                size="sm"
+                bind:value={$polygons[$selectedPolygonId].attributes[attribute.name]}
+              />
+              <Button
+                kind="danger-tertiary"
+                tooltipPosition="bottom"
+                tooltipAlignment="center"
+                iconDescription="Click & Drag Toolbar"
+                size="small"
+                on:click={() => polygons.deleteAttribute($selectedPolygonId, attribute)}
+                icon={TrashCan16}
+              />
+            </div>
+          {/each}
+        {/if}
+      </Form>
+      <Form on:submit={handleAddAttributeSubmit}>
+        <div style="display:flex">
           <TextInput
-            inline
-            light
             required
+            light
             size="sm"
-            labelText={attribute.name}
-            bind:value={$polygons[$selectedPolygon.id].attributes[attribute.name]}
+            placeholder="Attribute Name"
+            bind:value={newAttributeName}
           />
-        {/each}
-      {/if}
-      ========= ADD NEW (COMPONENT) ATTRIBUTE =========
-      <div class="attributes__row">
-        <input type="text" class="attributes__input" bind:value={newAttributeName} />
-        <input type="text" class="attributes__input" bind:value={newAttributeValue} />
-        <input type="checkbox" bind:checked={newAttributeIsGlobal} />global?
-      </div>
-      <button class="attributes__submit" on:click={handleAttributeAddClick}>add</button>
-      <button class="attributes__submit">apply to all</button>
+          <TextInput
+            required
+            light
+            size="sm"
+            placeholder="Attribute Value"
+            bind:value={newAttributeValue}
+          />
+        </div>
+        <div style="display:flex">
+          <Button size="sm" type="submit">Add</Button>
+          <Toggle
+            class="snap__toggle"
+            labelA=""
+            labelB="Is Global"
+            bind:toggled={isNewAttributeGlobal}
+          />
+        </div>
+      </Form>
     </AccordionItem>
   </Accordion>
 </div>

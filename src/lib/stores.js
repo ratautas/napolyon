@@ -24,7 +24,8 @@ const MOCK_INITIAL_POLYGONS = {
         y: 107,
         id: 'i0spdb'
       }
-    }
+    },
+    attributes: {}
   },
   DaNhAj: {
     id: 'DaNhAj',
@@ -49,7 +50,8 @@ const MOCK_INITIAL_POLYGONS = {
         y: 475,
         id: 'WH2UKA'
       }
-    }
+    },
+    attributes: {}
   }
 };
 
@@ -66,16 +68,23 @@ export const selectedPolygonId = writable(null);
 export const dragablePointId = writable(null);
 export const closestSnapablePointId = writable(null);
 
-export const globalAttributes = writable({});
-
-export const globalAttributesArray = derived(globalAttributes, $globalAttributes =>
-  Object
-    .entries($globalAttributes)
-    .reduce((acc, [name, value]) => [...acc, { [name]: value }], []))
+export const attributesStore = writable({});
 
 export const addAttribute = ({ name, value }) =>
-  globalAttributes.update(($globalAttributes) => ({ ...$globalAttributes, [name]: value }))
+  attributesStore.update(($attributesStore) => ({ ...$attributesStore, [name]: value }))
 
+// global attributes
+export const attributes = {
+  subscribe: attributesStore.subscribe,
+  add: ({ name, value }) => attributesStore.update($attributes => {
+    $attributes[name] = value;
+    return $attributes;
+  }),
+};
+
+export const attributesMap = derived([attributes],
+  ([$attributes]) => Object.entries($attributes)
+    .reduce((acc, [name, value]) => [...acc, { [name]: value }], []))
 
 export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
 
@@ -99,7 +108,6 @@ export const dragablePolygon = derived(
   ([$polygonsStore, $dragablePolygonId]) => $polygonsStore[$dragablePolygonId]
 );
 
-
 export const polygons = {
   subscribe: polygonsStore.subscribe,
   addPolygon: (polygon) => polygonsStore.update($polygons => {
@@ -110,8 +118,16 @@ export const polygons = {
     $polygons[polygon.id].points[point.id] = point;
     return $polygons;
   }),
-  addAttribute: (polygon, attribute) => polygonsStore.update($polygons => {
-    $polygons[polygon.id].attributes[attribute.name] = attribute.value;
+  addAttribute: (polygonId, attribute) => polygonsStore.update($polygons => {
+    $polygons[polygonId].attributes[attribute.name] = attribute.value;
+    return $polygons;
+  }),
+  deleteAttribute: (polygonId, attribute) => polygonsStore.update($polygons => {
+    $polygons[polygonId].attributes = Object.values($polygons[polygonId].attributes)
+      .reduce((acc, { name }) => ({
+        ...acc,
+        ...(attribute.name === name ? attribute : {}),
+      }), {});
     return $polygons;
   }),
   movePoint: (polygon, pointId, x, y) => polygonsStore.update($polygons => {
@@ -168,9 +184,3 @@ export const drawablePolygon = (() => {
     set: (val) => set(val)
   };
 })();
-
-export const attributeStore = writable({
-  'stroke-width': '1',
-  stroke: 'rgba(255,255,255,.8)',
-  fill: 'rgba(0,0,0,.5)'
-});
