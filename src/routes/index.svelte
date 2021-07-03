@@ -7,6 +7,7 @@
   // import Dropzone from 'svelte-file-dropzone';
   import { nanoid } from 'nanoid';
   import { onMount } from 'svelte';
+  import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
 
   import ToolBar from '$lib/ToolBar/index.svelte';
   import {
@@ -31,23 +32,24 @@
     toolbarY
   } from '$lib/stores.js';
 
-  // let src;
-  let src =
-    'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
+  let src;
+  // let src =
+  //   'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
   let imageEl;
   let imageWidth = 900;
   let imageHeight = 600;
   let svgEl;
+  let closestPoint = null;
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
     imageHeight = imageEl.naturalHeight;
   };
 
-  const handleFilesSelect = (e) => {
-    const { acceptedFiles, fileRejections } = e.detail;
+  const handleFilesChange = (e) => {
     const reader = new FileReader();
-    const [file] = acceptedFiles;
+    const [file] = e.target.files;
+    console.log(file)
     reader.readAsDataURL(file);
     reader.onload = () => {
       src = reader.result;
@@ -134,6 +136,20 @@
       return;
     }
 
+    if ($mode === 'draw') {
+      if ($isSnapEnabled) {
+        closestPoint = $polygonsMap
+          .filter(({ id }) => id !== $drawablePolygon?.id)
+          .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
+        if (closestPoint) {
+          closestSnapablePointId.set(closestPoint.id);
+        } else if (closestSnapablePointId) {
+          closestSnapablePointId.set(null);
+        }
+      }
+      return;
+    }
+
     // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
     if (!!$dragablePointId && !!$selectedPolygon) {
       polygons.movePoint($selectedPolygon, $dragablePointId, x, y);
@@ -176,7 +192,7 @@
 
     if ($dragablePointId) {
       if ($isSnapEnabled) {
-        const { x, y } = $selectedPolygon.points[$dragablePointId];
+        const { x, y } = $selectedPolygon?.points[$dragablePointId];
         const closestPoint = $polygonsMap
           .filter(({ id }) => id !== $selectedPolygonId)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
@@ -253,11 +269,11 @@
     }
     if (e.key === 'Delete') {
       if ($drawablePolygon) {
-          drawablePolygon.set(null);
-          mode.set(null);
-          // additional escape if dragging gets out of hand
-          dragablePolygonId.set(null);
-          selectedPolygonId.set($drawablePolygon.id);
+        drawablePolygon.set(null);
+        mode.set(null);
+        // additional escape if dragging gets out of hand
+        dragablePolygonId.set(null);
+        selectedPolygonId.set($drawablePolygon.id);
       }
       if ($selectedPolygonId) {
         polygons.deletePolygon($selectedPolygonId);
@@ -341,6 +357,12 @@
       {/each}
     </div>
   {:else}
-    <!-- <Dropzone multiple={false} on:drop={handleFilesSelect} /> -->
+    <!-- <Dropzone multiple={false} on:drop={handleFilesChange} /> -->
+    <FileUploaderDropContainer
+      accept={['.jpg', '.JPG', '.jpeg', '.JPEG', '.gif', '.GIF', '.png', '.PNG', '.webp', '.WEBP']}
+      labelText="Drop your image here or click to upload"
+      class="canvas__upload"
+      on:change={handleFilesChange}
+    />
   {/if}
 </div>

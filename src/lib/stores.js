@@ -90,7 +90,8 @@ export const globalAttributesMap = derived([globalAttributes],
   ([$globalAttributes]) => Object.entries($globalAttributes)
     .reduce((acc, [name, value]) => [...acc, { [name]: value }], []))
 
-export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
+// export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
+export const polygonsStore = writable({});
 
 export const selectedPolygon = derived(
   [polygonsStore, selectedPolygonId],

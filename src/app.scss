@@ -48,6 +48,20 @@ main {
   &.is-drawing {
     cursor: copy;
   }
+
+  &__upload {
+    .bx--file-browse-btn {
+      display: block;
+      max-width: none;
+      margin-bottom: 0;
+      .bx--file__drop-container {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+  }
 }
 
 .render svg {
@@ -192,7 +206,7 @@ polygon {
 }
 
 .attributes {
-  padding: .5rem 0;
+  padding: 0.5rem 0;
   &__row {
     display: flex;
   }

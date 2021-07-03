@@ -33,7 +33,7 @@
 
   $: selectedPolygonAttributes =
     $selectedPolygonId &&
-    Object.entries($selectedPolygon.attributes).reduce(
+    Object.entries($selectedPolygon?.attributes).reduce(
       (acc, [name, value]) => [...acc, { name, value }],
       []
     );
