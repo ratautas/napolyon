@@ -86,7 +86,7 @@
           placeholder="Attribute Value"
           bind:value={newAttributeValue}
         />
-        <Button size="small" icon={Add16} />
+        <Button size="small" type="submit" icon={Add16} />
       </div>
       <div class="attributes__row">
         <Toggle
