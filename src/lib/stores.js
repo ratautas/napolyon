@@ -118,6 +118,16 @@ export const polygons = {
     $polygons[polygon.id] = polygon;
     return $polygons;
   }),
+  deletePolygon: (polygonId) => polygonsStore.update($polygons => {
+    $polygons = Object.values($polygons)
+      .reduce((acc, polygon) => {
+        return {
+          ...acc,
+          ...(polygon.id !== polygonId ? { [polygonId]: polygon } : {}),
+        }
+      }, {});
+    return $polygons;
+  }),
   addPoint: (polygon, point) => polygonsStore.update($polygons => {
     $polygons[polygon.id].points[point.id] = point;
     return $polygons;

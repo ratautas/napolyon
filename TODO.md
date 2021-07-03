@@ -5,7 +5,6 @@
 
 - handlePolygonMouseleave doesn't deselect
 - remove SVG class before export
-- Copy SVG icon
 
 Next iteration:
 - convert points/polygons to array

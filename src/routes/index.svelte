@@ -251,6 +251,19 @@
       }
       mode.set(null);
     }
+    if (e.key === 'Delete') {
+      if ($drawablePolygon) {
+          drawablePolygon.set(null);
+          mode.set(null);
+          // additional escape if dragging gets out of hand
+          dragablePolygonId.set(null);
+          selectedPolygonId.set($drawablePolygon.id);
+      }
+      if ($selectedPolygonId) {
+        polygons.deletePolygon($selectedPolygonId);
+        selectedPolygonId.set(null);
+      }
+    }
   };
 
   onMount(() => {
