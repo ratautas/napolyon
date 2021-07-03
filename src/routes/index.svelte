@@ -12,7 +12,7 @@
   import {
     mode,
     renderSvg,
-    attributesStore,
+    globalAttributes,
     snapRadius,
     isSnapEnabled,
     polygons,
@@ -94,7 +94,7 @@
     if (!$drawablePolygon) {
       selectedPolygonId.set(null);
       drawablePolygon.set({
-        attributes: $attributesStore,
+        attributes: $globalAttributes,
         id: nanoid(6),
         points: {}
       });
@@ -132,12 +132,12 @@
         const closestPoint = $polygonsMap
           .filter(({ id }) => id !== $selectedPolygonId)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
-          if (closestPoint) {
-            closestSnapablePointId.set(closestPoint.id);
-          } else if (closestSnapablePointId) {
-            closestSnapablePointId.set(null);
-          }
-       }
+        if (closestPoint) {
+          closestSnapablePointId.set(closestPoint.id);
+        } else if (closestSnapablePointId) {
+          closestSnapablePointId.set(null);
+        }
+      }
       return;
     }
 
@@ -196,9 +196,9 @@
     const hasPolygonTarget = e.path
       .filter((el, i) => i < e.path.length - 2)
       .some((el) => el.matches('polygon'));
+    hoveredPolygonId.set(null);
     if (!hasPolygonTarget) {
       dragablePolygonId.set(null);
-      hoveredPolygonId.set(null);
     }
   };
 
@@ -307,6 +307,7 @@
             class:is-dragable={point.id === $dragablePointId}
             id={point.id}
             tabindex="0"
+            on:mouseenter={() => hoveredPolygonId.set(polygon.id)}
             on:mousedown={(e) => handlePointMousedown({ e, point, polygon })}
             on:mouseleave={(e) => handlePointMouseleave({ e, point, polygon })}
           />

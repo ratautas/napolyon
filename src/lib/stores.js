@@ -68,22 +68,22 @@ export const selectedPolygonId = writable(null);
 export const dragablePointId = writable(null);
 export const closestSnapablePointId = writable(null);
 
-export const attributesStore = writable({});
+export const globalAttributesStore = writable({});
 
-export const addAttribute = ({ name, value }) =>
-  attributesStore.update(($attributesStore) => ({ ...$attributesStore, [name]: value }))
+export const addLocalAttribute = ({ name, value }) =>
+  globalAttributesStore.update(($globalAttributesStore) => ({ ...$globalAttributesStore, [name]: value }))
 
 // global attributes
-export const attributes = {
-  subscribe: attributesStore.subscribe,
-  add: ({ name, value }) => attributesStore.update($attributes => {
-    $attributes[name] = value;
-    return $attributes;
+export const globalAttributes = {
+  subscribe: globalAttributesStore.subscribe,
+  add: ({ name, value }) => globalAttributesStore.update($globalAttributes => {
+    $globalAttributes[name] = value;
+    return $globalAttributes;
   }),
 };
 
-export const attributesMap = derived([attributes],
-  ([$attributes]) => Object.entries($attributes)
+export const globalAttributesMap = derived([globalAttributes],
+  ([$globalAttributes]) => Object.entries($globalAttributes)
     .reduce((acc, [name, value]) => [...acc, { [name]: value }], []))
 
 export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
@@ -118,9 +118,26 @@ export const polygons = {
     $polygons[polygon.id].points[point.id] = point;
     return $polygons;
   }),
-  addAttribute: (polygonId, attribute) => polygonsStore.update($polygons => {
+  addLocalAttribute: (polygonId, attribute) => polygonsStore.update($polygons => {
     $polygons[polygonId].attributes[attribute.name] = attribute.value;
     return $polygons;
+  }),
+  addGlobalAttribute: (attribute) => polygonsStore.update($polygons => {
+    return Object.values($polygons).reduce((acc, polygon) => {
+      console.log(attribute.name)
+      return {
+        ...acc,
+        [polygon.id]: {
+          ...polygon,
+          attributes: {
+            ...polygon.attributes,
+            ...(!polygon.attributes[attribute.name] && {
+              [attribute.name]: attribute.value
+            })
+          }
+        }
+      }
+    }, {});
   }),
   deleteAttribute: (polygonId, attribute) => polygonsStore.update($polygons => {
     $polygons[polygonId].attributes = Object.values($polygons[polygonId].attributes)

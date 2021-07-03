@@ -25,7 +25,7 @@
     hoveredPolygonId,
     snapRadius,
     polygons,
-    attributes
+    globalAttributes
   } from '$lib/stores.js';
 
   let toolbarEl;
@@ -62,7 +62,7 @@
     saveAs(blob, 'graph.svg');
   };
 
-  const handleAddAttributeSubmit = () => {
+  const handleaddLocalAttributeSubmit = () => {
     const attributeToAdd = {
       name: newAttributeName,
       value: newAttributeValue
@@ -70,10 +70,11 @@
 
     console.log($selectedPolygonId);
 
-    polygons.addAttribute($selectedPolygonId, attributeToAdd);
-
     if (isNewAttributeGlobal) {
-      attributes.add(attributeToAdd);
+      polygons.addGlobalAttribute(attributeToAdd);
+      globalAttributes.add(attributeToAdd);
+    } else {
+      polygons.addLocalAttribute($selectedPolygonId, attributeToAdd);
     }
 
     newAttributeName = '';
@@ -94,7 +95,7 @@
       (acc, [name, value]) => [...acc, { name, value }],
       []
     );
-  // $: globalCssString = $attributesMap.reduce(
+  // $: globalCssString = $globalAttributesMap.reduce(
   //   (acc, [name, value]) => `${acc}  ${name}: ${value};\n`,
   //   ''
   // );
@@ -102,7 +103,6 @@
 </script>
 
 <div class="toolbar" {style} bind:this={toolbarEl}>
-  {$selectedPolygonId}
   <!-- TODO: replace it with drag pattern -->
   <div class="buttons">
     <div
@@ -192,7 +192,7 @@
           {/each}
         {/if}
       </Form>
-      <Form on:submit={handleAddAttributeSubmit}>
+      <Form on:submit={handleaddLocalAttributeSubmit}>
         <div style="display:flex">
           <TextInput
             required
