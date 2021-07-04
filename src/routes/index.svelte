@@ -6,7 +6,6 @@
 
 <script>
   // import Dropzone from 'svelte-file-dropzone';
-  import { nanoid } from 'nanoid';
   import { onMount } from 'svelte';
   import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
 
@@ -14,7 +13,6 @@
   import {
     isDrawing,
     renderSvg,
-    globalAttributes,
     snapRadius,
     isSnapEnabled,
     polygons,
