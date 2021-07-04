@@ -26,7 +26,7 @@ export const findClosestPoint = ({ points, x, y }) => {
   return closestPoint.id ? closestPoint : null;
 };
 
-const patcher = create({
+export const patcher = create({
   // used to match objects when diffing arrays, by default only === operator is used
   objectHash: function (obj) {
     // this function is used only to when objects are not equal by ref
@@ -113,7 +113,7 @@ const MOCK_INITIAL_POLYGONS = {
 
 export const mode = writable(null);
 export const isSnapEnabled = writable(true);
-export const isDrawing = writable(true);
+export const isDrawing = writable(false);
 export const snapRadius = writable(20);
 
 export const isToolbarDragging = writable(false);

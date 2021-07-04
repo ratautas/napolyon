@@ -10,7 +10,7 @@
   import { tick } from 'svelte';
 
   import {
-    mode,
+    isDrawing,
     renderSvg,
     selectedPolygonId,
     hoveredPolygonId,
@@ -26,7 +26,7 @@
 
   const handleAddClick = (e, targetMode) => {
     e.stopPropagation();
-    mode.set($mode !== targetMode ? targetMode : null);
+    isDrawing.set(!$isDrawing);
   };
 
   const handleCopyClick = async () => {
@@ -64,7 +64,7 @@
     tooltipAlignment="center"
     iconDescription="Add New Polygon"
     icon={AreaCustom24}
-    isSelected={$mode === 'draw'}
+    isSelected={$isDrawing}
     on:click={(e) => handleAddClick(e, 'draw')}
   />
   <Button

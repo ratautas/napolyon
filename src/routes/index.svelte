@@ -12,7 +12,7 @@
 
   import ToolBar from '$lib/ToolBar/index.svelte';
   import {
-    mode,
+    isDrawing,
     renderSvg,
     globalAttributes,
     snapRadius,
@@ -95,7 +95,7 @@
       drawablePolygonId.set(null);
     }
 
-    if ($mode !== 'draw') return;
+    if (!$isDrawing) return;
 
     if (!$drawablePolygonId) {
       polygons.addDrawablePolygon();
@@ -117,7 +117,7 @@
       return;
     }
 
-    if ($mode === 'draw') {
+    if ($isDrawing) {
       if ($isSnapEnabled) {
         closestPoint = $polygonsMap
           .filter(({ id }) => id !== $drawablePolygonId)
@@ -149,7 +149,7 @@
 
     if (!!$dragablePolygonId) {
       drawablePolygonId.set(null);
-      mode.set(null);
+      isDrawing.set(false);
       polygons.moveAllPoints($dragablePolygon, movementX, movementY);
       return;
     }
@@ -238,7 +238,7 @@
       // );
       // escape drawing state
       drawablePolygonId.set(null);
-      mode.set(null);
+      isDrawing.set(false);
       // additional escape if dragging gets out of hand
       dragablePolygonId.set(null);
     }
@@ -246,12 +246,12 @@
       if ($drawablePolygonId) {
         selectedPolygonId.set($drawablePolygonId);
       }
-      mode.set(null);
+      isDrawing.set(false);
     }
     if (e.key === 'Delete') {
       if ($drawablePolygonId) {
         drawablePolygonId.set(null);
-        mode.set(null);
+        isDrawing.set(false);
         // additional escape if dragging gets out of hand
         dragablePolygonId.set(null);
         selectedPolygonId.set($drawablePolygonId);
@@ -281,7 +281,7 @@
   on:mousedown={handleCanvasMousedown}
   on:mousemove={handleCanvasMousemove}
   on:mouseup={handleCanvasMouseup}
-  class:is-drawing={$mode === 'draw'}
+  class:is-drawing={$isDrawing}
   style={`--snapRadius:${$snapRadius}px`}
 >
   <ToolBar />
@@ -309,7 +309,7 @@
             points={polygon.points}
             id={polygon.id}
             {...polygon.attributes}
-            class:is-drawing={$mode === 'draw' && polygon.id === $drawablePolygonId}
+            class:is-drawing={$isDrawing && polygon.id === $drawablePolygonId}
             class:is-dragging={polygon.id === $dragablePolygonId}
             class:is-hovered={polygon.id === $hoveredPolygonId}
             class:is-selected={polygon.id === $selectedPolygonId}
