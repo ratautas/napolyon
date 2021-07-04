@@ -12,7 +12,6 @@
   import ToolBar from '$lib/ToolBar/index.svelte';
   import {
     renderSvg,
-    globalAttributes,
     snapRadius,
     isSnapEnabled,
     polygons,
@@ -29,7 +28,7 @@
     isDrawing,
     drawablePolygonId
   } from '$lib/stores.js';
-  import { yPolygons, yDoc, yRenderPolygons, yPolygonsMap, yHistory } from '$lib/y.js';
+  import { yPolygonsStore, yPolygons, yPolygonsMap, yHistory } from '$lib/y.js';
 
   let src;
   src =
@@ -40,7 +39,8 @@
   let svgEl;
   let closestPoint = null;
 
-  let dragablePollie;
+  let localDragablePolygon;
+  let localDragablePoint;
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
@@ -98,27 +98,25 @@
 
     // if is first point
     if (!$drawablePolygonId) {
+      const yNewPolygonId = nanoid(6);
+      const yNewPolygonMap = new Y.Map();
+
+      drawablePolygonId.set(yNewPolygonId);
       selectedPolygonId.set(null);
 
-      const yNewlygonId = nanoid(6);
-      const yNewlygonMap = new Y.Map();
-
-      drawablePolygonId.set(yNewlygonId);
-
-      yNewlygonMap.set('id', yNewlygonId);
+      yNewPolygonMap.set('id', yNewPolygonId);
       // TODO: replace with $globalAttributes
-      yNewlygonMap.set('attributes', new Y.Map());
-      yNewlygonMap.set('points', new Y.Array());
-      yPolygons.push([yNewlygonMap]);
+      yNewPolygonMap.set('attributes', new Y.Map());
+      yNewPolygonMap.set('points', new Y.Array());
+      yPolygons.push([yNewPolygonMap]);
     }
 
     selectedPolygonId.set($drawablePolygonId);
 
-    const yNewintId = nanoid(6);
+    const yNewPointId = nanoid(6);
     const closestPoint =
       $isSnapEnabled &&
-      $polygonsMap
-        // TODO - instead of filtering out drawablePolygon, replace and do not create a new point on same polygon
+      $yPolygonsStore
         .filter(({ id }) => id !== $drawablePolygonId)
         .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
@@ -130,7 +128,7 @@
         {
           x: closestPoint?.x ?? x,
           y: closestPoint?.y ?? y,
-          id: yNewintId
+          id: yNewPointId
         }
       ]);
   };
@@ -163,9 +161,10 @@
     }
 
     // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
-    // if (!!$dragablePointId && !!$selectedPolygon) {
     if ($dragablePointId && $selectedPolygonId) {
-      polygons.movePoint($selectedPolygon, $dragablePointId, x, y);
+      localDragablePoint.x = localDragablePoint.x + movementX;
+      localDragablePoint.y = localDragablePoint.y + movementY;
+
       if ($isSnapEnabled) {
         const closestPoint = $polygonsMap
           .filter(({ id }) => id !== $selectedPolygonId)
@@ -182,7 +181,7 @@
     if ($dragablePolygonId) {
       drawablePolygonId.set(null);
       isDrawing.set(false);
-      dragablePollie.points = Object.values(dragablePollie.points).reduce(
+      localDragablePolygon.points = Object.values(localDragablePolygon.points).reduce(
         (acc, point) => ({
           ...acc,
           [point.id]: {
@@ -209,9 +208,9 @@
       isToolbarDragging.set(false);
     }
 
-    if ($dragablePolygonId && dragablePollie) {
+    if ($dragablePolygonId && localDragablePolygon) {
       const updatedPoints = new Y.Array();
-      Object.values(dragablePollie.points).forEach((point) => {
+      Object.values(localDragablePolygon.points).forEach((point) => {
         updatedPoints.push([point]);
       });
 
@@ -221,21 +220,30 @@
         .set('points', updatedPoints);
 
       dragablePolygonId.set(null);
-      dragablePollie = null;
+      localDragablePolygon = null;
     }
 
     if ($dragablePointId) {
-      if ($isSnapEnabled) {
-        const { x, y } = $selectedPolygon?.points[$dragablePointId];
-        const closestPoint = $polygonsMap
-          .filter(({ id }) => id !== $selectedPolygonId)
-          .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
+      yPolygons
+        .toArray()
+        .find((el) => el.get('id') === $selectedPolygonId)
+        .get('points')
+        .insert(selectedPointIndex, [localDragablePoint]);
+      // ySelectedPolygonPointsArray.insert(selectedPointIndex, [localDragablePoint]);
 
-        if (closestPoint) {
-          polygons.movePoint($selectedPolygon, $dragablePointId, closestPoint.x, closestPoint.y);
-        }
-      }
+      // console.log(d);
+      // if ($isSnapEnabled) {
+      //   const { x, y } = $selectedPolygon?.points[$dragablePointId];
+      //   const closestPoint = $polygonsMap
+      //     .filter(({ id }) => id !== $selectedPolygonId)
+      //     .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
+
+      //   if (closestPoint) {
+      //     polygons.movePoint($selectedPolygon, $dragablePointId, closestPoint.x, closestPoint.y);
+      //   }
+      // }
       dragablePointId.set(null);
+      localDragablePoint = null;
     }
 
     if (!hasPolygonTarget && !hasToolbarTarget) {
@@ -251,10 +259,7 @@
   };
 
   const handlePolygonMousedown = ({ e, polygon }) => {
-    dragablePollie = yPolygons
-      .toArray()
-      .find((polygonMap) => $selectedPolygonId === polygonMap.get('id'))
-      .toJSON();
+    localDragablePolygon = polygon;
     dragablePolygonId.set(polygon.id);
     selectedPolygonId.set(polygon.id);
   };
@@ -270,6 +275,7 @@
   };
 
   const handlePointMousedown = ({ e, point, polygon }) => {
+    localDragablePoint = point;
     selectedPolygonId.set(polygon.id);
     dragablePointId.set(point.id);
   };
@@ -331,11 +337,35 @@
     renderSvg.set(svgEl);
   });
 
-  $: dragablePolliePoints =
-    dragablePollie &&
-    Object.values(dragablePollie.points)
-      .reduce((acc, { x, y }) => `${acc} ${x},${y}`, '')
-      .replace(' ', '');
+  $: ySelectedPolygonPointsArray =
+    $selectedPolygonId &&
+    yPolygons
+      .toArray()
+      .find((el) => el.get('id') === $selectedPolygonId)
+      .get('points');
+
+  $: selectedPointIndex =
+    localDragablePoint &&
+    ySelectedPolygonPointsArray &&
+    ySelectedPolygonPointsArray.toArray().findIndex(({ id }) => (id = localDragablePoint.id));
+
+  $: renderPolygons = $yPolygonsStore.map((polygon) => {
+    // serve points from either localDragablePolygon or regularly
+    const { points } = localDragablePolygon?.id === polygon.id ? localDragablePolygon : polygon;
+    const pointsArray = Object.values(points);
+
+    return {
+      ...polygon,
+      pointsArray,
+      renderPoints: pointsArray
+        .reduce((pointsString, point) => {
+          // serve X and Y from either localDragablePoint or regularly
+          const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
+          return `${pointsString} ${x},${y}`;
+        }, '')
+        .replace(' ', '')
+    };
+  });
 </script>
 
 <svelte:window on:keydown={handleWindowKeydown} />
@@ -354,6 +384,7 @@
   class:is-drawing={$isDrawing}
   style={`--snapRadius:${$snapRadius}px`}
 >
+  {console.log({ renderPolygons })}
   <ToolBar />
   {#if src}
     <div class="render">
@@ -374,9 +405,9 @@
         bind:this={svgEl}
       >
         <!-- classes, styles and id should be removed -->
-        {#each $yRenderPolygons as polygon, i}
+        {#each renderPolygons as polygon, i}
           <polygon
-            points={$dragablePolygonId ? dragablePolliePoints : polygon.points}
+            points={polygon.renderPoints}
             id={polygon.id}
             {...polygon.attributes}
             class:is-drawing={$isDrawing && polygon.id === $drawablePolygonId}
@@ -389,8 +420,8 @@
           />
         {/each}
       </svg>
-      {#each $yRenderPolygons as polygon, polygonIndex}
-        {#each $dragablePolygonId ? Object.values(dragablePollie.points) : polygon.pointsMap as point, pointIndex}
+      {#each renderPolygons as polygon, polygonIndex}
+        {#each polygon.pointsArray as point, pointIndex}
           <div
             style={`left:${point.x}px;top:${point.y}px;`}
             class="point"

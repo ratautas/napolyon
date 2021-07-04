@@ -20,7 +20,7 @@ export const yDoc = new Y.Doc();
 export const yPolygons = yDoc.getArray('polygons');
 export const yHistory = new Y.UndoManager(yPolygons, { captureTimeout: 0 })
 
-export const yPolygonsStore = writable({});
+export const yPolygonsStore = writable([]);
 
 // convert polygons and their points to arrays (maps)
 export const yPolygonsMap = derived([yPolygonsStore],
@@ -31,14 +31,6 @@ export const yPolygonsMap = derived([yPolygonsStore],
     }]
   }, []));
 
-// flaten points object to renderable sring
-export const yRenderPolygons = derived([yPolygonsMap],
-  ([$yPolygonsMap]) => $yPolygonsMap.map((polygon) => {
-    return {
-      ...polygon,
-      points: polygon.pointsMap.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', ''),
-    }
-  }));
 
 yPolygons.observeDeep((e) => {
   yPolygonsStore.set(yPolygons.toJSON());
