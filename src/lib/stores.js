@@ -173,7 +173,7 @@ export const dragablePolygon = derived(
 
 export const polygons = {
   subscribe: polygonsStore.subscribe,
-  addDrawablePolygon: () => polygonsStore.update($polygons => {
+  addPolygon: () => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const newPolygonId = nanoid(6);
 
@@ -190,7 +190,7 @@ export const polygons = {
 
     return polygons;
   }),
-  addDrawablePoint: ({ x, y }) => polygonsStore.update($polygons => {
+  addPoint: ({ x, y }) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const newPointId = nanoid(6);
     const polygonId = get(drawablePolygonId);
@@ -208,7 +208,7 @@ export const polygons = {
 
     const delta = patcher.diff($polygons, polygons);
     console.log(format(delta));
-    
+
     return polygons;
   }),
   deletePolygon: (polygonId) => polygonsStore.update($polygons => {
@@ -219,6 +219,10 @@ export const polygons = {
           ...(polygon.id !== polygonId ? { [polygonId]: polygon } : {}),
         }
       }, {});
+
+    const delta = patcher.diff($polygons, polygons);
+    console.log(format(delta));
+
     return polygons;
   }),
   addLocalAttribute: (polygonId, attribute) => polygonsStore.update($polygons => {
@@ -252,10 +256,18 @@ export const polygons = {
     }, {});
     return $polygons;
   }),
-  movePoint: (polygon, pointId, x, y) => polygonsStore.update($polygons => {
-    $polygons[polygon.id].points[pointId].x = x;
-    $polygons[polygon.id].points[pointId].y = y;
-    return $polygons;
+  movePoint: ({ x, y }) => polygonsStore.update($polygons => {
+    const polygons = clone($polygons);
+    const polygonId = get(selectedPolygonId);
+    const pointId = get(dragablePointId);
+
+    polygons[polygonId].points[pointId].x = x;
+    polygons[polygonId].points[pointId].y = y;
+
+    // const delta = patcher.diff($polygons, polygons);
+    // console.log(format(delta));
+
+    return polygons;
   }),
   moveAllPoints: (polygon, x, y) => polygonsStore.update($polygons => {
     $polygons[polygon.id].points = Object.values(polygon.points).reduce((acc, point) => ({
@@ -294,7 +306,7 @@ export const renderPolygons = derived([polygonsMap],
 
 //   return {
 //     subscribe,
-//     addDrawablePoint: (newPoint) => update(($drawablePolygon) => {
+//     addPoint: (newPoint) => update(($drawablePolygon) => {
 //       return {
 //         ...$drawablePolygon,
 //         points: {

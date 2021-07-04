@@ -98,10 +98,10 @@
     if (!$isDrawing) return;
 
     if (!$drawablePolygonId) {
-      polygons.addDrawablePolygon();
+      polygons.addPolygon();
     }
 
-    polygons.addDrawablePoint({ x, y });
+    polygons.addPoint({ x, y });
   };
 
   const handleCanvasScroll = (e) => {
@@ -132,8 +132,8 @@
     }
 
     // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
-    if (!!$dragablePointId && !!$selectedPolygon) {
-      polygons.movePoint($selectedPolygon, $dragablePointId, x, y);
+    if ($dragablePointId && $selectedPolygon) {
+      polygons.movePoint({ x, y });
       if ($isSnapEnabled) {
         const closestPoint = $polygonsMap
           .filter(({ id }) => id !== $selectedPolygonId)
@@ -179,7 +179,7 @@
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
         if (closestPoint) {
-          polygons.movePoint($selectedPolygon, $dragablePointId, closestPoint.x, closestPoint.y);
+          polygons.movePoint({ x: closestPoint.x, y: closestPoint.y });
         }
       }
       dragablePointId.set(null);
