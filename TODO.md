@@ -1,9 +1,7 @@
 - pass only ID to $drawable and derive from IDs
 - pen cursor icon (illustrator)
 - use [points="xyz"] selectors for styling instead of classnames
-
 - handlePolygonMouseleave doesn't deselect
-- remove SVG class before export
 
 Next iteration:
 - convert points/polygons to array

@@ -16,6 +16,14 @@ const config = {
 			assets: 'build',
 			fallback: null
 		}),
+		prerender: {
+			crawl: true,
+			enabled: true,
+			force: false,
+			pages: ['*']
+		},
+		router: true,
+		ssr: false,
 		vite: {
 			optimizeDeps: { include: ["clipboard-copy"] },
 			plugins: [process.env.NODE_ENV === "production" && optimizeCss()],

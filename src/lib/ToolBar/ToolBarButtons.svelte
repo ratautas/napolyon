@@ -5,17 +5,19 @@
   import CloudDownload24 from 'carbon-icons-svelte/lib/CloudDownload24';
   import Switcher24 from 'carbon-icons-svelte/lib/Switcher24';
   import CopyFile24 from 'carbon-icons-svelte/lib/CopyFile24';
+  import LocationCurrent24 from 'carbon-icons-svelte/lib/LocationCurrent24';
   import { saveAs } from 'file-saver';
 
   import { tick } from 'svelte';
 
   import {
-    mode,
     renderSvg,
     selectedPolygonId,
     hoveredPolygonId,
-    isToolbarDragging
+    isToolbarDragging,
+    isDrawing
   } from '$lib/stores.js';
+  import { yPolygons } from '$lib/y.js';
 
   const clearAttributes = () => {
     $renderSvg.querySelectorAll('polygon').forEach((polygonEl) => {
@@ -24,9 +26,9 @@
     });
   };
 
-  const handleAddClick = (e, targetMode) => {
+  const handleIsDrawingClick = (e, targetMode) => {
     e.stopPropagation();
-    mode.set($mode !== targetMode ? targetMode : null);
+    isDrawing.set(!$isDrawing);
   };
 
   const handleCopyClick = async () => {
@@ -64,8 +66,8 @@
     tooltipAlignment="center"
     iconDescription="Add New Polygon"
     icon={AreaCustom24}
-    isSelected={$mode === 'draw'}
-    on:click={(e) => handleAddClick(e, 'draw')}
+    isSelected={$isDrawing}
+    on:click={(e) => handleIsDrawingClick(e, 'draw')}
   />
   <Button
     kind="ghost"

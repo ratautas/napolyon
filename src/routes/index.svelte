@@ -4,24 +4,21 @@
 </script>
 
 <script>
-  // import Dropzone from 'svelte-file-dropzone';
   import { nanoid } from 'nanoid';
   import { onMount } from 'svelte';
   import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
+  import * as Y from 'yjs';
 
   import ToolBar from '$lib/ToolBar/index.svelte';
   import {
-    mode,
     renderSvg,
     globalAttributes,
     snapRadius,
     isSnapEnabled,
     polygons,
-    renderPolygons,
     drawablePolygon,
     selectedPolygon,
     selectedPolygonId,
-    dragablePolygon,
     dragablePolygonId,
     hoveredPolygonId,
     dragablePointId,
@@ -29,17 +26,21 @@
     polygonsMap,
     isToolbarDragging,
     toolbarX,
-    toolbarY
+    toolbarY,
+    isDrawing
   } from '$lib/stores.js';
+  import { yPolygons, yDoc, yRenderPolygons, yPolygonsMap, yHistory } from '$lib/y.js';
 
   let src;
-  // let src =
-  //   'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
+  src =
+    'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
   let imageEl;
   let imageWidth = 900;
   let imageHeight = 600;
   let svgEl;
   let closestPoint = null;
+
+  let dragablePollie;
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
@@ -49,7 +50,6 @@
   const handleFilesChange = (e) => {
     const reader = new FileReader();
     const [file] = e.target.files;
-    console.log(file)
     reader.readAsDataURL(file);
     reader.onload = () => {
       src = reader.result;
@@ -94,15 +94,23 @@
       drawablePolygon.set(null);
     }
 
-    if ($mode !== 'draw') return;
+    if (!$isDrawing) return;
 
+    // if is first point
     if (!$drawablePolygon) {
+      const newPolygonId = nanoid(6);
       selectedPolygonId.set(null);
       drawablePolygon.set({
         attributes: $globalAttributes,
-        id: nanoid(6),
+        id: newPolygonId,
         points: {}
       });
+
+      const newPolygonMap = new Y.Map();
+      newPolygonMap.set('id', newPolygonId);
+      newPolygonMap.set('attributes', new Y.Map());
+      newPolygonMap.set('points', new Y.Array());
+      yPolygons.push([newPolygonMap]);
     }
 
     const newPointId = nanoid(6);
@@ -121,6 +129,18 @@
 
     selectedPolygonId.set($drawablePolygon.id);
     polygons.addPolygon($drawablePolygon);
+
+    yPolygons
+      .toArray()
+      .find((el) => el.get('id') === $drawablePolygon.id)
+      .get('points')
+      .push([
+        {
+          x: closestPoint?.x ?? x,
+          y: closestPoint?.y ?? y,
+          id: newPointId
+        }
+      ]);
   };
 
   const handleCanvasScroll = (e) => {
@@ -136,7 +156,7 @@
       return;
     }
 
-    if ($mode === 'draw') {
+    if ($isDrawing) {
       if ($isSnapEnabled) {
         closestPoint = $polygonsMap
           .filter(({ id }) => id !== $drawablePolygon?.id)
@@ -151,7 +171,8 @@
     }
 
     // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
-    if (!!$dragablePointId && !!$selectedPolygon) {
+    // if (!!$dragablePointId && !!$selectedPolygon) {
+    if ($dragablePointId && $selectedPolygonId) {
       polygons.movePoint($selectedPolygon, $dragablePointId, x, y);
       if ($isSnapEnabled) {
         const closestPoint = $polygonsMap
@@ -166,10 +187,20 @@
       return;
     }
 
-    if (!!$dragablePolygonId) {
+    if ($dragablePolygonId) {
       drawablePolygon.set(null);
-      mode.set(null);
-      polygons.moveAllPoints($dragablePolygon, movementX, movementY);
+      isDrawing.set(false);
+      dragablePollie.points = Object.values(dragablePollie.points).reduce(
+        (acc, point) => ({
+          ...acc,
+          [point.id]: {
+            id: point.id,
+            x: point.x + movementX,
+            y: point.y + movementY
+          }
+        }),
+        {}
+      );
       return;
     }
   };
@@ -186,8 +217,19 @@
       isToolbarDragging.set(false);
     }
 
-    if ($dragablePolygonId) {
+    if ($dragablePolygonId && dragablePollie) {
+      const updatedPoints = new Y.Array();
+      Object.values(dragablePollie.points).forEach((point) => {
+        updatedPoints.push([point]);
+      });
+
+      yPolygons
+        .toArray()
+        .find((el) => el.get('id') === $dragablePolygonId)
+        .set('points', updatedPoints);
+
       dragablePolygonId.set(null);
+      dragablePollie = null;
     }
 
     if ($dragablePointId) {
@@ -217,6 +259,10 @@
   };
 
   const handlePolygonMousedown = ({ e, polygon }) => {
+    dragablePollie = yPolygons
+      .toArray()
+      .find((polygonMap) => $selectedPolygonId === polygonMap.get('id'))
+      .toJSON();
     dragablePolygonId.set(polygon.id);
     selectedPolygonId.set(polygon.id);
   };
@@ -257,7 +303,7 @@
       // );
       // escape drawing state
       drawablePolygon.set(null);
-      mode.set(null);
+      isDrawing.set(false);
       // additional escape if dragging gets out of hand
       dragablePolygonId.set(null);
     }
@@ -265,12 +311,19 @@
       if ($drawablePolygon) {
         selectedPolygonId.set($drawablePolygon.id);
       }
-      mode.set(null);
+      isDrawing.set(false);
     }
+    if (e.metaKey && !e.shiftKey && e.key === 'z') {
+      yHistory.undo();
+    }
+    if (e.metaKey && e.shiftKey && e.key === 'z') {
+      yHistory.redo();
+    }
+
     if (e.key === 'Delete') {
       if ($drawablePolygon) {
         drawablePolygon.set(null);
-        mode.set(null);
+        isDrawing.set(false);
         // additional escape if dragging gets out of hand
         dragablePolygonId.set(null);
         selectedPolygonId.set($drawablePolygon.id);
@@ -285,6 +338,12 @@
   onMount(() => {
     renderSvg.set(svgEl);
   });
+
+  $: dragablePolliePoints =
+    dragablePollie &&
+    Object.values(dragablePollie.points)
+      .reduce((acc, { x, y }) => `${acc} ${x},${y}`, '')
+      .replace(' ', '');
 </script>
 
 <svelte:window on:keydown={handleWindowKeydown} />
@@ -300,7 +359,7 @@
   on:mousedown={handleCanvasMousedown}
   on:mousemove={handleCanvasMousemove}
   on:mouseup={handleCanvasMouseup}
-  class:is-drawing={$mode === 'draw'}
+  class:is-drawing={$isDrawing}
   style={`--snapRadius:${$snapRadius}px`}
 >
   <ToolBar />
@@ -323,12 +382,12 @@
         bind:this={svgEl}
       >
         <!-- classes, styles and id should be removed -->
-        {#each $renderPolygons as polygon, i}
+        {#each $yRenderPolygons as polygon, i}
           <polygon
-            points={polygon.points}
+            points={$dragablePolygonId ? dragablePolliePoints : polygon.points}
             id={polygon.id}
             {...polygon.attributes}
-            class:is-drawing={$mode === 'draw' && polygon.id === $drawablePolygon?.id}
+            class:is-drawing={$isDrawing && polygon.id === $drawablePolygon?.id}
             class:is-dragging={polygon.id === $dragablePolygonId}
             class:is-hovered={polygon.id === $hoveredPolygonId}
             class:is-selected={polygon.id === $selectedPolygonId}
@@ -338,8 +397,8 @@
           />
         {/each}
       </svg>
-      {#each $renderPolygons as polygon, polygonIndex}
-        {#each polygon.pointsMap as point, pointIndex}
+      {#each $yRenderPolygons as polygon, polygonIndex}
+        {#each $dragablePolygonId ? Object.values(dragablePollie.points) : polygon.pointsMap as point, pointIndex}
           <div
             style={`left:${point.x}px;top:${point.y}px;`}
             class="point"

@@ -55,7 +55,7 @@ const MOCK_INITIAL_POLYGONS = {
   }
 };
 
-export const mode = writable(null);
+export const isDrawing = writable(false);
 export const isSnapEnabled = writable(true);
 export const snapRadius = writable(20);
 
