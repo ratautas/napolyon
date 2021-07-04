@@ -181,17 +181,11 @@
     if ($dragablePolygonId) {
       drawablePolygonId.set(null);
       isDrawing.set(false);
-      localDragablePolygon.points = Object.values(localDragablePolygon.points).reduce(
-        (acc, point) => ({
-          ...acc,
-          [point.id]: {
-            id: point.id,
-            x: point.x + movementX,
-            y: point.y + movementY
-          }
-        }),
-        {}
-      );
+      localDragablePolygon.points = localDragablePolygon.points.map((point) => ({
+        id: point.id,
+        x: point.x + movementX,
+        y: point.y + movementY
+      }));
       return;
     }
   };
@@ -209,10 +203,7 @@
     }
 
     if ($dragablePolygonId && localDragablePolygon) {
-      const updatedPoints = new Y.Array();
-      Object.values(localDragablePolygon.points).forEach((point) => {
-        updatedPoints.push([point]);
-      });
+      const updatedPoints = Y.Array.from(localDragablePolygon.points);
 
       yPolygons
         .toArray()
@@ -223,15 +214,16 @@
       localDragablePolygon = null;
     }
 
-    if ($dragablePointId) {
-      yPolygons
-        .toArray()
-        .find((el) => el.get('id') === $selectedPolygonId)
-        .get('points')
-        .insert(selectedPointIndex, [localDragablePoint]);
-      // ySelectedPolygonPointsArray.insert(selectedPointIndex, [localDragablePoint]);
+    if ($dragablePointId && localDragablePoint) {
+      const selectedPolygon = yPolygons.toArray().find((el) => el.get('id') === $selectedPolygonId);
 
-      // console.log(d);
+      const updatedPoints = selectedPolygon
+        .get('points')
+        .map((point) => (localDragablePoint.id === point.id ? localDragablePoint : point));
+
+      selectedPolygon.set('points', Y.Array.from(updatedPoints));
+
+
       // if ($isSnapEnabled) {
       //   const { x, y } = $selectedPolygon?.points[$dragablePointId];
       //   const closestPoint = $polygonsMap
@@ -337,27 +329,13 @@
     renderSvg.set(svgEl);
   });
 
-  $: ySelectedPolygonPointsArray =
-    $selectedPolygonId &&
-    yPolygons
-      .toArray()
-      .find((el) => el.get('id') === $selectedPolygonId)
-      .get('points');
-
-  $: selectedPointIndex =
-    localDragablePoint &&
-    ySelectedPolygonPointsArray &&
-    ySelectedPolygonPointsArray.toArray().findIndex(({ id }) => (id = localDragablePoint.id));
-
   $: renderPolygons = $yPolygonsStore.map((polygon) => {
     // serve points from either localDragablePolygon or regularly
     const { points } = localDragablePolygon?.id === polygon.id ? localDragablePolygon : polygon;
-    const pointsArray = Object.values(points);
-
     return {
       ...polygon,
-      pointsArray,
-      renderPoints: pointsArray
+      points, // this forces recalcualtion
+      pointsReduced: points
         .reduce((pointsString, point) => {
           // serve X and Y from either localDragablePoint or regularly
           const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
@@ -384,7 +362,6 @@
   class:is-drawing={$isDrawing}
   style={`--snapRadius:${$snapRadius}px`}
 >
-  {console.log({ renderPolygons })}
   <ToolBar />
   {#if src}
     <div class="render">
@@ -407,7 +384,7 @@
         <!-- classes, styles and id should be removed -->
         {#each renderPolygons as polygon, i}
           <polygon
-            points={polygon.renderPoints}
+            points={polygon.pointsReduced}
             id={polygon.id}
             {...polygon.attributes}
             class:is-drawing={$isDrawing && polygon.id === $drawablePolygonId}
@@ -421,7 +398,7 @@
         {/each}
       </svg>
       {#each renderPolygons as polygon, polygonIndex}
-        {#each polygon.pointsArray as point, pointIndex}
+        {#each polygon.points as point, pointIndex}
           <div
             style={`left:${point.x}px;top:${point.y}px;`}
             class="point"

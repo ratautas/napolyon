@@ -18,7 +18,13 @@ export const yDoc = new Y.Doc();
 // export const yPointsMap = yDoc.getMap('points');
 
 export const yPolygons = yDoc.getArray('polygons');
-export const yHistory = new Y.UndoManager(yPolygons, { captureTimeout: 0 })
+
+export const yHistory = new Y.UndoManager(yPolygons, { captureTimeout: 0 });
+
+yHistory.on('stack-item-added', (e) => {
+  console.log(e)
+});
+
 
 export const yPolygonsStore = writable([]);
 
@@ -33,6 +39,7 @@ export const yPolygonsMap = derived([yPolygonsStore],
 
 
 yPolygons.observeDeep((e) => {
+  // console.log(e);
   yPolygonsStore.set(yPolygons.toJSON());
 });
 
