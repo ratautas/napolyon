@@ -30,7 +30,8 @@
     polygonsMap,
     isToolbarDragging,
     toolbarX,
-    toolbarY
+    toolbarY,
+    history
   } from '$lib/stores.js';
 
   let src;
@@ -260,6 +261,13 @@
         polygons.deletePolygon($selectedPolygonId);
         selectedPolygonId.set(null);
       }
+    }
+
+    if (e.metaKey && !e.shiftKey && e.key === 'z') {
+      history.undo();
+    }
+    if (e.metaKey && e.shiftKey && e.key === 'z') {
+      history.redo();
     }
   };
 

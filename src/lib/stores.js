@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { writable, derived, get } from 'svelte/store';
-import { create, formatters, clone } from 'jsondiffpatch';
+import { create, formatters, clone, patch, unpatch, reverse } from 'jsondiffpatch';
 
 const format = (delta) => formatters.jsonpatch.format(delta);
 
@@ -132,6 +132,11 @@ export const closestSnapablePointId = writable(null);
 
 export const globalAttributesStore = writable({});
 
+export const historyStore = writable({
+  undoQueue: [],
+  redoQueue: [],
+});
+
 export const addLocalAttribute = ({ name, value }) =>
   globalAttributesStore.update(($globalAttributesStore) => ({ ...$globalAttributesStore, [name]: value }))
 
@@ -186,7 +191,7 @@ export const polygons = {
     drawablePolygonId.set(newPolygonId);
 
     const delta = patcher.diff($polygons, polygons);
-    console.log(format(delta));
+    history.push({ delta, origin: 'AddPolygon' })
 
     return polygons;
   }),
@@ -207,7 +212,7 @@ export const polygons = {
     selectedPolygonId.set(polygonId); // why?.. can it be removed?
 
     const delta = patcher.diff($polygons, polygons);
-    console.log(format(delta));
+    history.push({ delta, origin: 'AddPoint' })
 
     return polygons;
   }),
@@ -281,6 +286,47 @@ export const polygons = {
     return $polygons;
   }),
   set: (val) => polygonsStore.set(val)
+};
+
+export const history = {
+  subscribe: historyStore.subscribe,
+  set: historyStore.set,
+  push: (entry) => historyStore.update($history => ({
+    undoQueue: [entry, ...$history.undoQueue],
+    redoQueue: []
+  })),
+  shiftHistoryBackward: (entry) => historyStore.update($history => {
+    $history.redoQueue = [entry, ...$history.redoQueue]
+    $history.undoQueue.splice(0, 1);
+    return $history;
+  }),
+  shiftHistoryForward: (entry) => historyStore.update($history => {
+    $history.undoQueue = [entry, ...$history.undoQueue]
+    $history.redoQueue.splice(0, 1);
+    return $history;
+  }),
+  clear: () => historyStore.set({
+    undoQueue: [],
+    redoQueue: [],
+  }),
+  undo: () => polygonsStore.update($polygons => {
+    const { undoQueue } = get(historyStore);
+    const [entry] = undoQueue;
+    if (undoQueue.length === 0) return $polygons;
+
+    history.shiftHistoryBackward(entry);
+
+    return patch($polygons, reverse(entry.delta))
+  }),
+  redo: () => polygonsStore.update($polygons => {
+    const { redoQueue } = get(historyStore);
+    const [entry] = redoQueue;
+    if (redoQueue.length === 0) return $polygons;
+
+    history.shiftHistoryForward(entry);
+
+    return patch($polygons, entry.delta);
+  }),
 };
 
 // convert polygons and their points to arrays (maps)
