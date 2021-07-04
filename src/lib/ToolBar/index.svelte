@@ -47,7 +47,7 @@
     </AccordionItem> -->
     {#if $selectedPolygonId}
       <AccordionItem title="Polygon Attributes" open>
-        <ToolBarAttributes />
+        <!-- <ToolBarAttributes /> -->
       </AccordionItem>
     {/if}
   </Accordion>

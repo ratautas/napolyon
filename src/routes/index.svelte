@@ -41,6 +41,9 @@
   let svgEl;
   let closestPoint = null;
 
+  let localDragablePolygon;
+  let localDragablePoint;
+
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
     imageHeight = imageEl.naturalHeight;
@@ -131,8 +134,10 @@
     }
 
     // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
-    if ($dragablePointId && $selectedPolygon) {
-      polygons.movePoint({ x, y });
+    if ($dragablePointId && $selectedPolygonId) {
+      localDragablePoint.x = localDragablePoint.x + movementX;
+      localDragablePoint.y = localDragablePoint.y + movementY;
+
       if ($isSnapEnabled) {
         const closestPoint = $polygonsMap
           .filter(({ id }) => id !== $selectedPolygonId)
@@ -149,7 +154,11 @@
     if (!!$dragablePolygonId) {
       drawablePolygonId.set(null);
       isDrawing.set(false);
-      polygons.moveAllPoints($dragablePolygon, movementX, movementY);
+      localDragablePolygon.points = localDragablePolygon.points.map((point) => ({
+        id: point.id,
+        x: point.x + movementX,
+        y: point.y + movementY
+      }));
       return;
     }
   };
@@ -166,22 +175,27 @@
       isToolbarDragging.set(false);
     }
 
-    if ($dragablePolygonId) {
+    if ($dragablePolygonId && localDragablePolygon) {
+      polygons.setDraggablePolygonPosition(localDragablePolygon);
       dragablePolygonId.set(null);
+      localDragablePolygon = null;
     }
 
-    if ($dragablePointId) {
+    if ($dragablePointId && localDragablePoint) {
       if ($isSnapEnabled) {
-        const { x, y } = $selectedPolygon?.points[$dragablePointId];
+        const { x, y } = localDragablePoint;
         const closestPoint = $polygonsMap
           .filter(({ id }) => id !== $selectedPolygonId)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
         if (closestPoint) {
-          polygons.movePoint({ x: closestPoint.x, y: closestPoint.y });
+          localDragablePoint.x = closestPoint.x;
+          localDragablePoint.y = closestPoint.y;
         }
       }
+      polygons.setDraggablePointPosition(localDragablePoint);
       dragablePointId.set(null);
+      localDragablePoint = null;
     }
 
     if (!hasPolygonTarget && !hasToolbarTarget) {
@@ -197,6 +211,7 @@
   };
 
   const handlePolygonMousedown = ({ e, polygon }) => {
+    localDragablePolygon = polygon;
     dragablePolygonId.set(polygon.id);
     selectedPolygonId.set(polygon.id);
   };
@@ -214,6 +229,7 @@
   const handlePointMousedown = ({ e, point, polygon }) => {
     selectedPolygonId.set(polygon.id);
     dragablePointId.set(point.id);
+    localDragablePoint = point;
   };
 
   const handlePointMouseleave = ({ e, point, polygon }) => {
@@ -272,6 +288,22 @@
   onMount(() => {
     renderSvg.set(svgEl);
   });
+
+  $: renderyPolygons = $polygons.map((polygon) => {
+    // serve points from either localDragablePolygon or regularly
+    const { points } = localDragablePolygon?.id === polygon.id ? localDragablePolygon : polygon;
+    return {
+      ...polygon,
+      points, // this forces recalcualtion
+      pointsReduced: points
+        .reduce((pointsString, point) => {
+          // serve X and Y from either localDragablePoint or regularly
+          const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
+          return `${pointsString} ${x},${y}`;
+        }, '')
+        .replace(' ', '')
+    };
+  });
 </script>
 
 <svelte:window on:keydown={handleWindowKeydown} />
@@ -310,9 +342,9 @@
         bind:this={svgEl}
       >
         <!-- classes, styles and id should be removed -->
-        {#each $renderPolygons as polygon, i}
+        {#each renderyPolygons as polygon, i}
           <polygon
-            points={polygon.points}
+            points={polygon.pointsReduced}
             id={polygon.id}
             {...polygon.attributes}
             class:is-drawing={$isDrawing && polygon.id === $drawablePolygonId}
@@ -325,8 +357,8 @@
           />
         {/each}
       </svg>
-      {#each $renderPolygons as polygon, polygonIndex}
-        {#each polygon.pointsMap as point, pointIndex}
+      {#each renderyPolygons as polygon, polygonIndex}
+        {#each polygon.points as point, pointIndex}
           <div
             style={`left:${point.x}px;top:${point.y}px;`}
             class="point"

@@ -2,11 +2,66 @@ import { nanoid } from 'nanoid';
 import { writable, derived, get } from 'svelte/store';
 import { create, formatters, clone, patch, unpatch, reverse } from 'jsondiffpatch';
 
+const MOCK_INITIAL_POLYGONS = [
+  {
+    id: 'L8EIvC',
+    points: [
+      {
+        x: 615,
+        y: 45,
+        id: 'LsJQaN'
+      },
+      {
+        x: 865,
+        y: 65,
+        id: 'QyO1oa'
+      },
+      {
+        x: 865,
+        y: 245,
+        id: 'jRfjxP'
+      },
+      {
+        x: 560,
+        y: 107,
+        id: 'i0spdb'
+      }
+    ],
+    attributes: {}
+  },
+  {
+    id: 'DaNhAj',
+    points: [
+      {
+        x: 678,
+        y: 247,
+        id: 'YKdSHB'
+      },
+      {
+        x: 870,
+        y: 295,
+        id: 'IHLh3o'
+      },
+      {
+        x: 858,
+        y: 497,
+        id: 'ABqVA8'
+      },
+      {
+        x: 681,
+        y: 475,
+        id: 'WH2UKA'
+      }
+    ],
+    attributes: {}
+  }
+];
+
 const format = (delta) => formatters.jsonpatch.format(delta);
 
 export const findClosestPoint = ({ points, x, y }) => {
   const radius = get(snapRadius);
-  const closestPoint = Object.values(points)
+  const closestPoint = points
     .filter((point) => point.x > x - radius && point.x < x + radius)
     .filter((point) => point.y > y - radius && point.y < y + radius)
     .reduce(
@@ -28,19 +83,20 @@ export const findClosestPoint = ({ points, x, y }) => {
 
 export const patcher = create({
   // used to match objects when diffing arrays, by default only === operator is used
-  objectHash: function (obj) {
+  objectHash: function (obj, index) {
     // this function is used only to when objects are not equal by ref
-    return obj._id || obj.id;
+    return obj.x || '$$index:' + index || obj.id;
   },
   arrays: {
     // default true, detect items moved inside the array (otherwise they will be registered as remove+add)
     detectMove: true,
+    // detectMove: false,
     // default false, the value of items moved is not included in deltas
-    includeValueOnMove: false
+    includeValueOnMove: true
   },
   textDiff: {
     // default 60, minimum string length (left and right sides) to use text diff algorythm: google-diff-match-patch
-    minLength: 60
+    minLength: Infinity
   },
   propertyFilter: function (name, context) {
     /*
@@ -54,62 +110,7 @@ export const patcher = create({
     (using jsondiffpatch.clone by default), to ensure delta keeps no references to left or right objects. this becomes useful if you're diffing and patching the same objects multiple times without serializing deltas.
     instead of true, a function can be specified here to provide a custom clone(value)
     */
-})
-
-const MOCK_INITIAL_POLYGONS = {
-  L8EIvC: {
-    id: 'L8EIvC',
-    points: {
-      LsJQaN: {
-        x: 615,
-        y: 45,
-        id: 'LsJQaN'
-      },
-      QyO1oa: {
-        x: 865,
-        y: 65,
-        id: 'QyO1oa'
-      },
-      jRfjxP: {
-        x: 865,
-        y: 245,
-        id: 'jRfjxP'
-      },
-      i0spdb: {
-        x: 560,
-        y: 107,
-        id: 'i0spdb'
-      }
-    },
-    attributes: {}
-  },
-  DaNhAj: {
-    id: 'DaNhAj',
-    points: {
-      YKdSHB: {
-        x: 678,
-        y: 247,
-        id: 'YKdSHB'
-      },
-      IHLh3o: {
-        x: 870,
-        y: 295,
-        id: 'IHLh3o'
-      },
-      ABqVA8: {
-        x: 858,
-        y: 497,
-        id: 'ABqVA8'
-      },
-      WH2UKA: {
-        x: 681,
-        y: 475,
-        id: 'WH2UKA'
-      }
-    },
-    attributes: {}
-  }
-};
+});
 
 export const mode = writable(null);
 export const isSnapEnabled = writable(true);
@@ -183,11 +184,11 @@ export const polygons = {
     const newPolygonId = nanoid(6);
 
     selectedPolygonId.set(null); // why?.. can it be removed?
-    polygons[newPolygonId] = {
+    polygons.push({
       id: newPolygonId,
       attributes: get(globalAttributes),
-      points: {},
-    };
+      points: [],
+    });
     drawablePolygonId.set(newPolygonId);
 
     const delta = patcher.diff($polygons, polygons);
@@ -199,15 +200,17 @@ export const polygons = {
     const polygons = clone($polygons);
     const newPointId = nanoid(6);
     const polygonId = get(drawablePolygonId);
-    const closestPoint = get(isSnapEnabled) && get(polygonsMap)
+    const polygonIndex = polygons.findIndex(({ id }) => id === polygonId);
+
+    const closestPoint = get(isSnapEnabled) && polygons
       .filter(({ id }) => id !== polygonId)
       .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
-    polygons[polygonId].points[newPointId] = {
+    polygons[polygonIndex].points.push({
       x: closestPoint?.x ?? x,
       y: closestPoint?.y ?? y,
       id: newPointId
-    };
+    });
 
     selectedPolygonId.set(polygonId); // why?.. can it be removed?
 
@@ -226,7 +229,6 @@ export const polygons = {
       }, {});
 
     const delta = patcher.diff($polygons, polygons);
-    console.log(format(delta));
 
     return polygons;
   }),
@@ -261,29 +263,27 @@ export const polygons = {
     }, {});
     return $polygons;
   }),
-  movePoint: ({ x, y }) => polygonsStore.update($polygons => {
+  setDraggablePolygonPosition: (localDragablePolygon) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
-    const polygonId = get(selectedPolygonId);
-    const pointId = get(dragablePointId);
+    // const id = get(dragablePolygonId);
+    const index = polygons.findIndex(({ id }) => id === get(dragablePolygonId));
+    polygons[index] = localDragablePolygon;
 
-    polygons[polygonId].points[pointId].x = x;
-    polygons[polygonId].points[pointId].y = y;
-
-    // const delta = patcher.diff($polygons, polygons);
-    // console.log(format(delta));
+    const delta = patcher.diff($polygons, polygons);
+    history.push({ delta, origin: 'setDraggablePolygonPosition' })
 
     return polygons;
   }),
-  moveAllPoints: (polygon, x, y) => polygonsStore.update($polygons => {
-    $polygons[polygon.id].points = Object.values(polygon.points).reduce((acc, point) => ({
-      ...acc,
-      [point.id]: {
-        ...point,
-        x: point.x + x,
-        y: point.y + y,
-      }
-    }), {});
-    return $polygons;
+  setDraggablePointPosition: (localDragablePoint) => polygonsStore.update($polygons => {
+    const polygons = clone($polygons);
+    const polygonIndex = polygons.findIndex(({ id }) => id === get(selectedPolygonId));
+    const pointIndex = polygons[polygonIndex].points.findIndex(({ id }) => id === localDragablePoint.id);
+    polygons[polygonIndex].points[pointIndex] = localDragablePoint;
+
+    const delta = patcher.diff($polygons, polygons);
+    history.push({ delta, origin: 'setDraggablePointPosition' });
+
+    return polygons;
   }),
   set: (val) => polygonsStore.set(val)
 };
@@ -291,10 +291,14 @@ export const polygons = {
 export const history = {
   subscribe: historyStore.subscribe,
   set: historyStore.set,
-  push: (entry) => historyStore.update($history => ({
-    undoQueue: [entry, ...$history.undoQueue],
-    redoQueue: []
-  })),
+  push: (entry) => historyStore.update($history => {
+
+    console.log(format(entry.delta));
+    return {
+      undoQueue: [entry, ...$history.undoQueue],
+      redoQueue: []
+    }
+  }),
   shiftHistoryBackward: (entry) => historyStore.update($history => {
     $history.redoQueue = [entry, ...$history.redoQueue]
     $history.undoQueue.splice(0, 1);
@@ -346,21 +350,3 @@ export const renderPolygons = derived([polygonsMap],
       points: polygon.pointsMap.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', ''),
     }
   }));
-
-// export const drawablePolygon = (() => {
-//   const { subscribe, set, update } = writable(null);
-
-//   return {
-//     subscribe,
-//     addPoint: (newPoint) => update(($drawablePolygon) => {
-//       return {
-//         ...$drawablePolygon,
-//         points: {
-//           ...$drawablePolygon.points,
-//           [newPoint.id]: newPoint
-//         }
-//       }
-//     }),
-//     set: (val) => set(val)
-//   };
-// })();

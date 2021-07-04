@@ -5,6 +5,8 @@
   import CloudDownload24 from 'carbon-icons-svelte/lib/CloudDownload24';
   import Switcher24 from 'carbon-icons-svelte/lib/Switcher24';
   import CopyFile24 from 'carbon-icons-svelte/lib/CopyFile24';
+  import Undo24 from 'carbon-icons-svelte/lib/Undo24';
+  import Redo24 from 'carbon-icons-svelte/lib/Redo24';
   import { saveAs } from 'file-saver';
 
   import { tick } from 'svelte';
@@ -14,7 +16,8 @@
     renderSvg,
     selectedPolygonId,
     hoveredPolygonId,
-    isToolbarDragging
+    isToolbarDragging,
+    history,
   } from '$lib/stores.js';
 
   const clearAttributes = () => {
@@ -82,5 +85,23 @@
     iconDescription="Download SVG File"
     icon={CloudDownload24}
     on:click={handleDowloadClick}
+  />
+  <Button
+    kind="ghost"
+    tooltipPosition="bottom"
+    tooltipAlignment="center"
+    iconDescription="Download SVG File"
+    icon={Undo24}
+    disabled={$history.undoQueue.length===0}
+    on:click={history.undo}
+  />
+  <Button
+    kind="ghost"
+    tooltipPosition="bottom"
+    tooltipAlignment="center"
+    iconDescription="Download SVG File"
+    icon={Redo24}
+    disabled={$history.redoQueue.length===0}
+    on:click={history.redo}
   />
 </div>
