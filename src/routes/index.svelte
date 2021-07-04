@@ -1,5 +1,6 @@
 <script context="module">
   export const prerender = true;
+  export const hydrate = false;
   export const ssr = false; // Dropzone relies on window object :(
 </script>
 
@@ -18,7 +19,7 @@
     isSnapEnabled,
     polygons,
     renderPolygons,
-    drawablePolygon,
+    drawablePolygonId,
     selectedPolygon,
     selectedPolygonId,
     dragablePolygon,
@@ -33,8 +34,8 @@
   } from '$lib/stores.js';
 
   let src;
-  // let src =
-  //   'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
+  src =
+    'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
   let imageEl;
   let imageWidth = 900;
   let imageHeight = 600;
@@ -49,7 +50,7 @@
   const handleFilesChange = (e) => {
     const reader = new FileReader();
     const [file] = e.target.files;
-    console.log(file)
+    console.log(file);
     reader.readAsDataURL(file);
     reader.onload = () => {
       src = reader.result;
@@ -91,36 +92,16 @@
 
     // unset drawablePolygon if clicked on toolbar/point
     if (hasToolbarTarget || hasPointTarget) {
-      drawablePolygon.set(null);
+      drawablePolygonId.set(null);
     }
 
     if ($mode !== 'draw') return;
 
-    if (!$drawablePolygon) {
-      selectedPolygonId.set(null);
-      drawablePolygon.set({
-        attributes: $globalAttributes,
-        id: nanoid(6),
-        points: {}
-      });
+    if (!$drawablePolygonId) {
+      polygons.addDrawablePolygon();
     }
 
-    const newPointId = nanoid(6);
-    const closestPoint =
-      $isSnapEnabled &&
-      $polygonsMap
-        // TODO - instead of filtering out drawablePolygon, replace and do not create a new point on same polygon
-        .filter(({ id }) => id !== $drawablePolygon.id)
-        .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
-
-    drawablePolygon.addPoint({
-      x: closestPoint?.x ?? x,
-      y: closestPoint?.y ?? y,
-      id: newPointId
-    });
-
-    selectedPolygonId.set($drawablePolygon.id);
-    polygons.addPolygon($drawablePolygon);
+    polygons.addDrawablePoint({ x, y });
   };
 
   const handleCanvasScroll = (e) => {
@@ -139,7 +120,7 @@
     if ($mode === 'draw') {
       if ($isSnapEnabled) {
         closestPoint = $polygonsMap
-          .filter(({ id }) => id !== $drawablePolygon?.id)
+          .filter(({ id }) => id !== $drawablePolygonId)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
         if (closestPoint) {
           closestSnapablePointId.set(closestPoint.id);
@@ -167,7 +148,7 @@
     }
 
     if (!!$dragablePolygonId) {
-      drawablePolygon.set(null);
+      drawablePolygonId.set(null);
       mode.set(null);
       polygons.moveAllPoints($dragablePolygon, movementX, movementY);
       return;
@@ -256,24 +237,24 @@
       //   {}
       // );
       // escape drawing state
-      drawablePolygon.set(null);
+      drawablePolygonId.set(null);
       mode.set(null);
       // additional escape if dragging gets out of hand
       dragablePolygonId.set(null);
     }
     if (e.key === 'Enter') {
-      if ($drawablePolygon) {
-        selectedPolygonId.set($drawablePolygon.id);
+      if ($drawablePolygonId) {
+        selectedPolygonId.set($drawablePolygonId);
       }
       mode.set(null);
     }
     if (e.key === 'Delete') {
-      if ($drawablePolygon) {
-        drawablePolygon.set(null);
+      if ($drawablePolygonId) {
+        drawablePolygonId.set(null);
         mode.set(null);
         // additional escape if dragging gets out of hand
         dragablePolygonId.set(null);
-        selectedPolygonId.set($drawablePolygon.id);
+        selectedPolygonId.set($drawablePolygonId);
       }
       if ($selectedPolygonId) {
         polygons.deletePolygon($selectedPolygonId);
@@ -328,7 +309,7 @@
             points={polygon.points}
             id={polygon.id}
             {...polygon.attributes}
-            class:is-drawing={$mode === 'draw' && polygon.id === $drawablePolygon?.id}
+            class:is-drawing={$mode === 'draw' && polygon.id === $drawablePolygonId}
             class:is-dragging={polygon.id === $dragablePolygonId}
             class:is-hovered={polygon.id === $hoveredPolygonId}
             class:is-selected={polygon.id === $selectedPolygonId}
