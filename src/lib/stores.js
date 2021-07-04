@@ -68,6 +68,7 @@ export const renderSvg = writable(null);
 export const hoveredPolygonId = writable(null);
 export const dragablePolygonId = writable(null);
 export const selectedPolygonId = writable(null);
+export const drawablePolygonId = writable(null);
 
 export const dragablePointId = writable(null);
 export const closestSnapablePointId = writable(null);
@@ -199,21 +200,3 @@ export const renderPolygons = derived([polygonsMap],
       points: polygon.pointsMap.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', ''),
     }
   }));
-
-export const drawablePolygon = (() => {
-  const { subscribe, set, update } = writable(null);
-
-  return {
-    subscribe,
-    addPoint: (newPoint) => update(($drawablePolygon) => {
-      return {
-        ...$drawablePolygon,
-        points: {
-          ...$drawablePolygon.points,
-          [newPoint.id]: newPoint
-        }
-      }
-    }),
-    set: (val) => set(val)
-  };
-})();

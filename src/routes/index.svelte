@@ -16,7 +16,6 @@
     snapRadius,
     isSnapEnabled,
     polygons,
-    drawablePolygon,
     selectedPolygon,
     selectedPolygonId,
     dragablePolygonId,
@@ -27,7 +26,8 @@
     isToolbarDragging,
     toolbarX,
     toolbarY,
-    isDrawing
+    isDrawing,
+    drawablePolygonId
   } from '$lib/stores.js';
   import { yPolygons, yDoc, yRenderPolygons, yPolygonsMap, yHistory } from '$lib/y.js';
 
@@ -91,54 +91,46 @@
 
     // unset drawablePolygon if clicked on toolbar/point
     if (hasToolbarTarget || hasPointTarget) {
-      drawablePolygon.set(null);
+      drawablePolygonId.set(null);
     }
 
     if (!$isDrawing) return;
 
     // if is first point
-    if (!$drawablePolygon) {
-      const newPolygonId = nanoid(6);
+    if (!$drawablePolygonId) {
       selectedPolygonId.set(null);
-      drawablePolygon.set({
-        attributes: $globalAttributes,
-        id: newPolygonId,
-        points: {}
-      });
 
-      const newPolygonMap = new Y.Map();
-      newPolygonMap.set('id', newPolygonId);
-      newPolygonMap.set('attributes', new Y.Map());
-      newPolygonMap.set('points', new Y.Array());
-      yPolygons.push([newPolygonMap]);
+      const yNewlygonId = nanoid(6);
+      const yNewlygonMap = new Y.Map();
+
+      drawablePolygonId.set(yNewlygonId);
+
+      yNewlygonMap.set('id', yNewlygonId);
+      // TODO: replace with $globalAttributes
+      yNewlygonMap.set('attributes', new Y.Map());
+      yNewlygonMap.set('points', new Y.Array());
+      yPolygons.push([yNewlygonMap]);
     }
 
-    const newPointId = nanoid(6);
+    selectedPolygonId.set($drawablePolygonId);
+
+    const yNewintId = nanoid(6);
     const closestPoint =
       $isSnapEnabled &&
       $polygonsMap
         // TODO - instead of filtering out drawablePolygon, replace and do not create a new point on same polygon
-        .filter(({ id }) => id !== $drawablePolygon.id)
+        .filter(({ id }) => id !== $drawablePolygonId)
         .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
-
-    drawablePolygon.addPoint({
-      x: closestPoint?.x ?? x,
-      y: closestPoint?.y ?? y,
-      id: newPointId
-    });
-
-    selectedPolygonId.set($drawablePolygon.id);
-    polygons.addPolygon($drawablePolygon);
 
     yPolygons
       .toArray()
-      .find((el) => el.get('id') === $drawablePolygon.id)
+      .find((el) => el.get('id') === $drawablePolygonId)
       .get('points')
       .push([
         {
           x: closestPoint?.x ?? x,
           y: closestPoint?.y ?? y,
-          id: newPointId
+          id: yNewintId
         }
       ]);
   };
@@ -159,7 +151,7 @@
     if ($isDrawing) {
       if ($isSnapEnabled) {
         closestPoint = $polygonsMap
-          .filter(({ id }) => id !== $drawablePolygon?.id)
+          .filter(({ id }) => id !== $drawablePolygonId)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
         if (closestPoint) {
           closestSnapablePointId.set(closestPoint.id);
@@ -188,7 +180,7 @@
     }
 
     if ($dragablePolygonId) {
-      drawablePolygon.set(null);
+      drawablePolygonId.set(null);
       isDrawing.set(false);
       dragablePollie.points = Object.values(dragablePollie.points).reduce(
         (acc, point) => ({
@@ -302,14 +294,14 @@
       //   {}
       // );
       // escape drawing state
-      drawablePolygon.set(null);
+      drawablePolygonId.set(null);
       isDrawing.set(false);
       // additional escape if dragging gets out of hand
       dragablePolygonId.set(null);
     }
     if (e.key === 'Enter') {
-      if ($drawablePolygon) {
-        selectedPolygonId.set($drawablePolygon.id);
+      if ($drawablePolygonId) {
+        selectedPolygonId.set($drawablePolygonId);
       }
       isDrawing.set(false);
     }
@@ -321,12 +313,12 @@
     }
 
     if (e.key === 'Delete') {
-      if ($drawablePolygon) {
-        drawablePolygon.set(null);
+      if ($drawablePolygonId) {
+        drawablePolygonId.set(null);
         isDrawing.set(false);
         // additional escape if dragging gets out of hand
         dragablePolygonId.set(null);
-        selectedPolygonId.set($drawablePolygon.id);
+        selectedPolygonId.set($drawablePolygonId);
       }
       if ($selectedPolygonId) {
         polygons.deletePolygon($selectedPolygonId);
@@ -387,7 +379,7 @@
             points={$dragablePolygonId ? dragablePolliePoints : polygon.points}
             id={polygon.id}
             {...polygon.attributes}
-            class:is-drawing={$isDrawing && polygon.id === $drawablePolygon?.id}
+            class:is-drawing={$isDrawing && polygon.id === $drawablePolygonId}
             class:is-dragging={polygon.id === $dragablePolygonId}
             class:is-hovered={polygon.id === $hoveredPolygonId}
             class:is-selected={polygon.id === $selectedPolygonId}

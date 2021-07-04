@@ -31,12 +31,15 @@
     newAttributeValue = '';
   };
 
-  $: selectedPolygonAttributes =
-    $selectedPolygonId &&
-    Object.entries($selectedPolygon?.attributes).reduce(
-      (acc, [name, value]) => [...acc, { name, value }],
-      []
-    );
+  // $: selectedPolygonAttributes =
+  //   $selectedPolygonId &&
+  //   Object.entries($selectedPolygon?.attributes).reduce(
+  //     (acc, [name, value]) => [...acc, { name, value }],
+  //     []
+  //   );
+
+  // TODO: fix code aboove as drawablePolygonId broke it :(
+  $: selectedPolygonAttributes = null;
 </script>
 
 <div class="attributes">
