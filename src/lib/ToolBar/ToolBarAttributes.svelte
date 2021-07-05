@@ -7,7 +7,13 @@
   import TrashCan16 from 'carbon-icons-svelte/lib/TrashCan16';
   import Add16 from 'carbon-icons-svelte/lib/Add16';
 
-  import { selectedPolygon, selectedPolygonId, polygons, globalAttributes } from '$lib/stores.js';
+  import {
+    selectedPolygon,
+    selectedPolygonId,
+    selectedPolygonIndex,
+    polygons,
+    globalAttributes
+  } from '$lib/stores.js';
 
   let isNewOpen = false;
   let newAttributeName = '';
@@ -15,16 +21,16 @@
   let isNewAttributeGlobal = true;
 
   const handleAddAttributeSubmit = () => {
-    const attributeToAdd = {
+    const attribute = {
       name: newAttributeName,
       value: newAttributeValue
     };
 
     if (isNewAttributeGlobal) {
-      polygons.addGlobalAttribute(attributeToAdd);
-      globalAttributes.add(attributeToAdd);
+      polygons.addGlobalAttribute(attribute);
+      globalAttributes.add(attribute);
     } else {
-      polygons.addLocalAttribute($selectedPolygonId, attributeToAdd);
+      polygons.addLocalAttribute(attribute);
     }
 
     newAttributeName = '';
@@ -32,7 +38,7 @@
   };
 
   $: selectedPolygonAttributes =
-    $selectedPolygonId &&
+    $selectedPolygon &&
     Object.entries($selectedPolygon?.attributes).reduce(
       (acc, [name, value]) => [...acc, { name, value }],
       []
@@ -49,7 +55,7 @@
             required
             light
             size="sm"
-            bind:value={$polygons[$selectedPolygonId].attributes[attribute.name]}
+            bind:value={$polygons[$selectedPolygonIndex].attributes[attribute.name]}
           />
           <Button
             kind="ghost"
@@ -57,7 +63,7 @@
             tooltipAlignment="center"
             iconDescription="Remove Attribute"
             size="small"
-            on:click={() => polygons.deleteLocalAttribute($selectedPolygonId, attribute)}
+            on:click={() => polygons.deleteLocalAttribute(attribute)}
             icon={TrashCan16}
           />
         </div>

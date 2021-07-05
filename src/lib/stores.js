@@ -159,7 +159,12 @@ export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
 
 export const selectedPolygon = derived(
   [polygonsStore, selectedPolygonId],
-  ([$polygonsStore, $selectedPolygonId]) => $polygonsStore[$selectedPolygonId]
+  ([$polygonsStore, $selectedPolygonId]) => $polygonsStore.find(({ id }) => id === $selectedPolygonId)
+);
+
+export const selectedPolygonIndex = derived(
+  [polygonsStore, selectedPolygonId],
+  ([$polygonsStore, $selectedPolygonId]) => $polygonsStore.findIndex(({ id }) => id === $selectedPolygonId)
 );
 
 export const dragablePoint = derived(
@@ -174,7 +179,12 @@ export const hoveredPolygon = derived(
 
 export const dragablePolygon = derived(
   [polygonsStore, dragablePolygonId],
-  ([$polygonsStore, $dragablePolygonId]) => $polygonsStore[$dragablePolygonId]
+  ([$polygonsStore, $dragablePolygonId]) => $polygonsStore.find(({ id }) => id === $dragablePolygonId)
+);
+
+export const dragablePolygonIndex = derived(
+  [polygonsStore, dragablePolygonId],
+  ([$polygonsStore, $dragablePolygonId]) => $polygonsStore.findIndex(({ id }) => id === $dragablePolygonId)
 );
 
 export const polygons = {
@@ -232,36 +242,31 @@ export const polygons = {
 
     return polygons;
   }),
-  addLocalAttribute: (polygonId, attribute) => polygonsStore.update($polygons => {
-    $polygons[polygonId].attributes[attribute.name] = attribute.value;
+  addLocalAttribute: (attribute) => polygonsStore.update($polygons => {
+    $polygons[get(selectedPolygonIndex)].attributes[attribute.name] = attribute.value;
     return $polygons;
   }),
-  deleteLocalAttribute: (polygonId, attribute) => polygonsStore.update($polygons => {
+  deleteLocalAttribute: (attribute) => polygonsStore.update($polygons => {
+    const polygonId = get(selectedPolygonIndex);
     $polygons[polygonId].attributes = Object.entries($polygons[polygonId].attributes)
-      .reduce((acc, [name, value]) => {
-        return {
-          ...acc,
-          ...(attribute.name !== name ? { [name]: value } : {}),
-        }
-      }, {});
+      .reduce((acc, [name, value]) => ({
+        ...acc,
+        ...(attribute.name !== name ? { [name]: value } : {}),
+      }, {}));
     return $polygons;
   }),
   addGlobalAttribute: (attribute) => polygonsStore.update($polygons => {
-    $polygons = Object.values($polygons).reduce((acc, polygon) => {
+    return $polygons.map((polygon) => {
       return {
-        ...acc,
-        [polygon.id]: {
-          ...polygon,
-          attributes: {
-            ...polygon.attributes,
-            ...(!polygon.attributes[attribute.name] && {
-              [attribute.name]: attribute.value
-            })
-          }
+        ...polygon,
+        attributes: {
+          ...polygon.attributes,
+          ...(!polygon.attributes[attribute.name] && {
+            [attribute.name]: attribute.value
+          })
         }
       }
-    }, {});
-    return $polygons;
+    })
   }),
   setDraggablePolygonPosition: (localDragablePolygon) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
@@ -341,6 +346,7 @@ export const polygonsMap = derived([polygonsStore],
       pointsMap: Object.values(polygon.points),
     }]
   }, []));
+
 
 // flaten points object to renderable sring
 export const renderPolygons = derived([polygonsMap],

@@ -16,11 +16,8 @@
     snapRadius,
     isSnapEnabled,
     polygons,
-    renderPolygons,
     drawablePolygonId,
-    selectedPolygon,
     selectedPolygonId,
-    dragablePolygon,
     dragablePolygonId,
     hoveredPolygonId,
     dragablePointId,
@@ -289,7 +286,7 @@
     renderSvg.set(svgEl);
   });
 
-  $: renderyPolygons = $polygons.map((polygon) => {
+  $: renderPolygons = $polygons.map((polygon) => {
     // serve points from either localDragablePolygon or regularly
     const { points } = localDragablePolygon?.id === polygon.id ? localDragablePolygon : polygon;
     return {
@@ -342,7 +339,7 @@
         bind:this={svgEl}
       >
         <!-- classes, styles and id should be removed -->
-        {#each renderyPolygons as polygon, i}
+        {#each renderPolygons as polygon, i}
           <polygon
             points={polygon.pointsReduced}
             id={polygon.id}
@@ -357,7 +354,7 @@
           />
         {/each}
       </svg>
-      {#each renderyPolygons as polygon, polygonIndex}
+      {#each renderPolygons as polygon, polygonIndex}
         {#each polygon.points as point, pointIndex}
           <div
             style={`left:${point.x}px;top:${point.y}px;`}
