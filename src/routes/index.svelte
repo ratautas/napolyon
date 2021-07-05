@@ -22,7 +22,6 @@
     hoveredPolygonId,
     dragablePointId,
     closestSnapablePointId,
-    polygonsMap,
     isToolbarDragging,
     toolbarX,
     toolbarY,
@@ -118,7 +117,7 @@
 
     if ($isDrawing) {
       if ($isSnapEnabled) {
-        closestPoint = $polygonsMap
+        closestPoint = $polygons
           .filter(({ id }) => id !== $drawablePolygonId)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
         if (closestPoint) {
@@ -130,13 +129,12 @@
       return;
     }
 
-    // TODO: maybe $selectedPolygon, $dragablePoint and $dragablePolygon should be resolved in stores?
     if ($dragablePointId && $selectedPolygonId) {
       localDragablePoint.x = localDragablePoint.x + movementX;
       localDragablePoint.y = localDragablePoint.y + movementY;
 
       if ($isSnapEnabled) {
-        const closestPoint = $polygonsMap
+        const closestPoint = $polygons
           .filter(({ id }) => id !== $selectedPolygonId)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
         if (closestPoint) {
@@ -148,7 +146,7 @@
       return;
     }
 
-    if (!!$dragablePolygonId) {
+    if ($dragablePolygonId) {
       drawablePolygonId.set(null);
       isDrawing.set(false);
       localDragablePolygon.points = localDragablePolygon.points.map((point) => ({
@@ -181,7 +179,7 @@
     if ($dragablePointId && localDragablePoint) {
       if ($isSnapEnabled) {
         const { x, y } = localDragablePoint;
-        const closestPoint = $polygonsMap
+        const closestPoint = $polygons
           .filter(({ id }) => id !== $selectedPolygonId)
           .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
 
@@ -190,6 +188,7 @@
           localDragablePoint.y = closestPoint.y;
         }
       }
+
       polygons.setDraggablePointPosition(localDragablePoint);
       dragablePointId.set(null);
       localDragablePoint = null;
@@ -208,7 +207,7 @@
   };
 
   const handlePolygonMousedown = ({ e, polygon }) => {
-    localDragablePolygon = polygon;
+    localDragablePolygon = { ...polygon };
     dragablePolygonId.set(polygon.id);
     selectedPolygonId.set(polygon.id);
   };
@@ -226,7 +225,7 @@
   const handlePointMousedown = ({ e, point, polygon }) => {
     selectedPolygonId.set(polygon.id);
     dragablePointId.set(point.id);
-    localDragablePoint = point;
+    localDragablePoint = { ...point };
   };
 
   const handlePointMouseleave = ({ e, point, polygon }) => {
@@ -288,11 +287,13 @@
 
   $: renderPolygons = $polygons.map((polygon) => {
     // serve points from either localDragablePolygon or regularly
-    const { points } = localDragablePolygon?.id === polygon.id ? localDragablePolygon : polygon;
+    const currentPolygon = localDragablePolygon?.id === polygon.id ? localDragablePolygon : polygon;
     return {
-      ...polygon,
-      points, // this forces recalcualtion
-      pointsReduced: points
+      ...currentPolygon,
+      points: currentPolygon.points.map((point) => {
+        return localDragablePoint?.id === point.id ? localDragablePoint : point;
+      }),
+      pointsReduced: currentPolygon.points
         .reduce((pointsString, point) => {
           // serve X and Y from either localDragablePoint or regularly
           const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;

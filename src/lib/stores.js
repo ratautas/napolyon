@@ -270,9 +270,7 @@ export const polygons = {
   }),
   setDraggablePolygonPosition: (localDragablePolygon) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
-    // const id = get(dragablePolygonId);
-    const index = polygons.findIndex(({ id }) => id === get(dragablePolygonId));
-    polygons[index] = localDragablePolygon;
+    polygons[get(dragablePolygonIndex)] = localDragablePolygon;
 
     const delta = patcher.diff($polygons, polygons);
     history.push({ delta, origin: 'setDraggablePolygonPosition' })
@@ -281,11 +279,17 @@ export const polygons = {
   }),
   setDraggablePointPosition: (localDragablePoint) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
-    const polygonIndex = polygons.findIndex(({ id }) => id === get(selectedPolygonId));
+    const polygonIndex = get(selectedPolygonIndex);
     const pointIndex = polygons[polygonIndex].points.findIndex(({ id }) => id === localDragablePoint.id);
-    polygons[polygonIndex].points[pointIndex] = localDragablePoint;
+
+    console.log(polygons[polygonIndex].points[pointIndex]);
+    console.log($polygons[polygonIndex].points[pointIndex]);
+    console.log(localDragablePoint);
+    
+    polygons[polygonIndex].points[pointIndex] = clone(localDragablePoint);
 
     const delta = patcher.diff($polygons, polygons);
+
     history.push({ delta, origin: 'setDraggablePointPosition' });
 
     return polygons;
@@ -298,7 +302,6 @@ export const history = {
   set: historyStore.set,
   push: (entry) => historyStore.update($history => {
 
-    console.log(format(entry.delta));
     return {
       undoQueue: [entry, ...$history.undoQueue],
       redoQueue: []
