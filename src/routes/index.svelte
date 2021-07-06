@@ -5,7 +5,6 @@
 </script>
 
 <script>
-  // import Dropzone from 'svelte-file-dropzone';
   import { onMount } from 'svelte';
   import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
 
@@ -28,13 +27,16 @@
     history
   } from '$lib/stores.js';
 
-  let src;
-  src =
-    'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
   let imageEl;
-  let imageWidth = 900;
-  let imageHeight = 600;
   let svgEl;
+  let src;
+  let imageWidth;
+  let imageHeight;
+  // src =
+  //   'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
+  // imageWidth = 900;
+  // mageHeight = 600;
+  
   let closestPoint = null;
 
   let localDragablePolygon;
