@@ -259,8 +259,9 @@
       }
       isDrawing.set(false);
     }
-    if (e.key === 'Delete') {
+    if (e.key === 'Delete' || e.key === 'Backspace') {
       if ($drawablePolygonId) {
+        polygons.deletePolygon($drawablePolygonId);
         drawablePolygonId.set(null);
         isDrawing.set(false);
         // additional escape if dragging gets out of hand

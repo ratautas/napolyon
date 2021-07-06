@@ -201,9 +201,6 @@ export const polygons = {
     });
     drawablePolygonId.set(newPolygonId);
 
-    const delta = patcher.diff($polygons, polygons);
-    history.push({ delta, origin: 'AddPolygon' })
-
     return polygons;
   }),
   addPoint: ({ x, y }) => polygonsStore.update($polygons => {
@@ -230,15 +227,10 @@ export const polygons = {
     return polygons;
   }),
   deletePolygon: (polygonId) => polygonsStore.update($polygons => {
-    const polygons = Object.values($polygons)
-      .reduce((acc, polygon) => {
-        return {
-          ...acc,
-          ...(polygon.id !== polygonId ? { [polygonId]: polygon } : {}),
-        }
-      }, {});
+    const polygons = $polygons.filter(({ id }) => id !== polygonId);
 
     const delta = patcher.diff($polygons, polygons);
+    history.push({ delta, origin: 'deletePolygon' })
 
     return polygons;
   }),
@@ -282,14 +274,9 @@ export const polygons = {
     const polygonIndex = get(selectedPolygonIndex);
     const pointIndex = polygons[polygonIndex].points.findIndex(({ id }) => id === localDragablePoint.id);
 
-    console.log(polygons[polygonIndex].points[pointIndex]);
-    console.log($polygons[polygonIndex].points[pointIndex]);
-    console.log(localDragablePoint);
-    
     polygons[polygonIndex].points[pointIndex] = clone(localDragablePoint);
 
     const delta = patcher.diff($polygons, polygons);
-
     history.push({ delta, origin: 'setDraggablePointPosition' });
 
     return polygons;
