@@ -16,6 +16,7 @@
     isSnapEnabled,
     polygons,
     drawablePolygonId,
+    drawablePolygon,
     selectedPolygonId,
     dragablePolygonId,
     hoveredPolygonId,
@@ -32,15 +33,18 @@
   let src;
   let imageWidth;
   let imageHeight;
-  // src =
-  //   'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
-  // imageWidth = 900;
-  // mageHeight = 600;
-  
+  src =
+    'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
+  imageWidth = 900;
+  imageHeight = 600;
+
   let closestPoint = null;
 
   let localDragablePolygon;
   let localDragablePoint;
+
+  let mouseX;
+  let mouseY;
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
@@ -50,7 +54,6 @@
   const handleFilesChange = (e) => {
     const reader = new FileReader();
     const [file] = e.target.files;
-    console.log(file);
     reader.readAsDataURL(file);
     reader.onload = () => {
       src = reader.result;
@@ -111,6 +114,9 @@
   const handleCanvasMousedown = (e) => {};
 
   const handleCanvasMousemove = ({ x, y, movementX, movementY }) => {
+    mouseX = x;
+    mouseY = y;
+
     if ($isToolbarDragging) {
       toolbarX.set($toolbarX + movementX);
       toolbarY.set($toolbarY + movementY);
@@ -149,8 +155,8 @@
     }
 
     if ($dragablePolygonId) {
-      drawablePolygonId.set(null);
       isDrawing.set(false);
+      drawablePolygonId.set(null);
       localDragablePolygon.points = localDragablePolygon.points.map((point) => ({
         id: point.id,
         x: point.x + movementX,
@@ -250,25 +256,27 @@
       //   {}
       // );
       // escape drawing state
-      drawablePolygonId.set(null);
       isDrawing.set(false);
+      drawablePolygonId.set(null);
       // additional escape if dragging gets out of hand
-      dragablePolygonId.set(null);
     }
     if (e.key === 'Enter') {
       if ($drawablePolygonId) {
         selectedPolygonId.set($drawablePolygonId);
       }
+      drawablePolygonId.set(null);
       isDrawing.set(false);
     }
     if (e.key === 'Delete' || e.key === 'Backspace') {
       if ($drawablePolygonId) {
         polygons.deletePolygon($drawablePolygonId);
         drawablePolygonId.set(null);
+        drawablePolygonId.set(null);
         isDrawing.set(false);
         // additional escape if dragging gets out of hand
         dragablePolygonId.set(null);
         selectedPolygonId.set($drawablePolygonId);
+        drawablePolygonId.set(null);
       }
       if ($selectedPolygonId) {
         polygons.deletePolygon($selectedPolygonId);
@@ -305,6 +313,14 @@
         .replace(' ', '')
     };
   });
+
+  $: drawablePolygonPoints =
+    $drawablePolygonId &&
+    $drawablePolygon.points.reduce((pointsString, point) => {
+      // serve X and Y from either localDragablePoint or regularly
+      const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
+      return `${x},${y} ${pointsString}`;
+    }, `${mouseX},${mouseY}`);
 </script>
 
 <svelte:window on:keydown={handleWindowKeydown} />
@@ -342,7 +358,9 @@
         viewBox={`0 0 ${imageWidth} ${imageHeight}`}
         bind:this={svgEl}
       >
-        <!-- classes, styles and id should be removed -->
+        {#if $drawablePolygonId}
+          <polygon class="placeholder" points={drawablePolygonPoints} />
+        {/if}
         {#each renderPolygons as polygon, i}
           <polygon
             points={polygon.pointsReduced}

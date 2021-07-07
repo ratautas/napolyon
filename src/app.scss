@@ -114,6 +114,9 @@ polygon {
   &.is-selected {
     // stroke: #0080f3;
   }
+  &.placeholder {
+    opacity: 0.2;
+  }
 }
 
 .point {

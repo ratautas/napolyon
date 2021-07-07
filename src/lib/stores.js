@@ -187,6 +187,16 @@ export const dragablePolygonIndex = derived(
   ([$polygonsStore, $dragablePolygonId]) => $polygonsStore.findIndex(({ id }) => id === $dragablePolygonId)
 );
 
+export const drawablePolygon = derived(
+  [polygonsStore, drawablePolygonId],
+  ([$polygonsStore, $drawablePolygonId]) => $polygonsStore.find(({ id }) => id === $drawablePolygonId)
+);
+
+export const drawablePolygonIndex = derived(
+  [polygonsStore, drawablePolygonId],
+  ([$polygonsStore, $drawablePolygonId]) => $polygonsStore.findIndex(({ id }) => id === $drawablePolygonId)
+);
+
 export const polygons = {
   subscribe: polygonsStore.subscribe,
   addPolygon: () => polygonsStore.update($polygons => {
