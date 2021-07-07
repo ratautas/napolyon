@@ -59,28 +59,6 @@ const MOCK_INITIAL_POLYGONS = [
 
 const format = (delta) => formatters.jsonpatch.format(delta);
 
-export const findClosestPoint = ({ points, x, y }) => {
-  const radius = get(snapRadius);
-  const closestPoint = points
-    .filter((point) => point.x > x - radius && point.x < x + radius)
-    .filter((point) => point.y > y - radius && point.y < y + radius)
-    .reduce(
-      (acc, point) => {
-        const diffX = point.x - x;
-        const diffY = point.y - y;
-
-        // good old pythagoras
-        const diff = Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY, 2));
-        return acc == null || diff <= acc.diff ? { ...point, diff } : acc;
-      },
-      {
-        // initial (max) diff
-        diff: radius
-      }
-    );
-  return closestPoint.id ? closestPoint : null;
-};
-
 export const patcher = create({
   // used to match objects when diffing arrays, by default only === operator is used
   objectHash: function (obj, index) {
@@ -127,9 +105,7 @@ export const hoveredPolygonId = writable(null);
 export const dragablePolygonId = writable(null);
 export const selectedPolygonId = writable(null);
 export const drawablePolygonId = writable(null);
-
 export const dragablePointId = writable(null);
-export const closestSnapablePointId = writable(null);
 
 export const globalAttributesStore = writable({});
 
@@ -219,15 +195,7 @@ export const polygons = {
     const polygonId = get(drawablePolygonId);
     const polygonIndex = polygons.findIndex(({ id }) => id === polygonId);
 
-    const closestPoint = get(isSnapEnabled) && polygons
-      .filter(({ id }) => id !== polygonId)
-      .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
-
-    polygons[polygonIndex].points.push({
-      x: closestPoint?.x ?? x,
-      y: closestPoint?.y ?? y,
-      id: newPointId
-    });
+    polygons[polygonIndex].points.push({ x, y, id: newPointId });
 
     selectedPolygonId.set(polygonId); // why?.. can it be removed?
 

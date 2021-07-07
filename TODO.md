@@ -1,4 +1,4 @@
-- snap to edges
+- shift + to draw straight line
 - pen cursor icon (illustrator)
 - use [points="xyz"] selectors for styling instead of classnames
 
