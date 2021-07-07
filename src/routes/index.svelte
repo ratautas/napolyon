@@ -27,15 +27,15 @@
     history
   } from '$lib/stores.js';
 
-  let imageEl;
   let svgEl;
+  let imageEl;
   let src;
   let imageWidth;
   let imageHeight;
-  src =
-    'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
-  imageWidth = 900;
-  imageHeight = 600;
+  // src =
+  //   'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
+  // imageWidth = 900;
+  // imageHeight = 600;
 
   let closestPoint = null;
 
@@ -48,6 +48,7 @@
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
     imageHeight = imageEl.naturalHeight;
+    renderSvg.set(svgEl);
   };
 
   const handleFilesChange = (e) => {
@@ -77,21 +78,6 @@
           diff: $snapRadius
         }
       );
-
-    if (!point.id) {
-      if ($snapRadius > x) {
-        point = { x: 0, y, id: 'snap-left' };
-      }
-      if ($snapRadius > y) {
-        point = { x, y: 0, id: 'snap-top' };
-      }
-      if (imageWidth - $snapRadius < x) {
-        point = { x: imageWidth, y, id: 'snap-right' };
-      }
-      if (imageHeight - $snapRadius < y) {
-        point = { x, y: imageHeight, id: 'snap-bottom' };
-      }
-    }
 
     return point.id ? point : null;
   };
@@ -139,6 +125,21 @@
       closestPoint = $polygons
         .filter(({ id }) => id !== $selectedPolygonId)
         .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
+
+      if (!closestPoint?.id) {
+        if ($snapRadius > x) {
+          closestPoint = { x: 0, y, id: 'snap-left' };
+        }
+        if ($snapRadius > y) {
+          closestPoint = { x, y: 0, id: 'snap-top' };
+        }
+        if (imageWidth - $snapRadius < x) {
+          closestPoint = { x: imageWidth, y, id: 'snap-right' };
+        }
+        if (imageHeight - $snapRadius < y) {
+          closestPoint = { x, y: imageHeight, id: 'snap-bottom' };
+        }
+      }
     }
 
     if ($isToolbarDragging) {
@@ -283,6 +284,7 @@
   };
 
   onMount(() => {
+    console.log(svgEl);
     renderSvg.set(svgEl);
   });
 

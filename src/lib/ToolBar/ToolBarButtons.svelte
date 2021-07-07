@@ -21,6 +21,7 @@
   } from '$lib/stores.js';
 
   const clearAttributes = () => {
+    console.log($renderSvg)
     $renderSvg.querySelectorAll('polygon').forEach((polygonEl) => {
       polygonEl.removeAttribute('class');
       polygonEl.removeAttribute('id');
