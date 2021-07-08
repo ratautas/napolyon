@@ -1,4 +1,4 @@
-- shift + to draw straight line
+- hide snappable points while shift is pressed
 - pen cursor icon (illustrator)
 - use [points="xyz"] selectors for styling instead of classnames
 

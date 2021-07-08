@@ -114,6 +114,10 @@ export const historyStore = writable({
   redoQueue: [],
 });
 
+export const isShiftPressed = writable(null);
+export const isCmdPressed = writable(null);
+export const isAltPressed = writable(null);
+
 export const addLocalAttribute = ({ name, value }) =>
   globalAttributesStore.update(($globalAttributesStore) => ({ ...$globalAttributesStore, [name]: value }))
 

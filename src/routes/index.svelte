@@ -10,6 +10,9 @@
 
   import ToolBar from '$lib/ToolBar/index.svelte';
   import {
+    isShiftPressed,
+    isCmdPressed,
+    isAltPressed,
     isDrawing,
     renderSvg,
     snapRadius,
@@ -44,10 +47,6 @@
 
   let localDrawableX;
   let localDrawableY;
-
-  let isShiftPressed = false;
-  let isCmdPressed = false;
-  let isAltPressed = false;
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
@@ -110,8 +109,8 @@
     }
 
     polygons.addPoint({
-      x: isShiftPressed ? localDrawableX : closestPoint?.x ?? x,
-      y: isShiftPressed ? localDrawableY : closestPoint?.y ?? y
+      x: $isShiftPressed ? localDrawableX : closestPoint?.x ?? x,
+      y: $isShiftPressed ? localDrawableY : closestPoint?.y ?? y
     });
   };
 
@@ -147,7 +146,7 @@
       localDrawableX = x;
       localDrawableY = y;
 
-      if (!isShiftPressed) return;
+      if (!$isShiftPressed) return;
 
       const diffX = Math.abs(x - lastDrawablePoint.x);
       const diffY = Math.abs(y - lastDrawablePoint.y);
@@ -252,9 +251,9 @@
   };
 
   const handleWindowKeydown = (e) => {
-    isShiftPressed = e.shiftKey;
-    isAltPressed = e.altKey;
-    isCmdPressed = e.metaKey;
+    isShiftPressed.set(e.shiftKey);
+    isAltPressed.set(e.altKey);
+    isCmdPressed.set(e.metaKey);
 
     if (e.key === 'Escape') {
       // polygons = $polygonsMap.reduce(
@@ -276,7 +275,7 @@
       drawablePolygonId.set(null);
       isDrawing.set(false);
     }
-    if (isCmdPressed && (e.key === 'Backspace' || e.key === 'Delete')) {
+    if ($isCmdPressed && (e.key === 'Backspace' || e.key === 'Delete')) {
       if ($drawablePolygonId) {
         polygons.deletePolygon($drawablePolygonId);
         drawablePolygonId.set(null);
@@ -292,18 +291,18 @@
         selectedPolygonId.set(null);
       }
     }
-    if (isCmdPressed && isShiftPressed && e.key === 'z') {
+    if ($isCmdPressed && $isShiftPressed && e.key === 'z') {
       history.redo();
     }
-    if (isCmdPressed && !isShiftPressed && e.key === 'z') {
+    if ($isCmdPressed && !$isShiftPressed && e.key === 'z') {
       history.undo();
     }
   };
 
   const handleWindowKeyup = (e) => {
-    isShiftPressed = false;
-    isAltPressed = false;
-    isCmdPressed = false;
+    isShiftPressed.set(false);
+    isAltPressed.set(false);
+    isCmdPressed.set(false);
   };
 
   onMount(() => {
@@ -339,7 +338,7 @@
     $drawablePolygon.points.reduce((pointsString, point) => {
       // serve X and Y from either localDragablePoint or regularly
       const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
-      return `${x},${y} ${pointsString}`;
+      return `${point.x},${point.y} ${pointsString}`;
     }, `${localDrawableX},${localDrawableY}`);
 </script>
 
@@ -371,31 +370,34 @@
         bind:this={imageEl}
         on:load={handleImageLoad}
       />
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={imageWidth}
-        height={imageHeight}
-        viewBox={`0 0 ${imageWidth} ${imageHeight}`}
-        bind:this={svgEl}
-      >
-        {#if $drawablePolygonId}
-          <polygon class="placeholder" points={drawablePolygonPoints} />
-        {/if}
-        {#each renderPolygons as polygon, i}
-          <polygon
-            points={polygon.pointsReduced}
-            id={polygon.id}
-            {...polygon.attributes}
-            class:is-drawing={$isDrawing && polygon.id === $drawablePolygonId}
-            class:is-dragging={polygon.id === $dragablePolygonId}
-            class:is-hovered={polygon.id === $hoveredPolygonId}
-            class:is-selected={polygon.id === $selectedPolygonId}
-            on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
-            on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon })}
-            on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon })}
-          />
-        {/each}
-      </svg>
+
+      {#if !!imageWidth && !!imageHeight}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={imageWidth}
+          height={imageHeight}
+          viewBox={`0 0 ${imageWidth} ${imageHeight}`}
+          bind:this={svgEl}
+        >
+          {#if $drawablePolygonId}
+            <polygon class="placeholder" points={drawablePolygonPoints} />
+          {/if}
+          {#each renderPolygons as polygon, i}
+            <polygon
+              points={polygon.pointsReduced}
+              id={polygon.id}
+              {...polygon.attributes}
+              class:is-drawing={$isDrawing && polygon.id === $drawablePolygonId}
+              class:is-dragging={polygon.id === $dragablePolygonId}
+              class:is-hovered={polygon.id === $hoveredPolygonId}
+              class:is-selected={polygon.id === $selectedPolygonId}
+              on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
+              on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon })}
+              on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon })}
+            />
+          {/each}
+        </svg>
+      {/if}
       {#each renderPolygons as polygon, polygonIndex}
         {#each polygon.points as point, pointIndex}
           <div
