@@ -42,8 +42,12 @@
   let localDragablePolygon;
   let localDragablePoint;
 
-  let mouseX;
-  let mouseY;
+  let localDrawableX;
+  let localDrawableY;
+
+  let isShiftPressed = false;
+  let isCmdPressed = false;
+  let isAltPressed = false;
 
   const handleImageLoad = (e) => {
     imageWidth = imageEl.naturalWidth;
@@ -106,8 +110,8 @@
     }
 
     polygons.addPoint({
-      x: closestPoint?.x ?? x,
-      y: closestPoint?.y ?? y
+      x: isShiftPressed ? localDrawableX : closestPoint?.x ?? x,
+      y: isShiftPressed ? localDrawableY : closestPoint?.y ?? y
     });
   };
 
@@ -118,9 +122,6 @@
   const handleCanvasMousedown = (e) => {};
 
   const handleCanvasMousemove = ({ x, y, movementX, movementY }) => {
-    mouseX = x;
-    mouseY = y;
-
     if (($isDrawing || $dragablePointId) && $isSnapEnabled) {
       closestPoint = $polygons
         .filter(({ id }) => id !== $selectedPolygonId)
@@ -140,6 +141,19 @@
           closestPoint = { x, y: imageHeight, id: 'snap-bottom' };
         }
       }
+    }
+
+    if ($isDrawing) {
+      localDrawableX = x;
+      localDrawableY = y;
+
+      if (!isShiftPressed) return;
+
+      const diffX = Math.abs(x - lastDrawablePoint.x);
+      const diffY = Math.abs(y - lastDrawablePoint.y);
+
+      if (diffX < diffY) localDrawableX = lastDrawablePoint.x;
+      if (diffX > diffY) localDrawableY = lastDrawablePoint.y;
     }
 
     if ($isToolbarDragging) {
@@ -238,6 +252,10 @@
   };
 
   const handleWindowKeydown = (e) => {
+    isShiftPressed = e.shiftKey;
+    isAltPressed = e.altKey;
+    isCmdPressed = e.metaKey;
+
     if (e.key === 'Escape') {
       // polygons = $polygonsMap.reduce(
       //   (acc, polygon) => ({
@@ -258,7 +276,7 @@
       drawablePolygonId.set(null);
       isDrawing.set(false);
     }
-    if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (isCmdPressed && (e.key === 'Backspace' || e.key === 'Delete')) {
       if ($drawablePolygonId) {
         polygons.deletePolygon($drawablePolygonId);
         drawablePolygonId.set(null);
@@ -274,13 +292,18 @@
         selectedPolygonId.set(null);
       }
     }
-
-    if (e.metaKey && !e.shiftKey && e.key === 'z') {
-      history.undo();
-    }
-    if (e.metaKey && e.shiftKey && e.key === 'z') {
+    if (isCmdPressed && isShiftPressed && e.key === 'z') {
       history.redo();
     }
+    if (isCmdPressed && !isShiftPressed && e.key === 'z') {
+      history.undo();
+    }
+  };
+
+  const handleWindowKeyup = (e) => {
+    isShiftPressed = false;
+    isAltPressed = false;
+    isCmdPressed = false;
   };
 
   onMount(() => {
@@ -306,16 +329,21 @@
     };
   });
 
+  $: lastDrawablePoint = $drawablePolygon
+    ? $drawablePolygon.points[$drawablePolygon.points.length - 1]
+    : {};
+
   $: drawablePolygonPoints =
+    lastDrawablePoint &&
     $drawablePolygonId &&
     $drawablePolygon.points.reduce((pointsString, point) => {
       // serve X and Y from either localDragablePoint or regularly
       const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
       return `${x},${y} ${pointsString}`;
-    }, `${mouseX},${mouseY}`);
+    }, `${localDrawableX},${localDrawableY}`);
 </script>
 
-<svelte:window on:keydown={handleWindowKeydown} />
+<svelte:window on:keydown={handleWindowKeydown} on:keyup={handleWindowKeyup} />
 
 <svelte:head>
   <title>Home</title>

@@ -200,7 +200,7 @@ export const polygons = {
     selectedPolygonId.set(polygonId); // why?.. can it be removed?
 
     const delta = patcher.diff($polygons, polygons);
-    history.push({ delta, origin: 'AddPoint' })
+    if (delta) history.push({ delta, origin: 'AddPoint' });
 
     return polygons;
   }),
@@ -208,7 +208,7 @@ export const polygons = {
     const polygons = $polygons.filter(({ id }) => id !== polygonId);
 
     const delta = patcher.diff($polygons, polygons);
-    history.push({ delta, origin: 'deletePolygon' })
+    if (delta) history.push({ delta, origin: 'deletePolygon' });
 
     return polygons;
   }),
@@ -243,7 +243,7 @@ export const polygons = {
     polygons[get(dragablePolygonIndex)] = localDragablePolygon;
 
     const delta = patcher.diff($polygons, polygons);
-    history.push({ delta, origin: 'setDraggablePolygonPosition' })
+    if (delta) history.push({ delta, origin: 'setDraggablePolygonPosition' });
 
     return polygons;
   }),
@@ -255,7 +255,7 @@ export const polygons = {
     polygons[polygonIndex].points[pointIndex] = clone(localDragablePoint);
 
     const delta = patcher.diff($polygons, polygons);
-    history.push({ delta, origin: 'setDraggablePointPosition' });
+    if (delta) history.push({ delta, origin: 'setDraggablePointPosition' });
 
     return polygons;
   }),
