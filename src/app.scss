@@ -64,12 +64,16 @@ main {
   }
 }
 
-.render svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+.render {
+  position: relative;
+  display: inline-flex;
+  svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
 }
 
 .buttons {
