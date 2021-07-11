@@ -1,5 +1,6 @@
 <script>
   import Button from 'carbon-components-svelte/src/Button/Button.svelte';
+  import Toggle from 'carbon-components-svelte/src/Toggle/Toggle.svelte';
 
   import AreaCustom24 from 'carbon-icons-svelte/lib/AreaCustom24';
   import CloudDownload24 from 'carbon-icons-svelte/lib/CloudDownload24';
@@ -13,6 +14,7 @@
 
   import {
     isDrawing,
+    isSnapEnabled,
     renderSvg,
     selectedPolygonId,
     hoveredPolygonId,
@@ -104,4 +106,5 @@
     disabled={$history.redoQueue.length === 0}
     on:click={history.redo}
   />
+  <Toggle labelA="" size="sm" labelB="SNAP" bind:toggled={$isSnapEnabled} />
 </div>

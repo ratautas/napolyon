@@ -223,7 +223,6 @@ export const polygons = {
   deleteLocalAttribute: (attribute) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const polygonIndex = get(selectedPolygonIndex);
-    console.log(polygons[polygonIndex]);
 
     polygons[polygonIndex].attributes = Object.entries(polygons[polygonIndex].attributes).reduce((acc, [name, value]) => {
       return {
@@ -231,8 +230,6 @@ export const polygons = {
         ...(attribute.name !== name ? { [name]: value } : {}),
       }
     }, {});
-
-    globalAttributes.add(attribute);
 
     return polygons;
   }),
@@ -248,6 +245,8 @@ export const polygons = {
         }
       }
     });
+
+    globalAttributes.add(attribute);
 
     return polygons;
   }),

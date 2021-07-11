@@ -49,14 +49,13 @@
     {#if selectedPolygonAttributes?.length}
       {#each selectedPolygonAttributes as attribute, i}
         <div class="attributes__row">
-          <TextInput required light disabled size="sm" value={attribute.name} />
           <TextInput
             required
-            light
-            size="sm"
+            labelText={attribute.name}
             bind:value={$polygons[$selectedPolygonIndex].attributes[attribute.name]}
           />
           <Button
+            class="attributes__delete"
             kind="ghost"
             tooltipPosition="bottom"
             tooltipAlignment="center"
@@ -75,6 +74,7 @@
 </div>
 {#if isNewOpen}
   <div class="attributes">
+    <p><strong>New Attribute:</strong></p>
     <Form on:submit={handleAddAttributeSubmit}>
       <div class="attributes__row">
         <TextInput
@@ -84,18 +84,12 @@
           placeholder="Attribute Name"
           bind:value={newAttributeName}
         />
-        <TextInput
-          required
-          light
-          size="sm"
-          placeholder="Attribute Value"
-          bind:value={newAttributeValue}
-        />
-        <Button size="small" type="submit" icon={Add16} />
+        <TextInput required placeholder="Attribute Value" bind:value={newAttributeValue} />
       </div>
-      <div class="attributes__row">
+      <div class="attributes__add">
+        <Button size="large" type="submit" icon={Add16}>ADD</Button>
         <Toggle
-          class="snap__toggle"
+          class="attributes__snap"
           labelA=""
           labelB="Add To All Polygons"
           bind:toggled={isNewAttributeGlobal}

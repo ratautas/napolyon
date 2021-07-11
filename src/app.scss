@@ -77,7 +77,7 @@ main {
 }
 
 .buttons {
-  padding: 1rem;
+  display: flex;
 }
 
 .handle {
@@ -169,7 +169,8 @@ polygon {
     }
   }
 
-  &.is-polygon-hovered {
+  &.is-polygon-hovered,
+  &.is-polygon-selected {
     z-index: 4;
     &:after {
       transform: scale(0.5);
@@ -177,7 +178,6 @@ polygon {
   }
 
   &.is-dragable,
-  &.is-polygon-selected,
   &.is-closest-snapable {
     z-index: 5;
     &:after {
@@ -213,8 +213,19 @@ polygon {
 }
 
 .attributes {
-  padding: 0.5rem 0;
   &__row {
+    padding-bottom: 1rem;
+    position: relative;
+  }
+  &__delete {
+    top: -0.4rem;
+    right: 0;
+    position: absolute !important;
+  }
+  &__add {
     display: flex;
+  }
+  &__snap {
+    margin-left: 1rem;
   }
 }

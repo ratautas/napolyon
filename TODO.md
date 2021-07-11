@@ -1,6 +1,4 @@
-- drag n drop image not working
 - upload/reupload image from toolbar
-- remove width/height from SVG attributes
 - add default  <image width="100%" height="100%" xlink:href="/IMAGE_URL.png"></image> 
 - disable snap radius control -- leave only the switch
 - hide snappable points while shift is pressed

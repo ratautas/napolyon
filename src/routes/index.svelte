@@ -5,11 +5,13 @@
 </script>
 
 <script>
+  import { getStores, navigating, page, session } from '$app/stores';
   import { onMount, tick } from 'svelte';
   import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
 
   import ToolBar from '$lib/ToolBar/index.svelte';
   import {
+    globalAttributes,
     isShiftPressed,
     isCmdPressed,
     isAltPressed,
@@ -35,10 +37,10 @@
   let src;
   let imageWidth;
   let imageHeight;
-  // src =
-  //   'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
-  // imageWidth = 900;
-  // imageHeight = 600;
+  src =
+    'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
+  imageWidth = 900;
+  imageHeight = 600;
 
   let closestPoint = null;
 
@@ -56,9 +58,9 @@
     renderSvg.set(svgEl);
   };
 
-  const handleFilesChange = (e) => {
+  const handleFilesAdd = (e) => {
     const reader = new FileReader();
-    const [file] = e.target.files;
+    const [file] = e.detail;
     reader.readAsDataURL(file);
     reader.onload = () => {
       src = reader.result;
@@ -311,6 +313,23 @@
     renderSvg.set(svgEl);
   });
 
+  const preset = $page.query.get('preset');
+  if (preset === 'totoriu-floor') {
+    globalAttributes.add({ name: 'class', value: 'shapes__polygon shapes__polygon--vacant' });
+    globalAttributes.add({ name: 'data-shape', value: 'E01' });
+    globalAttributes.add({ name: 'data-shape-href', value: '/' });
+    globalAttributes.add({ name: 'data-shape-row1', value: 'Komercinės patalpos' });
+    globalAttributes.add({ name: 'data-shape-row2', value: '58 kv.m  /  2 kamb.' });
+    globalAttributes.add({ name: 'data-shape-status', value: 'vacant' });
+  }
+  if (preset === 'totoriu-listing') {
+    globalAttributes.add({ name: 'class', value: 'shapes__polygon' });
+    globalAttributes.add({ name: 'data-shape', value: '1' });
+    globalAttributes.add({ name: 'data-shape-href', value: '/' });
+    globalAttributes.add({ name: 'data-shape-row1', value: 'Laisvų butų - 2' });
+    globalAttributes.add({ name: 'data-shape-row2', value: 'Laisvų komercinių patalpų - 1' });
+  }
+
   $: renderPolygons = $polygons.map((polygon) => {
     // serve points from either localDragablePolygon or regularly
     const currentPolygon = localDragablePolygon?.id === polygon.id ? localDragablePolygon : polygon;
@@ -431,12 +450,12 @@
       {/if}
     </div>
   {:else}
-    <!-- <Dropzone multiple={false} on:drop={handleFilesChange} /> -->
+    <!-- <Dropzone multiple={false} on:drop={handleFilesAdd} /> -->
     <FileUploaderDropContainer
       accept={['.jpg', '.JPG', '.jpeg', '.JPEG', '.gif', '.GIF', '.png', '.PNG', '.webp', '.WEBP']}
       labelText="Drop your image here or click to upload"
       class="canvas__upload"
-      on:change={handleFilesChange}
+      on:add={handleFilesAdd}
     />
   {/if}
 </div>

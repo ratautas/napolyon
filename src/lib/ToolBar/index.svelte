@@ -25,7 +25,7 @@
 <div class="toolbar" {style} bind:this={toolbarEl}>
   <ToolBarButtons />
   <Accordion>
-    <AccordionItem>
+    <!-- <AccordionItem>
       <svelte:fragment slot="title">
         Snap to other points: {$isSnapEnabled ? 'ON' : 'OFF'}
       </svelte:fragment>
@@ -41,12 +41,9 @@
           bind:value={$snapRadius}
         />
       </div>
-    </AccordionItem>
-    <!-- <AccordionItem title="CSS Code">
-      <CodeSnippet class="code" type="multi" code={globalCssRender} />
     </AccordionItem> -->
     {#if $selectedPolygonId}
-      <AccordionItem title="Polygon Attributes" open>
+      <AccordionItem title="Selected Shape Attributes" open>
         <ToolBarAttributes />
       </AccordionItem>
     {/if}
