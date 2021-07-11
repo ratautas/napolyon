@@ -29,7 +29,8 @@ const config = {
 			// this is needed for 'jsondiffpatch' as it is a commonjs module and doesn't have proper exports
 			define: { 'process.platform': JSON.stringify("") },
 			optimizeDeps: {
-				include: ["clipboard-copy", "jsondiffpatch"],
+				include: ["jsondiffpatch"],
+				// include: ["clipboard-copy", "jsondiffpatch"],
 			},
 			build: {
 				// commonjsOptions: {

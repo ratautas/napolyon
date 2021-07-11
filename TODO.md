@@ -1,3 +1,4 @@
+- drag n drop not working
 - hide snappable points while shift is pressed
 - pen cursor icon (illustrator)
 - use [points="xyz"] selectors for styling instead of classnames

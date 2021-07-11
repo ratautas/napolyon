@@ -5,7 +5,7 @@
 </script>
 
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
 
   import ToolBar from '$lib/ToolBar/index.svelte';
@@ -48,9 +48,11 @@
   let localDrawableX;
   let localDrawableY;
 
-  const handleImageLoad = (e) => {
+  const handleImageLoad = async (e) => {
+    console.log(svgEl);
     imageWidth = imageEl.naturalWidth;
     imageHeight = imageEl.naturalHeight;
+    await tick();
     renderSvg.set(svgEl);
   };
 
@@ -265,6 +267,7 @@
       // );
       // escape drawing state
       isDrawing.set(false);
+      isToolbarDragging.set(true);
       drawablePolygonId.set(null);
       // additional escape if dragging gets out of hand
     }
@@ -306,7 +309,6 @@
   };
 
   onMount(() => {
-    console.log(svgEl);
     renderSvg.set(svgEl);
   });
 

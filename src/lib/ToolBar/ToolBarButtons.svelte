@@ -17,11 +17,10 @@
     selectedPolygonId,
     hoveredPolygonId,
     isToolbarDragging,
-    history,
+    history
   } from '$lib/stores.js';
 
   const clearAttributes = () => {
-    console.log($renderSvg)
     $renderSvg.querySelectorAll('polygon').forEach((polygonEl) => {
       polygonEl.removeAttribute('class');
       polygonEl.removeAttribute('id');
@@ -93,7 +92,7 @@
     tooltipAlignment="center"
     iconDescription="Download SVG File"
     icon={Undo24}
-    disabled={$history.undoQueue.length===0}
+    disabled={$history.undoQueue.length === 0}
     on:click={history.undo}
   />
   <Button
@@ -102,7 +101,7 @@
     tooltipAlignment="center"
     iconDescription="Download SVG File"
     icon={Redo24}
-    disabled={$history.redoQueue.length===0}
+    disabled={$history.redoQueue.length === 0}
     on:click={history.redo}
   />
 </div>
