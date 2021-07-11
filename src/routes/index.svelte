@@ -5,7 +5,7 @@
 </script>
 
 <script>
-  import { getStores, navigating, page, session } from '$app/stores';
+  import { page } from '$app/stores';
   import { onMount, tick } from 'svelte';
   import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
 
@@ -37,10 +37,10 @@
   let src;
   let imageWidth;
   let imageHeight;
-  src =
-    'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
-  imageWidth = 900;
-  imageHeight = 600;
+  // src =
+  //   'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
+  // imageWidth = 900;
+  // imageHeight = 600;
 
   let closestPoint = null;
 
