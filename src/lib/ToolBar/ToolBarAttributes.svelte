@@ -9,7 +9,6 @@
 
   import {
     selectedPolygon,
-    selectedPolygonId,
     selectedPolygonIndex,
     polygons,
     globalAttributes

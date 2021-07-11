@@ -221,26 +221,35 @@ export const polygons = {
     return $polygons;
   }),
   deleteLocalAttribute: (attribute) => polygonsStore.update($polygons => {
-    const polygonId = get(selectedPolygonIndex);
-    $polygons[polygonId].attributes = Object.entries($polygons[polygonId].attributes)
-      .reduce((acc, [name, value]) => ({
+    const polygons = clone($polygons);
+    const polygonIndex = get(selectedPolygonIndex);
+    console.log(polygons[polygonIndex]);
+
+    polygons[polygonIndex].attributes = Object.entries(polygons[polygonIndex].attributes).reduce((acc, [name, value]) => {
+      return {
         ...acc,
         ...(attribute.name !== name ? { [name]: value } : {}),
-      }, {}));
-    return $polygons;
+      }
+    }, {});
+
+    globalAttributes.add(attribute);
+
+    return polygons;
   }),
   addGlobalAttribute: (attribute) => polygonsStore.update($polygons => {
-    return $polygons.map((polygon) => {
+    const polygons = $polygons.map((polygon) => {
       return {
         ...polygon,
         attributes: {
           ...polygon.attributes,
-          ...(!polygon.attributes[attribute.name] && {
+          ...(!polygon.attributes[attribute.name] ? {
             [attribute.name]: attribute.value
-          })
+          } : {})
         }
       }
-    })
+    });
+
+    return polygons;
   }),
   setDraggablePolygonPosition: (localDragablePolygon) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
