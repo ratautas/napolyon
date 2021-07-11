@@ -22,7 +22,7 @@
 
   const clearAttributes = () => {
     $renderSvg.querySelectorAll('polygon').forEach((polygonEl) => {
-      polygonEl.removeAttribute('class');
+      // polygonEl.removeAttribute('class');
       polygonEl.removeAttribute('id');
     });
   };

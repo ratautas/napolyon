@@ -265,11 +265,10 @@
       //   }),
       //   {}
       // );
-      // escape drawing state
-      isDrawing.set(false);
-      isToolbarDragging.set(true);
-      drawablePolygonId.set(null);
       // additional escape if dragging gets out of hand
+      isDrawing.set(false);
+      isToolbarDragging.set(false);
+      drawablePolygonId.set(null);
     }
     if (e.key === 'Enter') {
       if ($drawablePolygonId) {
@@ -376,8 +375,6 @@
       {#if !!imageWidth && !!imageHeight}
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width={imageWidth}
-          height={imageHeight}
           viewBox={`0 0 ${imageWidth} ${imageHeight}`}
           bind:this={svgEl}
         >
