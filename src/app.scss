@@ -45,8 +45,10 @@ main {
   width: 100vw;
   height: 100vh;
   overflow: auto;
+  // background-image: url('pen-tool-cursor.svg');
   &.is-drawing {
     cursor: copy;
+    cursor: url('pen-tool-cursor.svg'), auto;
   }
 
   &__upload {
@@ -130,7 +132,7 @@ polygon {
   width: 0;
   height: 0;
   // transform: translate(-1px, -1px);
-  cursor: move;
+  // cursor: move;
   background-color: blue;
 
   &:after {
@@ -169,7 +171,6 @@ polygon {
     }
   }
 
-  &.is-polygon-hovered,
   &.is-polygon-selected {
     z-index: 4;
     &:after {
@@ -177,11 +178,20 @@ polygon {
     }
   }
 
+  &.is-polygon-hovered,
   &.is-dragable,
   &.is-closest-snapable {
     z-index: 5;
     &:after {
       transform: scale(1);
+    }
+  }
+
+  &.is-hoovered {
+    z-index: 5;
+    &:after {
+      transform: scale(1);
+      background: red;
     }
   }
 }

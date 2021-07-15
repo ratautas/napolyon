@@ -27,6 +27,8 @@
     hoveredPolygonId,
     dragablePointId,
     isToolbarDragging,
+    selectedPolygon,
+    hoveredPolygon,
     toolbarX,
     toolbarY,
     history
@@ -37,18 +39,30 @@
   let src;
   let imageWidth;
   let imageHeight;
-  // src =
-  //   'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
-  // imageWidth = 900;
-  // imageHeight = 600;
+  src =
+    'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
+  imageWidth = 900;
+  imageHeight = 600;
 
-  let closestPoint = null;
+  let closestSnapPoint = null;
+  let closestLinePoint = null;
 
   let localDragablePolygon;
   let localDragablePoint;
 
   let localDrawableX;
   let localDrawableY;
+
+  let localX;
+  let localY;
+
+  let hoveredPointIndex = -1;
+  let hoveredPointPolygonIndex = -1;
+
+  let hoveredLineIndex = -1;
+  let hoveredLinePolygonIndex = -1;
+
+  let hooveredPolyonIndex = -1;
 
   const handleImageLoad = async (e) => {
     console.log(svgEl);
@@ -67,7 +81,7 @@
     };
   };
 
-  const findClosestPoint = ({ points, x, y }) => {
+  const findClosestSnapPoint = ({ points, x, y }) => {
     let point = Object.values(points)
       .filter((point) => point.x > x - $snapRadius && point.x < x + $snapRadius)
       .filter((point) => point.y > y - $snapRadius && point.y < y + $snapRadius)
@@ -88,6 +102,27 @@
 
     return point.id ? point : null;
   };
+
+  // via https://jsfiddle.net/soulwire/UA6H5/
+  // function findClosestLinePoint(point, start, end) {
+  function findClosestLinePoint({ x, y, x1, y1, x2, y2 }) {
+    const startToEndX = x2 - x1;
+    const startToEndY = y2 - y1;
+    const startToPointX = x - x1;
+    const startToPointY = y - y1;
+    const len = startToEndX * startToEndX + startToEndY * startToEndY;
+    let dot = startToPointX * startToEndX + startToPointY * startToEndY;
+    const t = Math.min(1, Math.max(0, dot / len));
+
+    dot = (x2 - x1) * (y - y1) - (y2 - y1) * (x - x1);
+
+    return {
+      x: x1 + startToEndX * t,
+      y: y1 + startToEndY * t,
+      dot,
+      t
+    };
+  }
 
   const handleCanvasClick = ({ x, y, path }) => {
     // last two elements from 'path' are Window and document and they don't have .match() method
@@ -112,10 +147,15 @@
       polygons.addPolygon();
     }
 
-    polygons.addPoint({
-      x: $isShiftPressed ? localDrawableX : closestPoint?.x ?? x,
-      y: $isShiftPressed ? localDrawableY : closestPoint?.y ?? y
-    });
+    polygons.addPoint(
+      {
+        // x: $isShiftPressed ? localDrawableX : closestSnapPoint?.x ?? x,
+        // y: $isShiftPressed ? localDrawableY : closestSnapPoint?.y ?? y
+        x: $isShiftPressed ? localX : closestSnapPoint?.x ?? x,
+        y: $isShiftPressed ? localY : closestSnapPoint?.y ?? y
+      },
+      $drawablePolygonId
+    );
   };
 
   const handleCanvasScroll = (e) => {
@@ -125,38 +165,46 @@
   const handleCanvasMousedown = (e) => {};
 
   const handleCanvasMousemove = ({ x, y, movementX, movementY }) => {
+    localX = x;
+    localY = y;
+    
     if (($isDrawing || $dragablePointId) && $isSnapEnabled) {
-      closestPoint = $polygons
+      closestSnapPoint = $polygons
         .filter(({ id }) => id !== $selectedPolygonId)
-        .reduce((acc, { points }) => findClosestPoint({ points, x, y }) ?? acc, null);
+        .reduce((acc, { points }) => findClosestSnapPoint({ points, x, y }) ?? acc, null);
 
-      if (!closestPoint?.id) {
+      if (!closestSnapPoint?.id) {
         if ($snapRadius > x) {
-          closestPoint = { x: 0, y, id: 'snap-left' };
+          closestSnapPoint = { x: 0, y, id: 'snap-left' };
         }
         if ($snapRadius > y) {
-          closestPoint = { x, y: 0, id: 'snap-top' };
+          closestSnapPoint = { x, y: 0, id: 'snap-top' };
         }
         if (imageWidth - $snapRadius < x) {
-          closestPoint = { x: imageWidth, y, id: 'snap-right' };
+          closestSnapPoint = { x: imageWidth, y, id: 'snap-right' };
         }
         if (imageHeight - $snapRadius < y) {
-          closestPoint = { x, y: imageHeight, id: 'snap-bottom' };
+          closestSnapPoint = { x, y: imageHeight, id: 'snap-bottom' };
         }
       }
     }
 
-    if ($isDrawing) {
-      localDrawableX = x;
-      localDrawableY = y;
+    if ($isAltPressed) {
+      closestLinePoint = findClosestLinePoint({
+        ...hoveredLine,
+        x: localX,
+        y: localY
+      });
+    }
 
+    if ($isDrawing) {
       if (!$isShiftPressed) return;
 
       const diffX = Math.abs(x - lastDrawablePoint.x);
       const diffY = Math.abs(y - lastDrawablePoint.y);
 
-      if (diffX < diffY) localDrawableX = lastDrawablePoint.x;
-      if (diffX > diffY) localDrawableY = lastDrawablePoint.y;
+      if (diffX < diffY) localX = lastDrawablePoint.x;
+      if (diffX > diffY) localY = lastDrawablePoint.y;
     }
 
     if ($isToolbarDragging) {
@@ -184,6 +232,9 @@
   };
 
   const handleCanvasMouseup = (e) => {
+    const hasLineTarget = e.path
+      .filter((el, i) => i < e.path.length - 2)
+      .some((el) => el.matches('line'));
     const hasPolygonTarget = e.path
       .filter((el, i) => i < e.path.length - 2)
       .some((el) => el.matches('polygon'));
@@ -202,9 +253,9 @@
     }
 
     if ($dragablePointId && localDragablePoint) {
-      if ($isSnapEnabled && closestPoint) {
-        localDragablePoint.x = closestPoint.x;
-        localDragablePoint.y = closestPoint.y;
+      if ($isSnapEnabled && closestSnapPoint) {
+        localDragablePoint.x = closestSnapPoint.x;
+        localDragablePoint.y = closestSnapPoint.y;
       }
 
       polygons.setDraggablePointPosition(localDragablePoint);
@@ -216,32 +267,78 @@
       selectedPolygonId.set(null);
       hoveredPolygonId.set(null);
     }
+
+    if ($isAltPressed && closestLinePoint) {
+      console.log({ hooveredPolyonIndex, hoveredLineIndex });
+      // $polygons[hooveredPolyonIndex].id
+      const polygon = $polygons[hooveredPolyonIndex];
+
+      const index = hoveredLineIndex > polygon.points.length ? hoveredLineIndex + 1 : 0;
+
+      polygons.addPoint(
+        {
+          x: closestLinePoint.x,
+          y: closestLinePoint.y
+        },
+        polygon.id,
+        // hoveredLineIndex + 1
+        index
+      );
+    }
   };
 
-  const handlePolygonMouseenter = ({ e, polygon }) => {
+  const handlePolygonMouseenter = ({ e, polygon, polygonIndex }) => {
     hoveredPolygonId.set(polygon.id);
+    hooveredPolyonIndex = polygonIndex;
   };
 
   const handlePolygonMousedown = ({ e, polygon }) => {
     localDragablePolygon = { ...polygon };
     dragablePolygonId.set(polygon.id);
     selectedPolygonId.set(polygon.id);
+    hooveredPolyonIndex = -1;
   };
 
   const handlePolygonMouseleave = ({ e, polygon }) => {
     const hasPolygonTarget = e.path
       .filter((el, i) => i < e.path.length - 2)
       .some((el) => el.matches('polygon'));
+    const hasLineTarget = e.path
+      .filter((el, i) => i < e.path.length - 2)
+      .some((el) => el.matches('line'));
+    const hasPointTarget = e.path
+      .filter((el, i) => i < e.path.length - 2)
+      .some((el) => el.matches('.point'));
+
+    hooveredPolyonIndex = -1;
+
     hoveredPolygonId.set(null);
     if (!hasPolygonTarget) {
       dragablePolygonId.set(null);
     }
   };
 
+  const handleLineMouseenter = ({ polygonIndex, lineIndex }) => {
+    hoveredLinePolygonIndex = polygonIndex;
+    hoveredLineIndex = lineIndex;
+    hooveredPolyonIndex = polygonIndex;
+  };
+
+  const handleLineMouseleave = () => {
+    hoveredLinePolygonIndex = -1;
+    hoveredLineIndex = -1;
+  };
+
   const handlePointMousedown = ({ e, point, polygon }) => {
     selectedPolygonId.set(polygon.id);
     dragablePointId.set(point.id);
     localDragablePoint = { ...point };
+  };
+
+  const handlePointMouseenter = ({ polygonId, pointIndex, polygonIndex }) => {
+    hoveredPolygonId.set(polygonId);
+    hooveredPolyonIndex = polygonIndex;
+    hoveredPointIndex = pointIndex;
   };
 
   const handlePointMouseleave = ({ e, point, polygon }) => {
@@ -252,6 +349,7 @@
     if (!hasPointTarget) {
       dragablePointId.set(null);
     }
+    hoveredPointIndex = -1;
   };
 
   const handleWindowKeydown = (e) => {
@@ -282,7 +380,6 @@
     if ($isCmdPressed && (e.key === 'Backspace' || e.key === 'Delete')) {
       if ($drawablePolygonId) {
         polygons.deletePolygon($drawablePolygonId);
-        drawablePolygonId.set(null);
         drawablePolygonId.set(null);
         isDrawing.set(false);
         // additional escape if dragging gets out of hand
@@ -344,9 +441,21 @@
           const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
           return `${pointsString} ${x},${y}`;
         }, '')
-        .replace(' ', '')
+        .replace(' ', ''),
+      lines: currentPolygon.points.map((point, index, arr) => {
+        const nextIndex = index === arr.length - 1 ? 0 : index + 1;
+
+        return {
+          x1: arr[index].x,
+          x2: arr[nextIndex].x,
+          y1: arr[index].y,
+          y2: arr[nextIndex].y
+        };
+      })
     };
   });
+
+  $: hoveredLine = renderPolygons[hooveredPolyonIndex]?.lines[hoveredLineIndex];
 
   $: lastDrawablePoint = $drawablePolygon
     ? $drawablePolygon.points[$drawablePolygon.points.length - 1]
@@ -358,8 +467,10 @@
     $drawablePolygon.points.reduce((pointsString, point) => {
       // serve X and Y from either localDragablePoint or regularly
       const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
+      // return `${x},${y} ${pointsString}`;
       return `${point.x},${point.y} ${pointsString}`;
-    }, `${localDrawableX},${localDrawableY}`);
+      // }, `${localDrawableX},${localDrawableY}`);
+    }, `${localX},${localY}`);
 </script>
 
 <svelte:window on:keydown={handleWindowKeydown} on:keyup={handleWindowKeyup} />
@@ -400,7 +511,7 @@
           {#if $drawablePolygonId}
             <polygon class="placeholder" points={drawablePolygonPoints} />
           {/if}
-          {#each renderPolygons as polygon, i}
+          {#each renderPolygons as polygon, polygonIndex}
             <polygon
               points={polygon.pointsReduced}
               id={polygon.id}
@@ -410,9 +521,24 @@
               class:is-hovered={polygon.id === $hoveredPolygonId}
               class:is-selected={polygon.id === $selectedPolygonId}
               on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
-              on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon })}
+              on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon, polygonIndex })}
               on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon })}
             />
+          {/each}
+          {#each renderPolygons as polygon, polygonIndex}
+            <!-- stroke={hoveredLineIndex === lineIndex && hoveredLinePolygonIndex === polygonIndex  ? 'red' : 'blue'} -->
+            {#each polygon.lines as line, lineIndex}
+              <line
+                x1={line.x1}
+                x2={line.x2}
+                y1={line.y1}
+                y2={line.y2}
+                stroke="transparent"
+                stroke-width="5"
+                on:mouseenter={() => handleLineMouseenter({ polygonIndex, lineIndex })}
+                on:mouseleave={() => handleLineMouseleave()}
+              />
+            {/each}
           {/each}
         </svg>
       {/if}
@@ -423,29 +549,38 @@
             class="point"
             class:is-polygon-selected={polygon.id === $selectedPolygonId}
             class:is-polygon-hovered={polygon.id === $hoveredPolygonId}
-            class:is-closest-snapable={point.id === closestPoint?.id}
+            class:is-hoovered={polygonIndex === hooveredPolyonIndex &&
+              pointIndex === hoveredPointIndex}
+            class:is-closest-snapable={point.id === closestSnapPoint?.id}
             class:is-dragable={point.id === $dragablePointId}
             id={point.id}
             tabindex="0"
-            on:mouseenter={() => hoveredPolygonId.set(polygon.id)}
-            on:mousedown={(e) => handlePointMousedown({ e, point, polygon })}
+            on:mouseenter={() =>
+              handlePointMouseenter({ polygonId: polygon.id, pointIndex, polygonIndex })}
             on:mouseleave={(e) => handlePointMouseleave({ e, point, polygon })}
+            on:mousedown={(e) => handlePointMousedown({ e, point, polygon })}
           />
         {/each}
       {/each}
-      {#if closestPoint?.id === 'snap-left'}
-        <div style={`left:0px;top:${closestPoint?.y}px;`} class="point is-polygon-selected" />
-      {:else if closestPoint?.id === 'snap-top'}
-        <div style={`left:${closestPoint?.x}px;top:0px;`} class="point is-polygon-selected" />
-      {:else if closestPoint?.id === 'snap-right'}
+      {#if closestSnapPoint?.id === 'snap-left'}
+        <div style={`left:0px;top:${closestSnapPoint?.y}px;`} class="point is-polygon-selected" />
+      {:else if closestSnapPoint?.id === 'snap-top'}
+        <div style={`left:${closestSnapPoint?.x}px;top:0px;`} class="point is-polygon-selected" />
+      {:else if closestSnapPoint?.id === 'snap-right'}
         <div
-          style={`left:${imageWidth}px;top:${closestPoint?.y}px;`}
+          style={`left:${imageWidth}px;top:${closestSnapPoint?.y}px;`}
           class="point is-polygon-selected"
         />
-      {:else if closestPoint?.id === 'snap-bottom'}
+      {:else if closestSnapPoint?.id === 'snap-bottom'}
         <div
-          style={`left:${closestPoint?.x}px;top:${imageHeight}px;`}
+          style={`left:${closestSnapPoint?.x}px;top:${imageHeight}px;`}
           class="point is-polygon-selected"
+        />
+      {/if}
+      {#if closestLinePoint && $isAltPressed}
+        <div
+          style={`left:${closestLinePoint?.x}px;top:${closestLinePoint?.y}px;pointer-events:none`}
+          class="point is-polygon-hovered yololo"
         />
       {/if}
     </div>

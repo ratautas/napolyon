@@ -105,6 +105,8 @@ export const hoveredPolygonId = writable(null);
 export const dragablePolygonId = writable(null);
 export const selectedPolygonId = writable(null);
 export const drawablePolygonId = writable(null);
+
+export const selectedPointId = writable(null);
 export const dragablePointId = writable(null);
 
 export const globalAttributesStore = writable({});
@@ -134,8 +136,8 @@ export const globalAttributesMap = derived([globalAttributes],
   ([$globalAttributes]) => Object.entries($globalAttributes)
     .reduce((acc, [name, value]) => [...acc, { [name]: value }], []))
 
-// export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
-export const polygonsStore = writable([]);
+export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
+// export const polygonsStore = writable([]);
 
 export const selectedPolygon = derived(
   [polygonsStore, selectedPolygonId],
@@ -147,14 +149,29 @@ export const selectedPolygonIndex = derived(
   ([$polygonsStore, $selectedPolygonId]) => $polygonsStore.findIndex(({ id }) => id === $selectedPolygonId)
 );
 
+export const selectedPoint = derived(
+  [polygonsStore, selectedPointId],
+  ([$polygonsStore, $selectedPointId]) => $polygonsStore.find(({ id }) => id === $selectedPointId)
+);
+
+export const selectedPointIndex = derived(
+  [polygonsStore, selectedPointId],
+  ([$polygonsStore, $selectedPointId]) => $polygonsStore.findIndex(({ id }) => id === $selectedPointId)
+);
+
 export const dragablePoint = derived(
   [selectedPolygon, dragablePointId],
   ([$selectedPolygon, $dragablePointId]) => $selectedPolygon && $selectedPolygon.points[$dragablePointId]
 );
 
-export const hoveredPolygon = derived(
+export const hoveredPolygonIndex = derived(
   [polygonsStore, hoveredPolygonId],
-  ([$polygonsStore, $hoveredPolygonId]) => $polygonsStore[$hoveredPolygonId]
+  ([$polygonsStore, $hoveredPolygonId]) => $polygonsStore.findIndex(({ id }) => id === $hoveredPolygonId)
+);
+
+export const hoveredPolygon = derived(
+  [polygonsStore, hoveredPolygonIndex],
+  ([$polygonsStore, $hoveredPolygonIndex]) => $polygonsStore[$hoveredPolygonIndex]
 );
 
 export const dragablePolygon = derived(
@@ -193,13 +210,18 @@ export const polygons = {
 
     return polygons;
   }),
-  addPoint: ({ x, y }) => polygonsStore.update($polygons => {
+  addPoint: ({ x, y }, polygonId, index) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const newPointId = nanoid(6);
-    const polygonId = get(drawablePolygonId);
     const polygonIndex = polygons.findIndex(({ id }) => id === polygonId);
+    const polygonPoints = polygons[polygonIndex].points;
+    const sliceIndex = index ?? polygonPoints.length;
 
-    polygons[polygonIndex].points.push({ x, y, id: newPointId });
+    polygons[polygonIndex].points = [
+      ...polygonPoints.slice(0, sliceIndex),
+      { x, y, id: newPointId },
+      ...polygonPoints.slice(sliceIndex),
+    ];
 
     selectedPolygonId.set(polygonId); // why?.. can it be removed?
 
@@ -327,8 +349,7 @@ export const polygonsMap = derived([polygonsStore],
     }]
   }, []));
 
-
-// flaten points object to renderable sring
+// flatten points object to renderable string
 export const renderPolygons = derived([polygonsMap],
   ([$polygonsMap]) => $polygonsMap.map((polygon) => {
     return {
