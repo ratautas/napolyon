@@ -23,5 +23,6 @@ Next iteration:
 
 
 - Hold ctrl to snap
-- Hold alt to add new point
 - Hold shift to fix on straight axis
+
+- Hold alt to add new point

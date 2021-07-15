@@ -27,8 +27,6 @@
     hoveredPolygonId,
     dragablePointId,
     isToolbarDragging,
-    selectedPolygon,
-    hoveredPolygon,
     toolbarX,
     toolbarY,
     history
@@ -62,7 +60,7 @@
   let hoveredLineIndex = -1;
   let hoveredLinePolygonIndex = -1;
 
-  let hooveredPolyonIndex = -1;
+  let hoveredPolyonIndex = -1;
 
   const handleImageLoad = async (e) => {
     console.log(svgEl);
@@ -269,9 +267,9 @@
     }
 
     if ($isAltPressed && closestLinePoint) {
-      console.log({ hooveredPolyonIndex, hoveredLineIndex });
-      // $polygons[hooveredPolyonIndex].id
-      const polygon = $polygons[hooveredPolyonIndex];
+      console.log({ hoveredPolyonIndex, hoveredLineIndex });
+      // $polygons[hoveredPolyonIndex].id
+      const polygon = $polygons[hoveredPolyonIndex];
 
       const index = hoveredLineIndex > polygon.points.length ? hoveredLineIndex + 1 : 0;
 
@@ -289,14 +287,14 @@
 
   const handlePolygonMouseenter = ({ e, polygon, polygonIndex }) => {
     hoveredPolygonId.set(polygon.id);
-    hooveredPolyonIndex = polygonIndex;
+    hoveredPolyonIndex = polygonIndex;
   };
 
   const handlePolygonMousedown = ({ e, polygon }) => {
     localDragablePolygon = { ...polygon };
     dragablePolygonId.set(polygon.id);
     selectedPolygonId.set(polygon.id);
-    hooveredPolyonIndex = -1;
+    hoveredPolyonIndex = -1;
   };
 
   const handlePolygonMouseleave = ({ e, polygon }) => {
@@ -310,7 +308,7 @@
       .filter((el, i) => i < e.path.length - 2)
       .some((el) => el.matches('.point'));
 
-    hooveredPolyonIndex = -1;
+    hoveredPolyonIndex = -1;
 
     hoveredPolygonId.set(null);
     if (!hasPolygonTarget) {
@@ -321,7 +319,7 @@
   const handleLineMouseenter = ({ polygonIndex, lineIndex }) => {
     hoveredLinePolygonIndex = polygonIndex;
     hoveredLineIndex = lineIndex;
-    hooveredPolyonIndex = polygonIndex;
+    hoveredPolyonIndex = polygonIndex;
   };
 
   const handleLineMouseleave = () => {
@@ -337,7 +335,7 @@
 
   const handlePointMouseenter = ({ polygonId, pointIndex, polygonIndex }) => {
     hoveredPolygonId.set(polygonId);
-    hooveredPolyonIndex = polygonIndex;
+    hoveredPolyonIndex = polygonIndex;
     hoveredPointIndex = pointIndex;
   };
 
@@ -455,7 +453,7 @@
     };
   });
 
-  $: hoveredLine = renderPolygons[hooveredPolyonIndex]?.lines[hoveredLineIndex];
+  $: hoveredLine = renderPolygons[hoveredPolyonIndex]?.lines[hoveredLineIndex];
 
   $: lastDrawablePoint = $drawablePolygon
     ? $drawablePolygon.points[$drawablePolygon.points.length - 1]
@@ -549,7 +547,7 @@
             class="point"
             class:is-polygon-selected={polygon.id === $selectedPolygonId}
             class:is-polygon-hovered={polygon.id === $hoveredPolygonId}
-            class:is-hoovered={polygonIndex === hooveredPolyonIndex &&
+            class:is-hoovered={polygonIndex === hoveredPolyonIndex &&
               pointIndex === hoveredPointIndex}
             class:is-closest-snapable={point.id === closestSnapPoint?.id}
             class:is-dragable={point.id === $dragablePointId}
