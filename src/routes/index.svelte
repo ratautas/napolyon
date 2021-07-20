@@ -28,7 +28,7 @@
     selectedPolygonIndex,
     selectedPolygonId,
     
-    dragablePolygonId,
+    draggedPolygonIndex,
     hoveredPolygonIndex,
     dragablePointId,
     isToolbarDragging,
@@ -153,7 +153,7 @@
       return;
     }
 
-    if ($dragablePolygonId) {
+    if ($draggedPolygonIndex !== -1) {
       isDrawing.set(false);
       drawedPolygonIndex.set(-1);
       localDragablePolygon.points = localDragablePolygon.points.map((point) => ({
@@ -180,9 +180,9 @@
       isToolbarDragging.set(false);
     }
 
-    if ($dragablePolygonId && localDragablePolygon) {
+    if ($draggedPolygonIndex !== -1 && localDragablePolygon) {
       polygons.setDraggablePolygonPosition(localDragablePolygon);
-      dragablePolygonId.set(null);
+      draggedPolygonIndex.set(-1);
       localDragablePolygon = null;
     }
 
@@ -224,7 +224,7 @@
 
   const handlePolygonMousedown = ({ e, polygon, polygonIndex }) => {
     localDragablePolygon = { ...polygon };
-    dragablePolygonId.set(polygon.id);
+    draggedPolygonIndex.set(polygonIndex);
     selectedPolygonIndex.set(polygonIndex);
     hoveredPolygonIndex.set(-1);
   };
@@ -242,7 +242,7 @@
 
     hoveredPolygonIndex.set(-1);
     if (!hasPolygonTarget) {
-      dragablePolygonId.set(null);
+      draggedPolygonIndex.set(-1);
     }
   };
 
@@ -309,7 +309,7 @@
         polygons.deletePolygon($drawedPolygonIndex);
         isDrawing.set(false);
         // additional escape if dragging gets out of hand
-        dragablePolygonId.set(null);
+        draggedPolygonIndex.set(-1);
         selectedPolygonIndex.set(-1);
         drawedPolygonIndex.set(-1);
       }

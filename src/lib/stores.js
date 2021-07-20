@@ -101,8 +101,6 @@ export const toolbarY = writable(30);
 
 export const renderSvg = writable(null);
 
-export const dragablePolygonId = writable(null);
-
 export const selectedPointId = writable(null);
 export const dragablePointId = writable(null);
 
@@ -147,6 +145,10 @@ export const drawedPolygonIndex = writable(-1);
 export const drawedPolygon = derived([polygonsStore, drawedPolygonIndex], ([$store, $i]) => $store[$i]);
 export const drawedPolygonId = derived([drawedPolygon], ([$polygon]) => $polygon?.id);
 
+export const draggedPolygonIndex = writable(-1);
+export const draggedPolygon = derived([polygonsStore, draggedPolygonIndex], ([$store, $i]) => $store[$i]);
+export const draggedPolygonId = derived([draggedPolygon], ([$polygon]) => $polygon?.id);
+
 export const selectedPoint = derived(
   [polygonsStore, selectedPointId],
   ([$polygonsStore, $selectedPointId]) => $polygonsStore.find(({ id }) => id === $selectedPointId)
@@ -160,16 +162,6 @@ export const selectedPointIndex = derived(
 export const dragablePoint = derived(
   [selectedPolygon, dragablePointId],
   ([$selectedPolygon, $dragablePointId]) => $selectedPolygon && $selectedPolygon.points[$dragablePointId]
-);
-
-export const dragablePolygon = derived(
-  [polygonsStore, dragablePolygonId],
-  ([$polygonsStore, $dragablePolygonId]) => $polygonsStore.find(({ id }) => id === $dragablePolygonId)
-);
-
-export const dragablePolygonIndex = derived(
-  [polygonsStore, dragablePolygonId],
-  ([$polygonsStore, $dragablePolygonId]) => $polygonsStore.findIndex(({ id }) => id === $dragablePolygonId)
 );
 
 export const polygons = {
@@ -250,8 +242,7 @@ export const polygons = {
   }),
   setDraggablePolygonPosition: (localDragablePolygon) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
-    polygons[get(dragablePolygonIndex)] = localDragablePolygon;
-    // polygons[get(draggablePolyonIndex)] = localDragablePolygon;
+    polygons[get(draggedPolygonIndex)] = localDragablePolygon;
 
     const delta = patcher.diff($polygons, polygons);
     if (delta) history.push({ delta, origin: 'setDraggablePolygonPosition' });
