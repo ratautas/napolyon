@@ -10,7 +10,7 @@
   import ToolBarAttributes from '$lib/ToolBar/ToolBarAttributes.svelte';
 
   import {
-    isSnapEnabled,
+    isCmdPressed,
     snapRadius,
     toolbarX,
     toolbarY,

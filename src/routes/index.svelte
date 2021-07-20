@@ -20,16 +20,13 @@
     isDrawing,
     renderSvg,
     snapRadius,
-    isSnapEnabled,
     polygons,
-
     drawedPolygonIndex,
     drawedPolygon,
     selectedPolygonIndex,
     selectedPolygonId,
     draggedPolygonIndex,
     hoveredPolygonIndex,
-
     dragablePointId,
     isToolbarDragging,
     toolbarX,
@@ -99,9 +96,9 @@
     localX = x;
     localY = y;
 
-    if (($isDrawing || $dragablePointId) && $isSnapEnabled) {
+    if (($isDrawing || $dragablePointId) && $isCmdPressed) {
       closestSnapPoint = $polygons
-        .filter(({ id }) => id !== $selectedPolygonId) // replace with selectedPolygonIndex
+        .filter((polygon, index) => index !== $selectedPolygonIndex)
         .reduce(
           (acc, { points }) => findClosestSnapPoint({ points, x, y, radius: $snapRadius }) ?? acc,
           null
@@ -187,7 +184,7 @@
     }
 
     if ($dragablePointId && localDragablePoint) {
-      if ($isSnapEnabled && closestSnapPoint) {
+      if ($isCmdPressed && closestSnapPoint) {
         localDragablePoint.x = closestSnapPoint.x;
         localDragablePoint.y = closestSnapPoint.y;
       }
@@ -249,7 +246,7 @@
   const handleLineMouseenter = ({ polygonIndex, lineIndex }) => {
     hoveredLinePolygonIndex = polygonIndex;
     hoveredLineIndex = lineIndex;
-    hoveredPolygonIndex.set(polygonIndex)
+    hoveredPolygonIndex.set(polygonIndex);
   };
 
   const handleLineMouseleave = () => {
@@ -491,7 +488,7 @@
             class:is-polygon-hovered={polygonIndex === $hoveredPolygonIndex}
             class:is-hoovered={polygonIndex === $hoveredPolygonIndex &&
               pointIndex === hoveredPointIndex}
-            class:is-closest-snapable={point.id === closestSnapPoint?.id}
+            class:is-closest-snapable={point.id === closestSnapPoint?.id && $isCmdPressed}
             class:is-dragable={point.id === $dragablePointId}
             id={point.id}
             tabindex="0"
@@ -504,26 +501,28 @@
           />
         {/each}
       {/each}
-      {#if closestSnapPoint?.id === 'snap-left'}
-        <div style={`left:0px;top:${closestSnapPoint?.y}px;`} class="point is-polygon-selected" />
-      {:else if closestSnapPoint?.id === 'snap-top'}
-        <div style={`left:${closestSnapPoint?.x}px;top:0px;`} class="point is-polygon-selected" />
-      {:else if closestSnapPoint?.id === 'snap-right'}
-        <div
-          style={`left:${imageWidth}px;top:${closestSnapPoint?.y}px;`}
-          class="point is-polygon-selected"
-        />
-      {:else if closestSnapPoint?.id === 'snap-bottom'}
-        <div
-          style={`left:${closestSnapPoint?.x}px;top:${imageHeight}px;`}
-          class="point is-polygon-selected"
-        />
-      {/if}
-      {#if closestLinePoint && $isAltPressed}
-        <div
-          style={`left:${closestLinePoint?.x}px;top:${closestLinePoint?.y}px;pointer-events:none`}
-          class="point is-polygon-hovered yololo"
-        />
+      {#if $isCmdPressed}
+        {#if closestSnapPoint?.id === 'snap-left'}
+          <div style={`left:0px;top:${closestSnapPoint?.y}px;`} class="point is-polygon-selected" />
+        {:else if closestSnapPoint?.id === 'snap-top'}
+          <div style={`left:${closestSnapPoint?.x}px;top:0px;`} class="point is-polygon-selected" />
+        {:else if closestSnapPoint?.id === 'snap-right'}
+          <div
+            style={`left:${imageWidth}px;top:${closestSnapPoint?.y}px;`}
+            class="point is-polygon-selected"
+          />
+        {:else if closestSnapPoint?.id === 'snap-bottom'}
+          <div
+            style={`left:${closestSnapPoint?.x}px;top:${imageHeight}px;`}
+            class="point is-polygon-selected"
+          />
+        {/if}
+        {#if closestLinePoint && $isAltPressed}
+          <div
+            style={`left:${closestLinePoint?.x}px;top:${closestLinePoint?.y}px;pointer-events:none`}
+            class="point is-polygon-hovered yololo"
+          />
+        {/if}
       {/if}
     </div>
   {:else}

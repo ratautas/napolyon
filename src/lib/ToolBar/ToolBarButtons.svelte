@@ -14,7 +14,7 @@
 
   import {
     isDrawing,
-    isSnapEnabled,
+    isCmdPressed,
     renderSvg,
     selectedPolygonIndex,
     hoveredPolygonIndex,
@@ -106,5 +106,5 @@
     disabled={$history.redoQueue.length === 0}
     on:click={history.redo}
   />
-  <Toggle labelA="" size="sm" labelB="SNAP" bind:toggled={$isSnapEnabled} />
+  <Toggle labelA="" size="sm" labelB="SNAP" disabled toggled={$isCmdPressed} />
 </div>

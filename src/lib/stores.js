@@ -91,7 +91,6 @@ export const patcher = create({
 });
 
 export const mode = writable(null);
-export const isSnapEnabled = writable(true);
 export const isDrawing = writable(false);
 export const snapRadius = writable(20);
 
