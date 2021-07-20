@@ -103,7 +103,6 @@ export const renderSvg = writable(null);
 
 export const hoveredPolygonId = writable(null);
 export const dragablePolygonId = writable(null);
-export const drawablePolygonId = writable(null);
 
 export const selectedPointId = writable(null);
 export const dragablePointId = writable(null);
@@ -178,16 +177,6 @@ export const dragablePolygon = derived(
 export const dragablePolygonIndex = derived(
   [polygonsStore, dragablePolygonId],
   ([$polygonsStore, $dragablePolygonId]) => $polygonsStore.findIndex(({ id }) => id === $dragablePolygonId)
-);
-
-export const drawablePolygon = derived(
-  [polygonsStore, drawablePolygonId],
-  ([$polygonsStore, $drawablePolygonId]) => $polygonsStore.find(({ id }) => id === $drawablePolygonId)
-);
-
-export const drawablePolygonIndex = derived(
-  [polygonsStore, drawablePolygonId],
-  ([$polygonsStore, $drawablePolygonId]) => $polygonsStore.findIndex(({ id }) => id === $drawablePolygonId)
 );
 
 export const polygons = {
