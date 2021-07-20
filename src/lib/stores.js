@@ -101,7 +101,6 @@ export const toolbarY = writable(30);
 
 export const renderSvg = writable(null);
 
-export const hoveredPolygonId = writable(null);
 export const dragablePolygonId = writable(null);
 
 export const selectedPointId = writable(null);
@@ -140,6 +139,10 @@ export const selectedPolygonIndex = writable(-1);
 export const selectedPolygon = derived([polygonsStore, selectedPolygonIndex], ([$store, $i]) => $store[$i]);
 export const selectedPolygonId = derived([selectedPolygon], ([$polygon]) => $polygon?.id);
 
+export const hoveredPolygonIndex = writable(-1);
+export const hoveredPolygon = derived([polygonsStore, hoveredPolygonIndex], ([$store, $i]) => $store[$i]);
+export const hoveredPolygonId = derived([hoveredPolygon], ([$polygon]) => $polygon?.id);
+
 export const drawedPolygonIndex = writable(-1);
 export const drawedPolygon = derived([polygonsStore, drawedPolygonIndex], ([$store, $i]) => $store[$i]);
 export const drawedPolygonId = derived([drawedPolygon], ([$polygon]) => $polygon?.id);
@@ -157,16 +160,6 @@ export const selectedPointIndex = derived(
 export const dragablePoint = derived(
   [selectedPolygon, dragablePointId],
   ([$selectedPolygon, $dragablePointId]) => $selectedPolygon && $selectedPolygon.points[$dragablePointId]
-);
-
-export const hoveredPolygonIndex = derived(
-  [polygonsStore, hoveredPolygonId],
-  ([$polygonsStore, $hoveredPolygonId]) => $polygonsStore.findIndex(({ id }) => id === $hoveredPolygonId)
-);
-
-export const hoveredPolygon = derived(
-  [polygonsStore, hoveredPolygonIndex],
-  ([$polygonsStore, $hoveredPolygonIndex]) => $polygonsStore[$hoveredPolygonIndex]
 );
 
 export const dragablePolygon = derived(

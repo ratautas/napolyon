@@ -17,7 +17,7 @@
     isSnapEnabled,
     renderSvg,
     selectedPolygonIndex,
-    hoveredPolygonId,
+    hoveredPolygonIndex,
     isToolbarDragging,
     history
   } from '$lib/stores.js';
@@ -36,7 +36,7 @@
 
   const handleCopyClick = async () => {
     selectedPolygonIndex.set(-1);
-    hoveredPolygonId.set(null);
+    hoveredPolygonIndex.set(-1);
     await tick();
     clearAttributes();
     await navigator.clipboard.writeText($renderSvg.outerHTML);
@@ -44,7 +44,7 @@
 
   const handleDowloadClick = async () => {
     selectedPolygonIndex.set(-1);
-    hoveredPolygonId.set(null);
+    hoveredPolygonIndex.set(-1);
     await tick();
     clearAttributes();
     const blob = new Blob([$renderSvg.outerHTML], { type: 'image/svg+xml' });
