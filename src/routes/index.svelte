@@ -27,9 +27,9 @@
     drawedPolygon,
     selectedPolygonIndex,
     selectedPolygonId,
-    
     draggedPolygonIndex,
     hoveredPolygonIndex,
+
     dragablePointId,
     isToolbarDragging,
     toolbarX,
