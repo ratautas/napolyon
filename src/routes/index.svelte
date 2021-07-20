@@ -260,7 +260,7 @@
     localDragablePoint = { ...point };
   };
 
-  const handlePointMouseenter = ({ polygonId, pointIndex, polygonIndex }) => {
+  const handlePointMouseenter = ({ pointIndex, polygonIndex }) => {
     hoveredPolygonIndex.set(polygonIndex);
     hoveredPointIndex = pointIndex;
   };
@@ -445,7 +445,7 @@
           viewBox={`0 0 ${imageWidth} ${imageHeight}`}
           bind:this={svgEl}
         >
-          {#if $drawedPolygonIndex !== 1}
+          {#if $drawedPolygonIndex !== 1 && $isDrawing}
             <polygon class="placeholder" points={drawedPolygonPoints} />
           {/if}
           {#each renderPolygons as polygon, polygonIndex}
@@ -463,7 +463,6 @@
             />
           {/each}
           {#each renderPolygons as polygon, polygonIndex}
-            <!-- stroke={hoveredLineIndex === lineIndex && hoveredLinePolygonIndex === polygonIndex  ? 'red' : 'blue'} -->
             {#each polygon.lines as line, lineIndex}
               <line
                 x1={line.x1}
@@ -492,8 +491,7 @@
             class:is-dragable={point.id === $dragablePointId}
             id={point.id}
             tabindex="0"
-            on:mouseenter={() =>
-              handlePointMouseenter({ polygonId: polygon.id, pointIndex, polygonIndex })}
+            on:mouseenter={() => handlePointMouseenter({ pointIndex, polygonIndex })}
             on:mouseleave={(e) =>
               handlePointMouseleave({ e, point, polygon, polygonIndex, polygonIndex })}
             on:mousedown={(e) =>
