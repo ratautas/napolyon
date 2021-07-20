@@ -134,10 +134,32 @@ export const globalAttributes = {
 
 export const globalAttributesMap = derived([globalAttributes],
   ([$globalAttributes]) => Object.entries($globalAttributes)
-    .reduce((acc, [name, value]) => [...acc, { [name]: value }], []))
+    .reduce((acc, [name, value]) => [...acc, { [name]: value }], []));
 
 export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
-// export const polygonsStore = writable([]);
+
+export const selectedPolyonIndex = writable(-1);
+export const hoveredPolyonIndex = writable(-1);
+export const draggablePolyonIndex = writable(-1);
+export const drawablePolyonIndex = writable(-1);
+
+export const selectedPontIndex = writable(-1);
+export const draggablePontIndex = writable(-1);
+export const hoveredPontIndex = writable(-1);
+
+export const hoveredLyneIndex = writable(-1);
+
+export const selectedPolyon = derived([polygonsStore, selectedPolyonIndex], ([$store, $i]) => $store[$i]);
+export const selectedPolyonId = derived([selectedPolyon], ([$polygon]) => $polygon?.id);
+
+export const hoveredPolyon = derived([polygonsStore, hoveredPolyonIndex], ([$store, $i]) => $store[$i]);
+export const hoveredPolyonId = derived([hoveredPolyon], ([$polygon]) => $polygon?.id);
+
+export const draggablePolyon = derived([polygonsStore, draggablePolyonIndex], ([$store, $i]) => $store[$i]);
+export const draggablePolyonId = derived([draggablePolyon], ([$polygon]) => $polygon?.id);
+
+export const drawablePolyon = derived([polygonsStore, drawablePolyonIndex], ([$store, $i]) => $store[$i]);
+export const drawablePolyonId = derived([drawablePolyon], ([$polygon]) => $polygon?.id);
 
 export const selectedPolygon = derived(
   [polygonsStore, selectedPolygonId],
@@ -201,15 +223,18 @@ export const polygons = {
     const newPolygonId = nanoid(6);
 
     selectedPolygonId.set(null); // why?.. can it be removed?
-    polygons.push({
+
+    // drawablePolyonIndex.set(polygons.length);
+    drawablePolygonId.set(newPolygonId);
+
+    return [...polygons, {
       id: newPolygonId,
       attributes: get(globalAttributes),
       points: [],
-    });
-    drawablePolygonId.set(newPolygonId);
-
-    return polygons;
+    }
+    ];
   }),
+  // addPoint: ({ x, y }, polygonIndex, index) => polygonsStore.update($polygons => {
   addPoint: ({ x, y }, polygonId, index) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const newPointId = nanoid(6);
@@ -275,6 +300,7 @@ export const polygons = {
   setDraggablePolygonPosition: (localDragablePolygon) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     polygons[get(dragablePolygonIndex)] = localDragablePolygon;
+    // polygons[get(draggablePolyonIndex)] = localDragablePolygon;
 
     const delta = patcher.diff($polygons, polygons);
     if (delta) history.push({ delta, origin: 'setDraggablePolygonPosition' });

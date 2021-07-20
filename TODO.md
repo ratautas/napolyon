@@ -24,5 +24,4 @@ Next iteration:
 
 - Hold ctrl to snap
 - Hold shift to fix on straight axis
-
 - Hold alt to add new point

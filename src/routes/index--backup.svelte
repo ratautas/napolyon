@@ -9,8 +9,6 @@
   import { onMount, tick } from 'svelte';
   import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
 
-  import { findClosestSnapPoint } from '$lib/utils/findClosestSnapPoint';
-  import { findClosestLinePoint } from '$lib/utils/findClosestLinePoint';
   import ToolBar from '$lib/ToolBar/index.svelte';
   import {
     globalAttributes,
@@ -28,6 +26,14 @@
     dragablePolygonId,
     hoveredPolygonId,
     dragablePointId,
+    selectedPolyonIndex,
+    hoveredPolyonIndex,
+    draggablePolyonIndex,
+    drawablePolyonIndex,
+    selectedPontIndex,
+    draggablePontIndex,
+    hoveredPontIndex,
+    hoveredLyneIndex,
     isToolbarDragging,
     toolbarX,
     toolbarY,
@@ -47,7 +53,7 @@
   let closestSnapPoint = null;
   let closestLinePoint = null;
 
-  let localDragablePolygon;
+  let localDraggablePolygon;
   let localDragablePoint;
 
   let localDrawableX;
@@ -62,35 +68,68 @@
   let hoveredLineIndex = -1;
   let hoveredLinePolygonIndex = -1;
 
-  let hoveredPolyonIndex = -1;
+  const handleImageLoad = async (e) => {
+    console.log(svgEl);
+    imageWidth = imageEl.naturalWidth;
+    imageHeight = imageEl.naturalHeight;
+    await tick();
+    renderSvg.set(svgEl);
+  };
 
-  const handleCanvasMousedown = (e) => {
-    // only get elements which have .match() method (without 'window' and 'document')
-    const matchablePaths = e.path.filter((el) => !!el.matches);
-    const hasPolygonTarget = matchablePaths.some((el) => el.matches('polygon'));
-    const hasPointTarget = matchablePaths.some((el) => el.matches('.point'));
-    const hasToolbarTarget = matchablePaths.some((el) => el.matches('.toolbar'));
+  const handleFilesAdd = (e) => {
+    const reader = new FileReader();
+    const [file] = e.detail;
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      src = reader.result;
+    };
+  };
 
-    // unset selectedPolygonId if clicked outside polygon/point/toolbar
-    if (!hasPolygonTarget && !hasPointTarget && !hasToolbarTarget) {
-      selectedPolygonId.set(null);
-    }
+  const findClosestSnapPoint = ({ points, x, y }) => {
+    let point = Object.values(points)
+      .filter((point) => point.x > x - $snapRadius && point.x < x + $snapRadius)
+      .filter((point) => point.y > y - $snapRadius && point.y < y + $snapRadius)
+      .reduce(
+        (acc, point) => {
+          const diffX = point.x - x;
+          const diffY = point.y - y;
 
-    // unset drawablePolygon if clicked on toolbar
-    if (hasToolbarTarget) drawablePolygonId.set(null);
-
-    if ($isDrawing) {
-      if (!$drawablePolygonId) {
-        polygons.addPolygon();
-      }
-      polygons.addPoint(
-        {
-          x: $isShiftPressed ? localX : closestSnapPoint?.x ?? e.x,
-          y: $isShiftPressed ? localY : closestSnapPoint?.y ?? e.y
+          // good old pythagoras
+          const diff = Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY, 2));
+          return acc == null || diff <= acc.diff ? { ...point, diff } : acc;
         },
-        $drawablePolygonId
+        {
+          // initial (max) diff
+          diff: $snapRadius
+        }
       );
-    }
+
+    return point.id ? point : null;
+  };
+
+  // via https://jsfiddle.net/soulwire/UA6H5/
+  // function findClosestLinePoint(point, start, end) {
+  function findClosestLinePoint({ x, y, x1, y1, x2, y2 }) {
+    const startToEndX = x2 - x1;
+    const startToEndY = y2 - y1;
+    const startToPointX = x - x1;
+    const startToPointY = y - y1;
+    const len = startToEndX * startToEndX + startToEndY * startToEndY;
+    let dot = startToPointX * startToEndX + startToPointY * startToEndY;
+    const t = Math.min(1, Math.max(0, dot / len));
+
+    dot = (x2 - x1) * (y - y1) - (y2 - y1) * (x - x1);
+
+    return {
+      x: x1 + startToEndX * t,
+      y: y1 + startToEndY * t,
+      dot,
+      t
+    };
+  }
+
+  const handleCanvasScroll = (e) => {
+    console.log(e);
   };
 
   const handleCanvasMousemove = ({ x, y, movementX, movementY }) => {
@@ -100,10 +139,7 @@
     if (($isDrawing || $dragablePointId) && $isSnapEnabled) {
       closestSnapPoint = $polygons
         .filter(({ id }) => id !== $selectedPolygonId)
-        .reduce(
-          (acc, { points }) => findClosestSnapPoint({ points, x, y, radius: $snapRadius }) ?? acc,
-          null
-        );
+        .reduce((acc, { points }) => findClosestSnapPoint({ points, x, y }) ?? acc, null);
 
       if (!closestSnapPoint?.id) {
         if ($snapRadius > x) {
@@ -145,16 +181,16 @@
       return;
     }
 
-    if ($dragablePointId && $selectedPolygonId) {
+    if ($draggablePontIndex !== -1 && $selectedPolyonIndex !== -1) {
       localDragablePoint.x = localDragablePoint.x + movementX;
       localDragablePoint.y = localDragablePoint.y + movementY;
       return;
     }
 
-    if ($dragablePolygonId) {
+    if ($draggablePolyonIndex !== -1) {
       isDrawing.set(false);
-      drawablePolygonId.set(null);
-      localDragablePolygon.points = localDragablePolygon.points.map((point) => ({
+      // draggablePolyonIndex.set(-1);
+      localDraggablePolygon.points = localDraggablePolygon.points.map((point) => ({
         id: point.id,
         x: point.x + movementX,
         y: point.y + movementY
@@ -164,27 +200,50 @@
   };
 
   const handleCanvasMouseup = (e) => {
-    const hasLineTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('line'));
-    const hasPolygonTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('polygon'));
-    const hasToolbarTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('.toolbar'));
+    // last two elements from 'path' are Window and document and they don't have .match() method
+    const matchablePaths = e.path.filter((el, i) => i < e.path.length - 2);
+    const hasPolygonTarget = matchablePaths.some((el) => el.matches('polygon'));
+    const hasLineTarget = matchablePaths.some((el) => el.matches('line'));
+    const hasPointTarget = matchablePaths.some((el) => el.matches('.point'));
+    const hasToolbarTarget = matchablePaths.some((el) => el.matches('.toolbar'));
+
+    // unset selectedPolygonId if clicked outside polygon/point/toolbar
+    if (!hasPolygonTarget && !hasPointTarget && !hasToolbarTarget && !hasLineTarget) {
+      selectedPolyonIndex.set(-1);
+    }
 
     if (hasToolbarTarget && $isToolbarDragging) {
       isToolbarDragging.set(false);
     }
 
-    if ($dragablePolygonId && localDragablePolygon) {
-      polygons.setDraggablePolygonPosition(localDragablePolygon);
-      dragablePolygonId.set(null);
-      localDragablePolygon = null;
+    // // // unset drawablePolygon if clicked on toolbar
+    // if (hasToolbarTarget) {
+    //   drawablePolyonIndex.set(null);
+    // }
+
+    if ($isDrawing) {
+      if ($drawablePolyonIndex === -1) {
+        polygons.addPolygon();
+      }
+
+      polygons.addPoint(
+        {
+          // x: $isShiftPressed ? localDrawableX : closestSnapPoint?.x ?? x,
+          // y: $isShiftPressed ? localDrawableY : closestSnapPoint?.y ?? y
+          x: $isShiftPressed ? localX : closestSnapPoint?.x ?? e.x,
+          y: $isShiftPressed ? localY : closestSnapPoint?.y ?? e.y
+        },
+        $drawablePolyonIndex
+      );
     }
 
-    if ($dragablePointId && localDragablePoint) {
+    if ($draggablePolyonIndex !== -1 && localDraggablePolygon) {
+      polygons.setDraggablePolygonPosition(localDraggablePolygon);
+      draggablePolyonIndex.set(-1);
+      localDraggablePolygon = null;
+    }
+
+    if ($draggablePolyonIndex !== -1 && localDragablePoint) {
       if ($isSnapEnabled && closestSnapPoint) {
         localDragablePoint.x = closestSnapPoint.x;
         localDragablePoint.y = closestSnapPoint.y;
@@ -192,7 +251,7 @@
 
       polygons.setDraggablePointPosition(localDragablePoint);
       dragablePointId.set(null);
-      localDragablePoint = null;
+      // localDragablePoint = null;
     }
 
     if (!hasPolygonTarget && !hasToolbarTarget) {
@@ -201,9 +260,7 @@
     }
 
     if ($isAltPressed && closestLinePoint) {
-      console.log({ hoveredPolyonIndex, hoveredLineIndex });
-      // $polygons[hoveredPolyonIndex].id
-      const polygon = $polygons[hoveredPolyonIndex];
+      const polygon = $polygons[$hoveredPolyonIndex];
 
       const index = hoveredLineIndex > polygon.points.length ? hoveredLineIndex + 1 : 0;
 
@@ -212,48 +269,38 @@
           x: closestLinePoint.x,
           y: closestLinePoint.y
         },
-        polygon.id,
-        // hoveredLineIndex + 1
+        $hoveredPolyonIndex,
         index
       );
     }
   };
 
   const handlePolygonMouseenter = ({ e, polygon, polygonIndex }) => {
-    hoveredPolygonId.set(polygon.id);
-    hoveredPolyonIndex = polygonIndex;
+    hoveredPolyonIndex.set(polygonIndex);
   };
 
-  const handlePolygonMousedown = ({ e, polygon }) => {
-    localDragablePolygon = { ...polygon };
-    dragablePolygonId.set(polygon.id);
-    selectedPolygonId.set(polygon.id);
-    hoveredPolyonIndex = -1;
+  const handlePolygonMousedown = ({ e, polygon, polygonIndex }) => {
+    localDraggablePolygon = { ...polygon };
+    draggablePolyonIndex.set(polygonIndex);
+    selectedPolyonIndex.set(polygonIndex);
+    hoveredPolyonIndex.set(-1);
   };
 
   const handlePolygonMouseleave = ({ e, polygon }) => {
     const hasPolygonTarget = e.path
       .filter((el, i) => i < e.path.length - 2)
       .some((el) => el.matches('polygon'));
-    const hasLineTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('line'));
-    const hasPointTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('.point'));
 
-    hoveredPolyonIndex = -1;
-
-    hoveredPolygonId.set(null);
+    hoveredPolyonIndex.set(-1);
     if (!hasPolygonTarget) {
-      dragablePolygonId.set(null);
+      draggablePolyonIndex.set(-1);
     }
   };
 
   const handleLineMouseenter = ({ polygonIndex, lineIndex }) => {
     hoveredLinePolygonIndex = polygonIndex;
     hoveredLineIndex = lineIndex;
-    hoveredPolyonIndex = polygonIndex;
+    hoveredPolyonIndex.set(polygonIndex);
   };
 
   const handleLineMouseleave = () => {
@@ -269,7 +316,7 @@
 
   const handlePointMouseenter = ({ polygonId, pointIndex, polygonIndex }) => {
     hoveredPolygonId.set(polygonId);
-    hoveredPolyonIndex = polygonIndex;
+    hoveredPolyonIndex.set(polygonIndex);
     hoveredPointIndex = pointIndex;
   };
 
@@ -315,7 +362,7 @@
         drawablePolygonId.set(null);
         isDrawing.set(false);
         // additional escape if dragging gets out of hand
-        dragablePolygonId.set(null);
+        draggablePolyonIndex.set(null);
         selectedPolygonId.set($drawablePolygonId);
         drawablePolygonId.set(null);
       }
@@ -360,8 +407,9 @@
   }
 
   $: renderPolygons = $polygons.map((polygon) => {
-    // serve points from either localDragablePolygon or regularly
-    const currentPolygon = localDragablePolygon?.id === polygon.id ? localDragablePolygon : polygon;
+    // serve points from either localDraggablePolygon or regularly
+    const currentPolygon =
+      localDraggablePolygon?.id === polygon.id ? localDraggablePolygon : polygon;
     return {
       ...currentPolygon,
       points: currentPolygon.points.map((point) => {
@@ -397,28 +445,8 @@
     lastDrawablePoint &&
     $drawablePolygonId &&
     $drawablePolygon.points.reduce((pointsString, point) => {
-      // serve X and Y from either localDragablePoint or regularly
-      const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
-      // return `${x},${y} ${pointsString}`;
       return `${point.x},${point.y} ${pointsString}`;
-      // }, `${localDrawableX},${localDrawableY}`);
     }, `${localX},${localY}`);
-
-  const handleImageLoad = async (e) => {
-    imageWidth = imageEl.naturalWidth;
-    imageHeight = imageEl.naturalHeight;
-    await tick();
-    renderSvg.set(svgEl);
-  };
-
-  const handleFilesAdd = (e) => {
-    const reader = new FileReader();
-    const [file] = e.detail;
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      src = reader.result;
-    };
-  };
 </script>
 
 <svelte:window on:keydown={handleWindowKeydown} on:keyup={handleWindowKeyup} />
@@ -429,7 +457,7 @@
 
 <div
   class="canvas"
-  on:mousedown={handleCanvasMousedown}
+  on:scroll={handleCanvasScroll}
   on:mousemove={handleCanvasMousemove}
   on:mouseup={handleCanvasMouseup}
   class:is-drawing={$isDrawing}
@@ -462,11 +490,11 @@
               points={polygon.pointsReduced}
               id={polygon.id}
               {...polygon.attributes}
-              class:is-drawing={$isDrawing && polygon.id === $drawablePolygonId}
-              class:is-dragging={polygon.id === $dragablePolygonId}
-              class:is-hovered={polygon.id === $hoveredPolygonId}
-              class:is-selected={polygon.id === $selectedPolygonId}
-              on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
+              class:is-drawing={$isDrawing && polygonIndex === $drawablePolyonIndex}
+              class:is-dragging={polygonIndex === $draggablePolyonIndex}
+              class:is-hovered={polygonIndex === $hoveredPolyonIndex}
+              class:is-selected={polygonIndex === $selectedPolyonIndex}
+              on:mousedown={(e) => handlePolygonMousedown({ e, polygon, polygonIndex })}
               on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon, polygonIndex })}
               on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon })}
             />
@@ -495,7 +523,7 @@
             class="point"
             class:is-polygon-selected={polygon.id === $selectedPolygonId}
             class:is-polygon-hovered={polygon.id === $hoveredPolygonId}
-            class:is-hoovered={polygonIndex === hoveredPolyonIndex &&
+            class:is-hoovered={polygonIndex === $hoveredPolyonIndex &&
               pointIndex === hoveredPointIndex}
             class:is-closest-snapable={point.id === closestSnapPoint?.id}
             class:is-dragable={point.id === $dragablePointId}
@@ -529,6 +557,7 @@
           class="point is-polygon-hovered yololo"
         />
       {/if}
+      {$selectedPolyonIndex}
     </div>
   {:else}
     <!-- <Dropzone multiple={false} on:drop={handleFilesAdd} /> -->
