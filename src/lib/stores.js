@@ -137,28 +137,13 @@ export const globalAttributesMap = derived([globalAttributes],
 
 export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
 
-export const hoveredPolyonIndex = writable(-1);
-export const draggablePolyonIndex = writable(-1);
-export const drawablePolyonIndex = writable(-1);
-
-export const selectedPontIndex = writable(-1);
-export const draggablePontIndex = writable(-1);
-export const hoveredPontIndex = writable(-1);
-
-export const hoveredLyneIndex = writable(-1);
-
 export const selectedPolygonIndex = writable(-1);
 export const selectedPolygon = derived([polygonsStore, selectedPolygonIndex], ([$store, $i]) => $store[$i]);
 export const selectedPolygonId = derived([selectedPolygon], ([$polygon]) => $polygon?.id);
 
-export const hoveredPolyon = derived([polygonsStore, hoveredPolyonIndex], ([$store, $i]) => $store[$i]);
-export const hoveredPolyonId = derived([hoveredPolyon], ([$polygon]) => $polygon?.id);
-
-export const draggablePolyon = derived([polygonsStore, draggablePolyonIndex], ([$store, $i]) => $store[$i]);
-export const draggablePolyonId = derived([draggablePolyon], ([$polygon]) => $polygon?.id);
-
-export const drawablePolyon = derived([polygonsStore, drawablePolyonIndex], ([$store, $i]) => $store[$i]);
-export const drawablePolyonId = derived([drawablePolyon], ([$polygon]) => $polygon?.id);
+export const drawedPolygonIndex = writable(-1);
+export const drawedPolygon = derived([polygonsStore, drawedPolygonIndex], ([$store, $i]) => $store[$i]);
+export const drawedPolygonId = derived([drawedPolygon], ([$polygon]) => $polygon?.id);
 
 export const selectedPoint = derived(
   [polygonsStore, selectedPointId],
@@ -211,10 +196,7 @@ export const polygons = {
     const polygons = clone($polygons);
     const newPolygonId = nanoid(6);
 
-    selectedPolygonId.set(null); // why?.. can it be removed?
-
-    // drawablePolyonIndex.set(polygons.length);
-    drawablePolygonId.set(newPolygonId);
+    drawedPolygonIndex.set(polygons.length);
 
     return [...polygons, {
       id: newPolygonId,
@@ -224,12 +206,12 @@ export const polygons = {
     ];
   }),
   // addPoint: ({ x, y }, polygonIndex, index) => polygonsStore.update($polygons => {
-  addPoint: ({ x, y }, polygonId, index) => polygonsStore.update($polygons => {
+  addPoint: ({ x, y }, lineIndex) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const newPointId = nanoid(6);
-    const polygonIndex = polygons.findIndex(({ id }) => id === polygonId);
+    const polygonIndex = get(drawedPolygonIndex);
     const polygonPoints = polygons[polygonIndex].points;
-    const sliceIndex = index ?? polygonPoints.length;
+    const sliceIndex = lineIndex ?? polygonPoints.length;
 
     polygons[polygonIndex].points = [
       ...polygonPoints.slice(0, sliceIndex),
@@ -237,15 +219,13 @@ export const polygons = {
       ...polygonPoints.slice(sliceIndex),
     ];
 
-    selectedPolygonId.set(polygonId); // why?.. can it be removed?
-
     const delta = patcher.diff($polygons, polygons);
-    if (delta) history.push({ delta, origin: 'AddPoint' });
+    if (delta) history.push({ delta, origin: 'addPoint' });
 
     return polygons;
   }),
-  deletePolygon: (polygonId) => polygonsStore.update($polygons => {
-    const polygons = $polygons.filter(({ id }) => id !== polygonId);
+  deletePolygon: (polygonIndex) => polygonsStore.update($polygons => {
+    const polygons = $polygons.filter((polygon, index) => index !== polygonIndex);
 
     const delta = patcher.diff($polygons, polygons);
     if (delta) history.push({ delta, origin: 'deletePolygon' });

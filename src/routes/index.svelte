@@ -22,8 +22,9 @@
     snapRadius,
     isSnapEnabled,
     polygons,
-    drawablePolygonId,
-    drawablePolygon,
+    drawedPolygonIndex,
+    drawedPolygonId,
+    drawedPolygon,
     selectedPolygonId,
     selectedPolygonIndex,
     dragablePolygonId,
@@ -78,11 +79,11 @@
       selectedPolygonIndex.set(-1);
     }
 
-    // unset drawablePolygon if clicked on toolbar
-    if (hasToolbarTarget) drawablePolygonId.set(null);
+    // unset drawedPolygon if clicked on toolbar
+    if (hasToolbarTarget) drawedPolygonIndex.set(-1);
 
     if ($isDrawing) {
-      if (!$drawablePolygonId) {
+      if ($drawedPolygonIndex === -1) {
         polygons.addPolygon();
       }
       polygons.addPoint(
@@ -90,7 +91,7 @@
           x: $isShiftPressed ? localX : closestSnapPoint?.x ?? e.x,
           y: $isShiftPressed ? localY : closestSnapPoint?.y ?? e.y
         },
-        $drawablePolygonId
+        $drawedPolygonIndex // replace with drawedPolygonIndex
       );
     }
   };
@@ -155,7 +156,7 @@
 
     if ($dragablePolygonId) {
       isDrawing.set(false);
-      drawablePolygonId.set(null);
+      drawedPolygonIndex.set(-1);
       localDragablePolygon.points = localDragablePolygon.points.map((point) => ({
         id: point.id,
         x: point.x + movementX,
@@ -203,20 +204,17 @@
     }
 
     if ($isAltPressed && closestLinePoint) {
-      console.log({ hoveredPolyonIndex, hoveredLineIndex });
-      // $polygons[hoveredPolyonIndex].id
       const polygon = $polygons[hoveredPolyonIndex];
 
-      const index = hoveredLineIndex > polygon.points.length ? hoveredLineIndex + 1 : 0;
+      const lineIndex = hoveredLineIndex > polygon.points.length ? hoveredLineIndex + 1 : 0;
 
       polygons.addPoint(
         {
           x: closestLinePoint.x,
           y: closestLinePoint.y
         },
-        polygon.id,
         // hoveredLineIndex + 1
-        index
+        lineIndex
       );
     }
   };
@@ -295,34 +293,33 @@
       // polygons = $polygonsMap.reduce(
       //   (acc, polygon) => ({
       //     ...acc,
-      //     ...(polygon.id !== $drawablePolygon.id && { [polygon.id]: polygon })
+      //     ...(polygon.id !== $drawedPolygon.id && { [polygon.id]: polygon })
       //   }),
       //   {}
       // );
       // additional escape if dragging gets out of hand
       isDrawing.set(false);
       isToolbarDragging.set(false);
-      drawablePolygonId.set(null);
+      drawedPolygonIndex.set(-1);
     }
     if (e.key === 'Enter') {
-      if ($drawablePolygonId) {
-        selectedPolygonId.set($drawablePolygonId);
+      if ($drawedPolygonIndex !== -1) {
+        selectedPolygonIndex.set($drawedPolygonIndex);
       }
-      drawablePolygonId.set(null);
+      drawedPolygonIndex.set(-1);
       isDrawing.set(false);
     }
     if ($isCmdPressed && (e.key === 'Backspace' || e.key === 'Delete')) {
-      if ($drawablePolygonId) {
-        polygons.deletePolygon($drawablePolygonId);
-        drawablePolygonId.set(null);
+      if ($drawedPolygonIndex !== -1) {
+        polygons.deletePolygon($drawedPolygonIndex);
         isDrawing.set(false);
         // additional escape if dragging gets out of hand
         dragablePolygonId.set(null);
-        selectedPolygonId.set($drawablePolygonId);
-        drawablePolygonId.set(null);
+        selectedPolygonIndex.set(-1);
+        drawedPolygonIndex.set(-1);
       }
       if ($selectedPolygonIndex !== -1) {
-        polygons.deletePolygon($selectedPolygonId);
+        polygons.deletePolygon($selectedPolygonIndex);
         selectedPolygonIndex.set(-1);
       }
     }
@@ -391,14 +388,14 @@
 
   $: hoveredLine = renderPolygons[hoveredPolyonIndex]?.lines[hoveredLineIndex];
 
-  $: lastDrawablePoint = $drawablePolygon
-    ? $drawablePolygon.points[$drawablePolygon.points.length - 1]
+  $: lastDrawablePoint = $drawedPolygon
+    ? $drawedPolygon.points[$drawedPolygon.points.length - 1]
     : {};
 
-  $: drawablePolygonPoints =
+  $: drawedPolygonPoints =
     lastDrawablePoint &&
-    $drawablePolygonId &&
-    $drawablePolygon.points.reduce((pointsString, point) => {
+    $drawedPolygonIndex !== -1 &&
+    $drawedPolygon.points.reduce((pointsString, point) => {
       // serve X and Y from either localDragablePoint or regularly
       const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
       // return `${x},${y} ${pointsString}`;
@@ -456,16 +453,16 @@
           viewBox={`0 0 ${imageWidth} ${imageHeight}`}
           bind:this={svgEl}
         >
-          {#if $drawablePolygonId}
-            <polygon class="placeholder" points={drawablePolygonPoints} />
+          {#if $drawedPolygonIndex !== 1}
+            <polygon class="placeholder" points={drawedPolygonPoints} />
           {/if}
           {#each renderPolygons as polygon, polygonIndex}
             <polygon
               points={polygon.pointsReduced}
               id={polygon.id}
               {...polygon.attributes}
-              class:is-drawing={$isDrawing && polygon.id === $drawablePolygonId}
-              class:is-dragging={polygon.id === $dragablePolygonId}
+              class:is-drawing={$isDrawing && polygonIndex === $drawedPolygonIndex}
+              class:is-dragging={polygonIndex === $drawedPolygonIndex}
               class:is-hovered={polygon.id === $hoveredPolygonId}
               class:is-selected={polygonIndex === $selectedPolygonIndex}
               on:mousedown={(e) => handlePolygonMousedown({ e, polygon, polygonIndex })}
