@@ -445,7 +445,7 @@
           viewBox={`0 0 ${imageWidth} ${imageHeight}`}
           bind:this={svgEl}
         >
-          {#if $drawedPolygonIndex !== 1 && $isDrawing}
+          {#if $drawedPolygonIndex !== -1 && $isDrawing}
             <polygon class="placeholder" points={drawedPolygonPoints} />
           {/if}
           {#each renderPolygons as polygon, polygonIndex}
