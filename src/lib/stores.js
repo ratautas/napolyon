@@ -103,7 +103,6 @@ export const renderSvg = writable(null);
 
 export const hoveredPolygonId = writable(null);
 export const dragablePolygonId = writable(null);
-export const selectedPolygonId = writable(null);
 export const drawablePolygonId = writable(null);
 
 export const selectedPointId = writable(null);
@@ -138,7 +137,6 @@ export const globalAttributesMap = derived([globalAttributes],
 
 export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
 
-export const selectedPolyonIndex = writable(-1);
 export const hoveredPolyonIndex = writable(-1);
 export const draggablePolyonIndex = writable(-1);
 export const drawablePolyonIndex = writable(-1);
@@ -149,8 +147,9 @@ export const hoveredPontIndex = writable(-1);
 
 export const hoveredLyneIndex = writable(-1);
 
-export const selectedPolyon = derived([polygonsStore, selectedPolyonIndex], ([$store, $i]) => $store[$i]);
-export const selectedPolyonId = derived([selectedPolyon], ([$polygon]) => $polygon?.id);
+export const selectedPolygonIndex = writable(-1);
+export const selectedPolygon = derived([polygonsStore, selectedPolygonIndex], ([$store, $i]) => $store[$i]);
+export const selectedPolygonId = derived([selectedPolygon], ([$polygon]) => $polygon?.id);
 
 export const hoveredPolyon = derived([polygonsStore, hoveredPolyonIndex], ([$store, $i]) => $store[$i]);
 export const hoveredPolyonId = derived([hoveredPolyon], ([$polygon]) => $polygon?.id);
@@ -160,16 +159,6 @@ export const draggablePolyonId = derived([draggablePolyon], ([$polygon]) => $pol
 
 export const drawablePolyon = derived([polygonsStore, drawablePolyonIndex], ([$store, $i]) => $store[$i]);
 export const drawablePolyonId = derived([drawablePolyon], ([$polygon]) => $polygon?.id);
-
-export const selectedPolygon = derived(
-  [polygonsStore, selectedPolygonId],
-  ([$polygonsStore, $selectedPolygonId]) => $polygonsStore.find(({ id }) => id === $selectedPolygonId)
-);
-
-export const selectedPolygonIndex = derived(
-  [polygonsStore, selectedPolygonId],
-  ([$polygonsStore, $selectedPolygonId]) => $polygonsStore.findIndex(({ id }) => id === $selectedPolygonId)
-);
 
 export const selectedPoint = derived(
   [polygonsStore, selectedPointId],

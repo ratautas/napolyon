@@ -16,7 +16,7 @@
     isDrawing,
     isSnapEnabled,
     renderSvg,
-    selectedPolygonId,
+    selectedPolygonIndex,
     hoveredPolygonId,
     isToolbarDragging,
     history
@@ -35,7 +35,7 @@
   };
 
   const handleCopyClick = async () => {
-    selectedPolygonId.set(null);
+    selectedPolygonIndex.set(-1);
     hoveredPolygonId.set(null);
     await tick();
     clearAttributes();
@@ -43,7 +43,7 @@
   };
 
   const handleDowloadClick = async () => {
-    selectedPolygonId.set(null);
+    selectedPolygonIndex.set(-1);
     hoveredPolygonId.set(null);
     await tick();
     clearAttributes();

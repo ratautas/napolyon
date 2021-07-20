@@ -25,6 +25,7 @@
     drawablePolygonId,
     drawablePolygon,
     selectedPolygonId,
+    selectedPolygonIndex,
     dragablePolygonId,
     hoveredPolygonId,
     dragablePointId,
@@ -66,14 +67,15 @@
 
   const handleCanvasMousedown = (e) => {
     // only get elements which have .match() method (without 'window' and 'document')
-    const matchablePaths = e.path.filter((el) => !!el.matches);
-    const hasPolygonTarget = matchablePaths.some((el) => el.matches('polygon'));
-    const hasPointTarget = matchablePaths.some((el) => el.matches('.point'));
-    const hasToolbarTarget = matchablePaths.some((el) => el.matches('.toolbar'));
+    const matchPaths = e.path.filter((el) => !!el.matches);
+    const hasPolygonTarget = matchPaths.some((el) => el.matches('polygon'));
+    const hasLineTarget = matchPaths.some((el) => el.matches('line'));
+    const hasPointTarget = matchPaths.some((el) => el.matches('.point'));
+    const hasToolbarTarget = matchPaths.some((el) => el.matches('.toolbar'));
 
-    // unset selectedPolygonId if clicked outside polygon/point/toolbar
-    if (!hasPolygonTarget && !hasPointTarget && !hasToolbarTarget) {
-      selectedPolygonId.set(null);
+    // unset selectedPolygonIndex if clicked outside polygon/point/toolbar
+    if (!hasPolygonTarget && !hasLineTarget && !hasPointTarget && !hasToolbarTarget) {
+      selectedPolygonIndex.set(-1);
     }
 
     // unset drawablePolygon if clicked on toolbar
@@ -99,7 +101,7 @@
 
     if (($isDrawing || $dragablePointId) && $isSnapEnabled) {
       closestSnapPoint = $polygons
-        .filter(({ id }) => id !== $selectedPolygonId)
+        .filter(({ id }) => id !== $selectedPolygonId) // replace with selectedPolygonIndex
         .reduce(
           (acc, { points }) => findClosestSnapPoint({ points, x, y, radius: $snapRadius }) ?? acc,
           null
@@ -145,7 +147,7 @@
       return;
     }
 
-    if ($dragablePointId && $selectedPolygonId) {
+    if ($dragablePointId && $selectedPolygonIndex !== -1) {
       localDragablePoint.x = localDragablePoint.x + movementX;
       localDragablePoint.y = localDragablePoint.y + movementY;
       return;
@@ -196,7 +198,7 @@
     }
 
     if (!hasPolygonTarget && !hasToolbarTarget) {
-      selectedPolygonId.set(null);
+      selectedPolygonIndex.set(-1);
       hoveredPolygonId.set(null);
     }
 
@@ -224,10 +226,10 @@
     hoveredPolyonIndex = polygonIndex;
   };
 
-  const handlePolygonMousedown = ({ e, polygon }) => {
+  const handlePolygonMousedown = ({ e, polygon, polygonIndex }) => {
     localDragablePolygon = { ...polygon };
     dragablePolygonId.set(polygon.id);
-    selectedPolygonId.set(polygon.id);
+    selectedPolygonIndex.set(polygonIndex);
     hoveredPolyonIndex = -1;
   };
 
@@ -261,8 +263,8 @@
     hoveredLineIndex = -1;
   };
 
-  const handlePointMousedown = ({ e, point, polygon }) => {
-    selectedPolygonId.set(polygon.id);
+  const handlePointMousedown = ({ e, point, polygon, polygonIndex }) => {
+    selectedPolygonIndex.set(polygonIndex);
     dragablePointId.set(point.id);
     localDragablePoint = { ...point };
   };
@@ -319,9 +321,9 @@
         selectedPolygonId.set($drawablePolygonId);
         drawablePolygonId.set(null);
       }
-      if ($selectedPolygonId) {
+      if ($selectedPolygonIndex !== -1) {
         polygons.deletePolygon($selectedPolygonId);
-        selectedPolygonId.set(null);
+        selectedPolygonIndex.set(-1);
       }
     }
     if ($isCmdPressed && $isShiftPressed && e.key === 'z') {
@@ -465,10 +467,10 @@
               class:is-drawing={$isDrawing && polygon.id === $drawablePolygonId}
               class:is-dragging={polygon.id === $dragablePolygonId}
               class:is-hovered={polygon.id === $hoveredPolygonId}
-              class:is-selected={polygon.id === $selectedPolygonId}
-              on:mousedown={(e) => handlePolygonMousedown({ e, polygon })}
+              class:is-selected={polygonIndex === $selectedPolygonIndex}
+              on:mousedown={(e) => handlePolygonMousedown({ e, polygon, polygonIndex })}
               on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon, polygonIndex })}
-              on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon })}
+              on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon, polygonIndex })}
             />
           {/each}
           {#each renderPolygons as polygon, polygonIndex}
@@ -493,7 +495,7 @@
           <div
             style={`left:${point.x}px;top:${point.y}px;`}
             class="point"
-            class:is-polygon-selected={polygon.id === $selectedPolygonId}
+            class:is-polygon-selected={polygonIndex === $selectedPolygonIndex}
             class:is-polygon-hovered={polygon.id === $hoveredPolygonId}
             class:is-hoovered={polygonIndex === hoveredPolyonIndex &&
               pointIndex === hoveredPointIndex}
@@ -503,8 +505,10 @@
             tabindex="0"
             on:mouseenter={() =>
               handlePointMouseenter({ polygonId: polygon.id, pointIndex, polygonIndex })}
-            on:mouseleave={(e) => handlePointMouseleave({ e, point, polygon })}
-            on:mousedown={(e) => handlePointMousedown({ e, point, polygon })}
+            on:mouseleave={(e) =>
+              handlePointMouseleave({ e, point, polygon, polygonIndex, polygonIndex })}
+            on:mousedown={(e) =>
+              handlePointMousedown({ e, point, polygon, polygonIndex, pointIndex })}
           />
         {/each}
       {/each}
