@@ -100,9 +100,6 @@ export const toolbarY = writable(30);
 
 export const renderSvg = writable(null);
 
-export const selectedPointId = writable(null);
-export const dragablePointId = writable(null);
-
 export const globalAttributesStore = writable({});
 
 export const historyStore = writable({
@@ -147,18 +144,15 @@ export const polygons = {
     }
     ];
   }),
-  // addPoint: ({ x, y }, polygonIndex, index) => polygonsStore.update($polygons => {
-  addPoint: ({ x, y }, lineIndex) => polygonsStore.update($polygons => {
+  addPoint: ({ x, y }, polygonIndex, pointIndex) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const newPointId = nanoid(6);
-    const polygonIndex = get(drawedPolygonIndex);
     const polygonPoints = polygons[polygonIndex].points;
-    const sliceIndex = lineIndex ?? polygonPoints.length;
 
     polygons[polygonIndex].points = [
-      ...polygonPoints.slice(0, sliceIndex),
+      ...polygonPoints.slice(0, pointIndex),
       { x, y, id: newPointId },
-      ...polygonPoints.slice(sliceIndex),
+      ...polygonPoints.slice(pointIndex),
     ];
 
     const delta = patcher.diff($polygons, polygons);
@@ -248,20 +242,13 @@ export const draggedPolygonIndex = writable(-1);
 export const draggedPolygon = derived([polygonsStore, draggedPolygonIndex], ([$store, $i]) => $store[$i]);
 export const draggedPolygonId = derived([draggedPolygon], ([$polygon]) => $polygon?.id);
 
-export const selectedPoint = derived(
-  [polygonsStore, selectedPointId],
-  ([$polygonsStore, $selectedPointId]) => $polygonsStore.find(({ id }) => id === $selectedPointId)
-);
+export const draggedPointIndex = writable(-1);
+export const draggedPoint = derived([polygonsStore, draggedPointIndex], ([$store, $i]) => $store[$i]);
+export const draggedPointId = derived([draggedPoint], ([$polygon]) => $polygon?.id);
 
-export const selectedPointIndex = derived(
-  [polygonsStore, selectedPointId],
-  ([$polygonsStore, $selectedPointId]) => $polygonsStore.findIndex(({ id }) => id === $selectedPointId)
-);
-
-export const dragablePoint = derived(
-  [selectedPolygon, dragablePointId],
-  ([$selectedPolygon, $dragablePointId]) => $selectedPolygon && $selectedPolygon.points[$dragablePointId]
-);
+export const selectedPointIndex = writable(-1);
+export const selectedPoint = derived([polygonsStore, selectedPointIndex], ([$store, $i]) => $store[$i]);
+export const selectedPointId = derived([selectedPoint], ([$polygon]) => $polygon?.id);
 
 export const history = {
   subscribe: historyStore.subscribe,

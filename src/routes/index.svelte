@@ -24,10 +24,9 @@
     drawedPolygonIndex,
     drawedPolygon,
     selectedPolygonIndex,
-    selectedPolygonId,
     draggedPolygonIndex,
     hoveredPolygonIndex,
-    dragablePointId,
+    draggedPointIndex,
     isToolbarDragging,
     toolbarX,
     toolbarY,
@@ -48,7 +47,7 @@
   let closestLinePoint = null;
 
   let localDragablePolygon;
-  let localDragablePoint;
+  let localDraggedPoint;
 
   let localDrawableX;
   let localDrawableY;
@@ -87,7 +86,8 @@
           x: $isShiftPressed ? localX : closestSnapPoint?.x ?? e.x,
           y: $isShiftPressed ? localY : closestSnapPoint?.y ?? e.y
         },
-        $drawedPolygonIndex
+        $drawedPolygonIndex,
+        $drawedPolygon.points.length
       );
     }
   };
@@ -96,7 +96,7 @@
     localX = x;
     localY = y;
 
-    if (($isDrawing || $dragablePointId) && $isCmdPressed) {
+    if (($isDrawing || $draggedPointIndex !== -1) && $isCmdPressed) {
       closestSnapPoint = $polygons
         .filter((polygon, index) => index !== $selectedPolygonIndex)
         .reduce(
@@ -144,9 +144,9 @@
       return;
     }
 
-    if ($dragablePointId && $selectedPolygonIndex !== -1) {
-      localDragablePoint.x = localDragablePoint.x + movementX;
-      localDragablePoint.y = localDragablePoint.y + movementY;
+    if ($draggedPointIndex !== -1 && $selectedPolygonIndex !== -1) {
+      localDraggedPoint.x = localDraggedPoint.x + movementX;
+      localDraggedPoint.y = localDraggedPoint.y + movementY;
       return;
     }
 
@@ -183,15 +183,15 @@
       localDragablePolygon = null;
     }
 
-    if ($dragablePointId && localDragablePoint) {
+    if ($draggedPointIndex !== -1 && localDraggedPoint) {
       if ($isCmdPressed && closestSnapPoint) {
-        localDragablePoint.x = closestSnapPoint.x;
-        localDragablePoint.y = closestSnapPoint.y;
+        localDraggedPoint.x = closestSnapPoint.x;
+        localDraggedPoint.y = closestSnapPoint.y;
       }
 
-      polygons.setDraggablePointPosition(localDragablePoint);
-      dragablePointId.set(null);
-      localDragablePoint = null;
+      polygons.setDraggablePointPosition(localDraggedPoint);
+      draggedPointIndex.set(-1);
+      localDraggedPoint = null;
     }
 
     if (!hasPolygonTarget && !hasToolbarTarget) {
@@ -209,7 +209,7 @@
           x: closestLinePoint.x,
           y: closestLinePoint.y
         },
-        // hoveredLineIndex + 1
+        $hoveredPolygonIndex,
         lineIndex
       );
     }
@@ -254,10 +254,10 @@
     hoveredLineIndex = -1;
   };
 
-  const handlePointMousedown = ({ e, point, polygon, polygonIndex }) => {
+  const handlePointMousedown = ({ e, point, polygon, polygonIndex, pointIndex }) => {
     selectedPolygonIndex.set(polygonIndex);
-    dragablePointId.set(point.id);
-    localDragablePoint = { ...point };
+    draggedPointIndex.set(pointIndex);
+    localDraggedPoint = { ...point };
   };
 
   const handlePointMouseenter = ({ pointIndex, polygonIndex }) => {
@@ -271,7 +271,7 @@
       .some((el) => el.matches('.point'));
 
     if (!hasPointTarget) {
-      dragablePointId.set(null);
+      draggedPointIndex.set(-1);
     }
     hoveredPointIndex = -1;
   };
@@ -356,12 +356,12 @@
     return {
       ...currentPolygon,
       points: currentPolygon.points.map((point) => {
-        return localDragablePoint?.id === point.id ? localDragablePoint : point;
+        return localDraggedPoint?.id === point.id ? localDraggedPoint : point;
       }),
       pointsReduced: currentPolygon.points
         .reduce((pointsString, point) => {
-          // serve X and Y from either localDragablePoint or regularly
-          const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
+          // serve X and Y from either localDraggedPoint or regularly
+          const { x, y } = localDraggedPoint?.id === point.id ? localDraggedPoint : point;
           return `${pointsString} ${x},${y}`;
         }, '')
         .replace(' ', ''),
@@ -388,8 +388,8 @@
     lastDrawablePoint &&
     $drawedPolygonIndex !== -1 &&
     $drawedPolygon.points.reduce((pointsString, point) => {
-      // serve X and Y from either localDragablePoint or regularly
-      const { x, y } = localDragablePoint?.id === point.id ? localDragablePoint : point;
+      // serve X and Y from either localDraggedPoint or regularly
+      const { x, y } = localDraggedPoint?.id === point.id ? localDraggedPoint : point;
       // return `${x},${y} ${pointsString}`;
       return `${point.x},${point.y} ${pointsString}`;
       // }, `${localDrawableX},${localDrawableY}`);
@@ -488,7 +488,7 @@
             class:is-hoovered={polygonIndex === $hoveredPolygonIndex &&
               pointIndex === hoveredPointIndex}
             class:is-closest-snapable={point.id === closestSnapPoint?.id && $isCmdPressed}
-            class:is-dragable={point.id === $dragablePointId}
+            class:is-dragable={pointIndex === $draggedPointIndex}
             id={point.id}
             tabindex="0"
             on:mouseenter={() => handlePointMouseenter({ pointIndex, polygonIndex })}
