@@ -21,12 +21,15 @@
     renderSvg,
     snapRadius,
     polygons,
-    drawedPolygonIndex,
     drawedPolygon,
+    drawedPolygonIndex,
     selectedPolygonIndex,
     draggedPolygonIndex,
+    hoveredPolygon,
     hoveredPolygonIndex,
     draggedPointIndex,
+    hoveredPointIndex,
+    hoveredLineIndex,
     isToolbarDragging,
     toolbarX,
     toolbarY,
@@ -49,25 +52,23 @@
   let localDragablePolygon;
   let localDraggedPoint;
 
-  let localDrawableX;
-  let localDrawableY;
+  // let localDrawableX;
+  // let localDrawableY;
 
   let localX;
   let localY;
 
-  let hoveredPointIndex = -1;
-  let hoveredPointPolygonIndex = -1;
+  // let hoveredPointIndex = -1;
+  // let hoveredPointPolygonIndex = -1;
 
-  let hoveredLineIndex = -1;
-  let hoveredLinePolygonIndex = -1;
+  // let hoveredLineIndex = -1;
 
   const handleCanvasMousedown = (e) => {
     // only get elements which have .match() method (without 'window' and 'document')
-    const matchPaths = e.path.filter((el) => !!el.matches);
-    const hasPolygonTarget = matchPaths.some((el) => el.matches('polygon'));
-    const hasLineTarget = matchPaths.some((el) => el.matches('line'));
-    const hasPointTarget = matchPaths.some((el) => el.matches('.point'));
-    const hasToolbarTarget = matchPaths.some((el) => el.matches('.toolbar'));
+    const hasPolygonTarget = e.path.some((el) => el.matches?.('polygon'));
+    const hasLineTarget = e.path.some((el) => el.matches?.('line'));
+    const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
+    const hasToolbarTarget = e.path.some((el) => el.matches?.('.toolbar'));
 
     // unset selectedPolygonIndex if clicked outside polygon/point/toolbar
     if (!hasPolygonTarget && !hasLineTarget && !hasPointTarget && !hasToolbarTarget) {
@@ -163,15 +164,10 @@
   };
 
   const handleCanvasMouseup = (e) => {
-    const hasLineTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('line'));
-    const hasPolygonTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('polygon'));
-    const hasToolbarTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('.toolbar'));
+    const hasLineTarget = e.path.some((el) => el.matches?.('line'));
+    const hasPolygonTarget = e.path.some((el) => el.matches?.('polygon'));
+    const hasToolbarTarget = e.path.some((el) => el.matches?.('.toolbar'));
+    const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
 
     if (hasToolbarTarget && $isToolbarDragging) {
       isToolbarDragging.set(false);
@@ -194,16 +190,14 @@
       localDraggedPoint = null;
     }
 
-    if (!hasPolygonTarget && !hasToolbarTarget) {
+    if (!hasPolygonTarget && !hasToolbarTarget && !hasLineTarget && !hasPointTarget) {
       selectedPolygonIndex.set(-1);
       hoveredPolygonIndex.set(-1);
     }
 
     if ($isAltPressed && closestLinePoint) {
-      const polygon = $polygons[$hoveredPolygonIndex];
-
-      const lineIndex = hoveredLineIndex > polygon.points.length ? hoveredLineIndex + 1 : 0;
-
+      const lineIndex =
+        $hoveredLineIndex > $hoveredPolygon.points.length ? $hoveredLineIndex + 1 : 0;
       polygons.addPoint(
         {
           x: closestLinePoint.x,
@@ -215,7 +209,7 @@
     }
   };
 
-  const handlePolygonMouseenter = ({ e, polygon, polygonIndex }) => {
+  const handlePolygonMouseenter = ({ polygonIndex }) => {
     hoveredPolygonIndex.set(polygonIndex);
   };
 
@@ -223,38 +217,29 @@
     localDragablePolygon = { ...polygon };
     draggedPolygonIndex.set(polygonIndex);
     selectedPolygonIndex.set(polygonIndex);
-    hoveredPolygonIndex.set(-1);
   };
 
   const handlePolygonMouseleave = ({ e, polygon }) => {
-    const hasPolygonTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('polygon'));
-    const hasLineTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('line'));
-    const hasPointTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('.point'));
+    const hasPolygonTarget = e.path.some((el) => el.matches?.('polygon'));
 
     hoveredPolygonIndex.set(-1);
+
     if (!hasPolygonTarget) {
       draggedPolygonIndex.set(-1);
     }
   };
 
   const handleLineMouseenter = ({ polygonIndex, lineIndex }) => {
-    hoveredLinePolygonIndex = polygonIndex;
-    hoveredLineIndex = lineIndex;
+    hoveredLineIndex.set(lineIndex);
     hoveredPolygonIndex.set(polygonIndex);
   };
 
   const handleLineMouseleave = () => {
-    hoveredLinePolygonIndex = -1;
-    hoveredLineIndex = -1;
+    hoveredPolygonIndex.set(-1);
+    hoveredLineIndex.set(-1);
   };
 
-  const handlePointMousedown = ({ e, point, polygon, polygonIndex, pointIndex }) => {
+  const handlePointMousedown = ({ point, polygonIndex, pointIndex }) => {
     selectedPolygonIndex.set(polygonIndex);
     draggedPointIndex.set(pointIndex);
     localDraggedPoint = { ...point };
@@ -262,18 +247,17 @@
 
   const handlePointMouseenter = ({ pointIndex, polygonIndex }) => {
     hoveredPolygonIndex.set(polygonIndex);
-    hoveredPointIndex = pointIndex;
+    hoveredPointIndex.set(pointIndex);
   };
 
   const handlePointMouseleave = ({ e, point, polygon }) => {
-    const hasPointTarget = e.path
-      .filter((el, i) => i < e.path.length - 2)
-      .some((el) => el.matches('.point'));
+    const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
+
+    hoveredPointIndex.set(-1);
 
     if (!hasPointTarget) {
       draggedPointIndex.set(-1);
     }
-    hoveredPointIndex = -1;
   };
 
   const handleWindowKeydown = (e) => {
@@ -378,7 +362,7 @@
     };
   });
 
-  $: hoveredLine = renderPolygons[hoveredPolygonIndex]?.lines[hoveredLineIndex];
+  $: hoveredLine = renderPolygons[$hoveredPolygonIndex]?.lines[$hoveredLineIndex];
 
   $: lastDrawablePoint = $drawedPolygon
     ? $drawedPolygon.points[$drawedPolygon.points.length - 1]
@@ -469,8 +453,10 @@
                 x2={line.x2}
                 y1={line.y1}
                 y2={line.y2}
-                stroke="transparent"
-                stroke-width="5"
+                stroke="red"
+                stroke-width="15"
+                class:is-hovered={lineIndex === $hoveredLineIndex &&
+                  polygonIndex === $hoveredPolygonIndex}
                 on:mouseenter={() => handleLineMouseenter({ polygonIndex, lineIndex })}
                 on:mouseleave={() => handleLineMouseleave()}
               />
@@ -486,7 +472,7 @@
             class:is-polygon-selected={polygonIndex === $selectedPolygonIndex}
             class:is-polygon-hovered={polygonIndex === $hoveredPolygonIndex}
             class:is-hoovered={polygonIndex === $hoveredPolygonIndex &&
-              pointIndex === hoveredPointIndex}
+              pointIndex === $hoveredPointIndex}
             class:is-closest-snapable={point.id === closestSnapPoint?.id && $isCmdPressed}
             class:is-dragable={pointIndex === $draggedPointIndex}
             id={point.id}
@@ -523,6 +509,10 @@
         {/if}
       {/if}
     </div>
+    <br />
+    hoveredPolygonIndex: {$hoveredPolygonIndex}<br />
+    hoveredPointIndex: {$hoveredPointIndex}<br />
+    hoveredLineIndex: {$hoveredLineIndex}<br />
   {:else}
     <!-- <Dropzone multiple={false} on:drop={handleFilesAdd} /> -->
     <FileUploaderDropContainer
