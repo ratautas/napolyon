@@ -226,13 +226,14 @@ export const polygons = {
   set: (val) => polygonsStore.set(val)
 };
 
-export const selectedPolygonIndex = writable(-1);
-export const selectedPolygon = derived([polygonsStore, selectedPolygonIndex], ([$store, $i]) => $store[$i]);
-export const selectedPolygonId = derived([selectedPolygon], ([$polygon]) => $polygon?.id);
-
+// POLYGONS:
 export const hoveredPolygonIndex = writable(-1);
 export const hoveredPolygon = derived([polygonsStore, hoveredPolygonIndex], ([$store, $i]) => $store[$i]);
 export const hoveredPolygonId = derived([hoveredPolygon], ([$polygon]) => $polygon?.id);
+
+export const selectedPolygonIndex = writable(-1);
+export const selectedPolygon = derived([polygonsStore, selectedPolygonIndex], ([$store, $i]) => $store[$i]);
+export const selectedPolygonId = derived([selectedPolygon], ([$polygon]) => $polygon?.id);
 
 export const drawedPolygonIndex = writable(-1);
 export const drawedPolygon = derived([polygonsStore, drawedPolygonIndex], ([$store, $i]) => $store[$i]);
@@ -242,13 +243,23 @@ export const draggedPolygonIndex = writable(-1);
 export const draggedPolygon = derived([polygonsStore, draggedPolygonIndex], ([$store, $i]) => $store[$i]);
 export const draggedPolygonId = derived([draggedPolygon], ([$polygon]) => $polygon?.id);
 
-export const draggedPointIndex = writable(-1);
-export const draggedPoint = derived([polygonsStore, draggedPointIndex], ([$store, $i]) => $store[$i]);
-export const draggedPointId = derived([draggedPoint], ([$polygon]) => $polygon?.id);
+// POINTS:
+export const hoveredPointIndex = writable(-1);
+export const hoveredPoint = derived([polygonsStore, hoveredPointIndex], ([$store, $i]) => $store[$i]);
+export const hoveredPointId = derived([hoveredPoint], ([$polygon]) => $polygon?.id);
 
 export const selectedPointIndex = writable(-1);
 export const selectedPoint = derived([polygonsStore, selectedPointIndex], ([$store, $i]) => $store[$i]);
 export const selectedPointId = derived([selectedPoint], ([$polygon]) => $polygon?.id);
+
+export const draggedPointIndex = writable(-1);
+export const draggedPoint = derived([polygonsStore, draggedPointIndex], ([$store, $i]) => $store[$i]);
+export const draggedPointId = derived([draggedPoint], ([$polygon]) => $polygon?.id);
+
+// LINES:
+export const hoveredLineIndex = writable(-1);
+export const hoveredLine = derived([polygonsStore, hoveredLineIndex], ([$store, $i]) => $store[$i]);
+export const hoveredLineId = derived([hoveredLine], ([$polygon]) => $polygon?.id);
 
 export const history = {
   subscribe: historyStore.subscribe,
