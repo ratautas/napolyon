@@ -6,9 +6,9 @@
 
 <script>
   import { page } from '$app/stores';
-  import { onMount, tick } from 'svelte';
   import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
 
+  import { ACCEPT_TYPES } from '$lib/constants';
   import { findClosestSnapPoint } from '$lib/utils/findClosestSnapPoint';
   import { findClosestLinePoint } from '$lib/utils/findClosestLinePoint';
   import ToolBar from '$lib/ToolBar/index.svelte';
@@ -18,7 +18,7 @@
     isCmdPressed,
     isAltPressed,
     isDrawing,
-    renderSvg,
+    fileUploader,
     snapRadius,
     polygons,
     drawedPolygon,
@@ -32,18 +32,19 @@
     isToolbarDragging,
     toolbarX,
     toolbarY,
+    svgEl,
+    imageEl,
+    imageSrc,
+    imageWidth,
+    imageHeight,
     history
   } from '$lib/stores.js';
 
-  let svgEl;
-  let imageEl;
-  let src;
-  let imageWidth;
-  let imageHeight;
-  src =
-    'https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80';
-  imageWidth = 900;
-  imageHeight = 600;
+  // let svgEl;
+  // let imageEl;
+  // let src;
+  // let imageWidth;
+  // let imageHeight;
 
   let closestSnapPoint = null;
   let closestLinePoint = null;
@@ -298,9 +299,9 @@
     isCmdPressed.set(false);
   };
 
-  onMount(() => {
-    renderSvg.set(svgEl);
-  });
+  // onMount(() => {
+  //   renderSvg.set(svgEl);
+  // });
 
   const preset = $page.query.get('preset');
   if (preset === 'totoriu-floor') {
@@ -361,10 +362,9 @@
     }, `${localX},${localY}`);
 
   const handleImageLoad = async (e) => {
-    imageWidth = imageEl.naturalWidth;
-    imageHeight = imageEl.naturalHeight;
-    await tick();
-    renderSvg.set(svgEl);
+    console.log(e)
+    imageWidth.set($imageEl.naturalWidth);
+    imageHeight.set($imageEl.naturalHeight);
   };
 
   const handleFilesAdd = (e) => {
@@ -372,7 +372,7 @@
     const [file] = e.detail;
     reader.readAsDataURL(file);
     reader.onload = () => {
-      src = reader.result;
+      imageSrc.set(reader.result);
     };
   };
 </script>
@@ -391,23 +391,23 @@
   style={`--snapRadius:${$snapRadius}px`}
 >
   <ToolBar />
-  {#if src}
+  {#if $imageSrc}
     <div class="render">
       <img
-        {src}
+        src={$imageSrc}
         alt=""
-        width={imageWidth}
-        height={imageHeight}
-        style={`width:${imageWidth}px;height:${imageHeight}px;`}
-        bind:this={imageEl}
+        width={$imageWidth}
+        height={$imageHeight}
+        style={`width:${$imageWidth}px;height:${$imageHeight}px;`}
+        bind:this={$imageEl}
         on:load={handleImageLoad}
       />
 
-      {#if !!imageWidth && !!imageHeight}
+      {#if !!$imageWidth && !!$imageHeight}
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          viewBox={`0 0 ${imageWidth} ${imageHeight}`}
-          bind:this={svgEl}
+          viewBox={`0 0 ${$imageWidth} ${$imageHeight}`}
+          bind:this={$svgEl}
         >
           {#if $drawedPolygonIndex !== -1 && $isDrawing}
             <polygon class="placeholder" points={drawedPolygonPoints} />
@@ -495,12 +495,12 @@
     hoveredPointIndex: {$hoveredPointIndex}<br />
     hoveredLineIndex: {$hoveredLineIndex}<br />
   {:else}
-    <!-- <Dropzone multiple={false} on:drop={handleFilesAdd} /> -->
     <FileUploaderDropContainer
-      accept={['.jpg', '.JPG', '.jpeg', '.JPEG', '.gif', '.GIF', '.png', '.PNG', '.webp', '.WEBP']}
+      accept={ACCEPT_TYPES}
       labelText="Drop your image here or click to upload"
       class="canvas__upload"
       on:add={handleFilesAdd}
+      bind:this={$fileUploader}
     />
   {/if}
 </div>

@@ -3,7 +3,6 @@
 - onboarding window with shortcuts
 - delete/enter without cmd
 - delete point
-- upload/reupload image from toolbar
 - add default  <image width="100%" height="100%" xlink:href="/IMAGE_URL.png"></image> 
 - hide snappable points while shift is pressed
 - pen cursor icon (illustrator)
@@ -18,7 +17,6 @@ Next iteration:
 - split polygons and points etc to small components 
 - Electron bundle
 - get back to y.js instead of diffing 
-
 
 - Hold ctrl to snap
 - Hold shift to fix on straight axis

@@ -98,7 +98,18 @@ export const isToolbarDragging = writable(false);
 export const toolbarX = writable(30);
 export const toolbarY = writable(30);
 
-export const renderSvg = writable(null);
+export const svgEl = writable(null);
+
+export const fileUploader = writable(null);
+
+export const imageEl = writable(null);
+export const imageSrc = writable(null);
+export const imageWidth = writable(null);
+export const imageHeight = writable(null);
+
+// imageSrc.set('https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80');
+// imageWidth.set(900);
+// imageHeight.set(600);
 
 export const globalAttributesStore = writable({});
 
@@ -155,8 +166,6 @@ export const polygons = {
       { x, y, id: newPointId },
       ...polygonPoints.slice(pointIndex),
     ];
-
-    console.log({ pointIndex });
 
     const delta = patcher.diff($polygons, polygons);
     if (delta) history.push({ delta, origin: 'addPoint' });

@@ -4,6 +4,7 @@
 
   import AreaCustom24 from 'carbon-icons-svelte/lib/AreaCustom24';
   import CloudDownload24 from 'carbon-icons-svelte/lib/CloudDownload24';
+  import CloudUpload24 from 'carbon-icons-svelte/lib/CloudUpload24';
   import Switcher24 from 'carbon-icons-svelte/lib/Switcher24';
   import CopyFile24 from 'carbon-icons-svelte/lib/CopyFile24';
   import Undo24 from 'carbon-icons-svelte/lib/Undo24';
@@ -12,18 +13,21 @@
 
   import { tick } from 'svelte';
 
+  import { ACCEPT_TYPES } from '$lib/constants';
+
   import {
     isDrawing,
     isCmdPressed,
-    renderSvg,
+    svgEl,
     selectedPolygonIndex,
     hoveredPolygonIndex,
     isToolbarDragging,
+    imageSrc,
     history
   } from '$lib/stores.js';
 
   const clearAttributes = () => {
-    $renderSvg.querySelectorAll('polygon').forEach((polygonEl) => {
+    $svgEl.querySelectorAll('polygon').forEach((polygonEl) => {
       // polygonEl.removeAttribute('class');
       polygonEl.removeAttribute('id');
     });
@@ -39,7 +43,7 @@
     hoveredPolygonIndex.set(-1);
     await tick();
     clearAttributes();
-    await navigator.clipboard.writeText($renderSvg.outerHTML);
+    await navigator.clipboard.writeText($svgEl.outerHTML);
   };
 
   const handleDowloadClick = async () => {
@@ -47,8 +51,18 @@
     hoveredPolygonIndex.set(-1);
     await tick();
     clearAttributes();
-    const blob = new Blob([$renderSvg.outerHTML], { type: 'image/svg+xml' });
+    const blob = new Blob([$svgEl.outerHTML], { type: 'image/svg+xml' });
     saveAs(blob, 'graph.svg');
+  };
+
+  const handleFileInputChange = (e) => {
+    console.log({ e });
+    const reader = new FileReader();
+    const [file] = e.target.files;
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      imageSrc.set(reader.result);
+    };
   };
 </script>
 
@@ -72,6 +86,20 @@
     isSelected={$isDrawing}
     on:click={(e) => handleAddClick(e, 'draw')}
   />
+  <Button
+    kind="ghost"
+    tooltipPosition="bottom"
+    tooltipAlignment="center"
+    iconDescription="Upload Image"
+    icon={CloudUpload24}
+  >
+    <input
+      on:change={handleFileInputChange}
+      type="file"
+      class="btn-upload"
+      accept={ACCEPT_TYPES.join()}
+    />
+  </Button>
   <Button
     kind="ghost"
     tooltipPosition="bottom"
