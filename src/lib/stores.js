@@ -319,6 +319,7 @@ export const renderPolygons = derived(
   })
 );
 
+export const closestLinePoint = writable(null);
 export const closestSnapPoint = derived(
   [polygons, selectedPolygonIndex, draggedPoint, isDrawing, isCmdPressed, snapRadius, mouseX, mouseY, imageWidth, imageHeight],
   ([$polygons, $selectedPolygonIndex, $draggedPoint, $isDrawing, $isCmdPressed, $snapRadius, $mouseX, $mouseY, $imageWidth, $imageHeight]) => {

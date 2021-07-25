@@ -9,11 +9,11 @@
     draggedPoint,
     draggedPointId,
     closestSnapPoint,
+    closestLinePoint,
     imageWidth,
     imageHeight
   } from '$lib/stores.js';
 
-  let closestLinePoint = null;
 
   const handlePointMouseenter = ({ pointIndex, polygonIndex }) => {
     hoveredPolygonIndex.set(polygonIndex);
@@ -70,9 +70,9 @@
       class="point is-polygon-selected"
     />
   {/if}
-  {#if closestLinePoint && $isAltPressed}
+  {#if $closestLinePoint && $isAltPressed}
     <div
-      style={`left:${closestLinePoint?.x}px;top:${closestLinePoint?.y}px;pointer-events:none`}
+      style={`left:${$closestLinePoint?.x}px;top:${$closestLinePoint?.y}px;pointer-events:none`}
       class="point is-polygon-hovered yololo"
     />
   {/if}

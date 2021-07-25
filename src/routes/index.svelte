@@ -31,6 +31,7 @@
     hoveredLineIndex,
     draggedPoint,
     closestSnapPoint,
+    closestLinePoint,
     isToolbarDragging,
     toolbarX,
     toolbarY,
@@ -39,8 +40,6 @@
     mouseY,
     history
   } from '$lib/stores.js';
-
-  let closestLinePoint = null;
 
   let scrollX = 0;
   let scrollY = 0;
@@ -57,11 +56,13 @@
     mouseY.set(y);
 
     if ($isAltPressed) {
-      closestLinePoint = findClosestLinePoint({
-        ...hoveredLine,
-        x: $mouseX,
-        y: $mouseY
-      });
+      closestLinePoint.set(
+        findClosestLinePoint({
+          ...hoveredLine,
+          x: $mouseX,
+          y: $mouseY
+        })
+      );
     }
 
     if ($isDrawing) {
@@ -160,10 +161,10 @@
       });
     }
 
-    if ($isAltPressed && closestLinePoint) {
+    if ($isAltPressed && $closestLinePoint) {
       polygons.addPoint({
-        x: closestLinePoint.x,
-        y: closestLinePoint.y,
+        x: $closestLinePoint.x,
+        y: $closestLinePoint.y,
         polygonIndex: $hoveredPolygonIndex,
         pointIndex: $hoveredLineIndex + 1
       });
