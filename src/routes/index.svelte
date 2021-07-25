@@ -49,7 +49,7 @@
   let closestSnapPoint = null;
   let closestLinePoint = null;
 
-  let localDragablePolygon;
+  let localDraggedPolygon;
   let localDraggedPoint;
 
   // let localDrawableX;
@@ -154,7 +154,7 @@
     if ($draggedPolygonIndex !== -1) {
       isDrawing.set(false);
       drawedPolygonIndex.set(-1);
-      localDragablePolygon.points = localDragablePolygon.points.map((point) => ({
+      localDraggedPolygon.points = localDraggedPolygon.points.map((point) => ({
         id: point.id,
         x: point.x + movementX,
         y: point.y + movementY
@@ -173,10 +173,10 @@
       isToolbarDragging.set(false);
     }
 
-    if ($draggedPolygonIndex !== -1 && localDragablePolygon) {
-      polygons.setDraggablePolygonPosition(localDragablePolygon);
+    if ($draggedPolygonIndex !== -1 && localDraggedPolygon) {
+      polygons.setDraggablePolygonPosition(localDraggedPolygon);
       draggedPolygonIndex.set(-1);
-      localDragablePolygon = null;
+      localDraggedPolygon = null;
     }
 
     if ($draggedPointIndex !== -1 && localDraggedPoint) {
@@ -214,7 +214,7 @@
   };
 
   const handlePolygonMousedown = ({ e, polygon, polygonIndex }) => {
-    localDragablePolygon = { ...polygon };
+    localDraggedPolygon = { ...polygon };
     draggedPolygonIndex.set(polygonIndex);
     selectedPolygonIndex.set(polygonIndex);
   };
@@ -335,8 +335,8 @@
   }
 
   $: renderPolygons = $polygons.map((polygon) => {
-    // serve points from either localDragablePolygon or regularly
-    const currentPolygon = localDragablePolygon?.id === polygon.id ? localDragablePolygon : polygon;
+    // serve points from either localDraggedPolygon or regularly
+    const currentPolygon = localDraggedPolygon?.id === polygon.id ? localDraggedPolygon : polygon;
     return {
       ...currentPolygon,
       points: currentPolygon.points.map((point) => {
@@ -453,8 +453,8 @@
                 x2={line.x2}
                 y1={line.y1}
                 y2={line.y2}
-                stroke="red"
-                stroke-width="15"
+                stroke="transparent"
+                stroke-width="5"
                 class:is-hovered={lineIndex === $hoveredLineIndex &&
                   polygonIndex === $hoveredPolygonIndex}
                 on:mouseenter={() => handleLineMouseenter({ polygonIndex, lineIndex })}
