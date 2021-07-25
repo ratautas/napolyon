@@ -1,10 +1,12 @@
-- change cursor depending on point
-- onboarding window with shortcuts
 - delete/enter without cmd
 - delete point
+
+- pen cursor icon (illustrator)
+- change cursor depending on point
+- onboarding window with shortcuts
 - add default  <image width="100%" height="100%" xlink:href="/IMAGE_URL.png"></image> 
 - hide snappable points while shift is pressed
-- pen cursor icon (illustrator)
+- cleanup CSS => BEM
 - use [points="xyz"] selectors for styling instead of classnames
 
 - handlePolygonMouseleave doesn't deselect

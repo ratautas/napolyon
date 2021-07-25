@@ -52,7 +52,6 @@
   let scrollX = 0;
   let scrollY = 0;
 
-  // const handleCanvasMousemove = ({ x, y, clientX, clientY, movementX, movementY, ...e }) => {
   const handleCanvasScroll = (e) => {
     scrollY = e.target.scrollTop;
     scrollX = e.target.scrollLeft;
@@ -298,10 +297,6 @@
     isCmdPressed.set(false);
   };
 
-  // onMount(() => {
-  //   renderSvg.set(svgEl);
-  // });
-
   const preset = $page.query.get('preset');
   if (preset === 'totoriu-floor') {
     globalAttributes.add({ name: 'class', value: 'shapes__polygon shapes__polygon--vacant' });
@@ -378,7 +373,7 @@
 <svelte:window on:keydown={handleWindowKeydown} on:keyup={handleWindowKeyup} />
 
 <svelte:head>
-  <title>Home</title>
+  <title>Napolyon</title>
 </svelte:head>
 
 <div
@@ -489,10 +484,6 @@
         {/if}
       {/if}
     </div>
-    <br />
-    hoveredPolygonIndex: {$hoveredPolygonIndex}<br />
-    hoveredPointIndex: {$hoveredPointIndex}<br />
-    hoveredLineIndex: {$hoveredLineIndex}<br />
   {:else}
     <FileUploaderDropContainer
       accept={ACCEPT_TYPES}
