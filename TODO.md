@@ -1,9 +1,9 @@
-- large image points add
 - split edge
-- delete point
-
+- large image points add
+- change cursor depending on point
+- onboarding window with shortcuts
 - delete/enter without cmd
-
+- delete point
 - upload/reupload image from toolbar
 - add default  <image width="100%" height="100%" xlink:href="/IMAGE_URL.png"></image> 
 - hide snappable points while shift is pressed

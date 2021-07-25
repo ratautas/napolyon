@@ -186,13 +186,11 @@
     }
 
     if ($isAltPressed && closestLinePoint) {
-      const lineIndex =
-        $hoveredLineIndex > $hoveredPolygon.points.length ? $hoveredLineIndex + 1 : 0;
       polygons.addPoint({
         x: closestLinePoint.x,
         y: closestLinePoint.y,
         polygonIndex: $hoveredPolygonIndex,
-        pointIndex: lineIndex
+        pointIndex: $hoveredLineIndex + 1,
       });
     }
   };
