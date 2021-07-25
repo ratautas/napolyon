@@ -1,8 +1,5 @@
 <script>
   import {
-    isShiftPressed,
-    isCmdPressed,
-    isAltPressed,
     isDrawing,
     renderPolygons,
     drawedPolygon,
@@ -10,11 +7,6 @@
     selectedPolygonIndex,
     draggedPolygon,
     hoveredPolygonIndex,
-    hoveredPointIndex,
-    hoveredLineIndex,
-    draggedPoint,
-    draggedPointId,
-    closestSnapPoint,
     svgEl,
     imageEl,
     imageSrc,
@@ -25,6 +17,7 @@
   } from '$lib/stores.js';
 
   import RenderPoints from '$lib/Render/RenderPoints.svelte';
+  import RenderLines from '$lib/Render/RenderLines.svelte';
 
   const handlePolygonMouseenter = ({ polygonIndex }) => {
     hoveredPolygonIndex.set(polygonIndex);
@@ -43,16 +36,6 @@
     if (!hasPolygonTarget) {
       draggedPolygon.set(null);
     }
-  };
-
-  const handleLineMouseenter = ({ polygonIndex, lineIndex }) => {
-    hoveredLineIndex.set(lineIndex);
-    hoveredPolygonIndex.set(polygonIndex);
-  };
-
-  const handleLineMouseleave = () => {
-    hoveredPolygonIndex.set(-1);
-    hoveredLineIndex.set(-1);
   };
 
   $: lastDrawedPoint = $drawedPolygon
@@ -106,22 +89,7 @@
           on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon, polygonIndex })}
         />
       {/each}
-      {#each $renderPolygons as polygon, polygonIndex}
-        {#each polygon.lines as line, lineIndex}
-          <line
-            x1={line.x1}
-            x2={line.x2}
-            y1={line.y1}
-            y2={line.y2}
-            stroke="transparent"
-            stroke-width="5"
-            class:is-hovered={lineIndex === $hoveredLineIndex &&
-              polygonIndex === $hoveredPolygonIndex}
-            on:mouseenter={() => handleLineMouseenter({ polygonIndex, lineIndex })}
-            on:mouseleave={() => handleLineMouseleave()}
-          />
-        {/each}
-      {/each}
+      <RenderLines />
     </svg>
   {/if}
   <RenderPoints />
