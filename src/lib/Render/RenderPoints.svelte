@@ -5,19 +5,28 @@
     renderPolygons,
     selectedPolygonIndex,
     hoveredPolygonIndex,
-    hoveredPointIndex,
+    hoveredPoint,
     draggedPoint,
-    draggedPointId,
+    selectedPoint,
     closestSnapPoint,
     closestLinePoint,
     imageWidth,
     imageHeight
   } from '$lib/stores.js';
 
-
-  const handlePointMouseenter = ({ pointIndex, polygonIndex }) => {
+  const handlePointMouseenter = ({ point, polygonIndex }) => {
     hoveredPolygonIndex.set(polygonIndex);
-    hoveredPointIndex.set(pointIndex);
+    hoveredPoint.set(point);
+  };
+
+  const handlePointMouseleave = (e) => {
+    const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
+
+    hoveredPoint.set(null);
+
+    if (!hasPointTarget) {
+      draggedPoint.set(null);
+    }
   };
 
   const handlePointMousedown = ({ point, polygonIndex }) => {
@@ -25,14 +34,8 @@
     draggedPoint.set({ ...point });
   };
 
-  const handlePointMouseleave = (e) => {
-    const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
-
-    hoveredPointIndex.set(-1);
-
-    if (!hasPointTarget) {
-      draggedPoint.set(null);
-    }
+  const handlePointMouseup = ({ point }) => {
+    selectedPoint.set({ ...point });
   };
 </script>
 
@@ -43,13 +46,15 @@
       class="point"
       class:is-polygon-selected={polygonIndex === $selectedPolygonIndex}
       class:is-polygon-hovered={polygonIndex === $hoveredPolygonIndex}
-      class:is-hoovered={polygonIndex === $hoveredPolygonIndex && pointIndex === $hoveredPointIndex}
+      class:is-hovered={polygonIndex === $hoveredPolygonIndex && point.id === $hoveredPoint?.id}
       class:is-closest-snapable={point.id === $closestSnapPoint?.id && $isCmdPressed}
-      class:is-dragable={point.id === $draggedPointId && polygonIndex === $hoveredPolygonIndex}
+      class:is-dragable={point.id === $draggedPoint?.id}
+      class:is-selected={point.id === $selectedPoint?.id}
       id={point.id}
       tabindex="0"
-      on:mouseenter={() => handlePointMouseenter({ pointIndex, polygonIndex })}
+      on:mouseenter={() => handlePointMouseenter({ point, polygonIndex })}
       on:mousedown={() => handlePointMousedown({ point, polygonIndex })}
+      on:mouseup={() => handlePointMouseup({ point })}
       on:mouseleave={handlePointMouseleave}
     />
   {/each}

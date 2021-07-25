@@ -1,5 +1,5 @@
 - delete/enter without cmd
-- delete point
+- select/delete point
 
 - pen cursor icon (illustrator)
 - change cursor depending on point

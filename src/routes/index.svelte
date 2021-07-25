@@ -30,6 +30,7 @@
     hoveredPolygonIndex,
     hoveredLineIndex,
     draggedPoint,
+    selectedPoint,
     closestSnapPoint,
     closestLinePoint,
     isToolbarDragging,
@@ -121,6 +122,11 @@
     if (!hasPolygonTarget && !hasLineTarget && !hasPointTarget && !hasToolbarTarget) {
       selectedPolygonIndex.set(-1);
       hoveredPolygonIndex.set(-1);
+    }
+
+    // unset selectedPolygonIndex if clicked outside polygon/point/toolbar
+    if (!hasLineTarget && !hasPointTarget) {
+      selectedPoint.set(null);
     }
 
     // unset drawedPolygon if clicked on toolbar

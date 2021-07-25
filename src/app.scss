@@ -187,11 +187,19 @@ polygon {
     }
   }
 
-  &.is-hoovered {
+  &.is-hovered {
     z-index: 5;
     &:after {
       transform: scale(1);
       background: red;
+    }
+  }
+
+  &.is-selected {
+    z-index: 5;
+    &:after {
+      transform: scale(1);
+      background: green;
     }
   }
 }
