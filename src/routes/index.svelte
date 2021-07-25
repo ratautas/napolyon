@@ -29,7 +29,6 @@
     draggedPolygonId,
     hoveredPolygonIndex,
     hoveredLineIndex,
-    
     draggedPoint,
     draggedPointId,
     isToolbarDragging,
@@ -112,8 +111,8 @@
       draggedPoint.set({
         ...$draggedPoint,
         x: $draggedPoint.x + e.movementX,
-        y: $draggedPoint.y + e.movementY,
-      })
+        y: $draggedPoint.y + e.movementY
+      });
       return;
     }
 
@@ -122,10 +121,11 @@
       draggedPolygon.set({
         ...$draggedPolygon,
         points: $draggedPolygon.points.map((point) => ({
+          ...point,
           x: point?.x + e.movementX,
           y: point?.y + e.movementY
         }))
-      })
+      });
       drawedPolygonIndex.set(-1);
 
       return;
@@ -161,7 +161,7 @@
       draggedPolygon.set(null);
     }
 
-    if (!!$draggedPoint) {
+    if ($draggedPoint) {
       if ($isCmdPressed && closestSnapPoint) {
         draggedPoint.set({
           ...$draggedPoint,
@@ -266,7 +266,6 @@
     globalAttributes.add({ name: 'data-shape-row1', value: 'Laisvų butų - 2' });
     globalAttributes.add({ name: 'data-shape-row2', value: 'Laisvų komercinių patalpų - 1' });
   }
-
 
   $: renderPolygons = $polygons.map((polygon) => {
     const { points } = polygon.id === $draggedPolygonId ? $draggedPolygon : polygon;

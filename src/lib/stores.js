@@ -160,7 +160,6 @@ export const polygons = {
     const newPointId = nanoid(6);
     const polygonPoints = polygons[polygonIndex].points;
 
-
     polygons[polygonIndex].points = [
       ...polygonPoints.slice(0, pointIndex),
       { x, y, id: newPointId },
@@ -228,6 +227,8 @@ export const polygons = {
     const polygonIndex = get(draggedPointPolygonIndex);
     const pointIndex = polygons[polygonIndex].points.findIndex(({ id }) => id === get(draggedPointId));
 
+    console.log({ polygonIndex, pointIndex, }, get(draggedPoint))
+
     polygons[polygonIndex].points[pointIndex] = clone(get(draggedPoint));
 
     const delta = patcher.diff($polygons, polygons);
@@ -273,13 +274,47 @@ export const draggedPointPolygon = derived(
 export const draggedPointPolygonId = derived([draggedPointPolygon], ([$polygon]) => $polygon?.id);
 export const draggedPointPolygonIndex = derived(
   [polygonsStore, draggedPointPolygonId],
-  ([$store, $id]) => $store.findIndex(({ id }) => $id === id)
+  ([$store, $draggedPointPolygonId]) => $store.findIndex(({ id }) => $draggedPointPolygonId === id)
 );
 
 // LINES:
 export const hoveredLineIndex = writable(-1);
 export const hoveredLine = derived([polygonsStore, hoveredLineIndex], ([$store, $i]) => $store[$i]);
 export const hoveredLineId = derived([hoveredLine], ([$polygon]) => $polygon?.id);
+
+// flatten points object to renderable string
+export const renderPolygons = derived(
+  [polygons, draggedPolygon, draggedPoint],
+  ([$polygons, $draggedPolygon, $draggedPoint]) => $polygons.map((polygon) => {
+    // get points from dragged polygon or fall back to original polygon
+    // const { points } = $draggedPolygon && polygon.id === $draggedPolygon.id ? $draggedPolygon : polygon;
+    const { points } = ($draggedPolygon?.id && polygon.id === $draggedPolygon.id) ? $draggedPolygon : polygon;
+
+    // get X and Y from dragged point or fall back to original values
+    const renderPoints = points.map((point) => {
+      const { x, y } = ($draggedPoint?.id && point.id === $draggedPoint.id) ? $draggedPoint : point;
+      return { ...point, x, y };
+    });
+
+    return {
+      ...polygon,
+      points: renderPoints,
+      pointsReduced: renderPoints
+        .reduce((pointsString, point) => `${pointsString} ${point.x},${point.y}`, '')
+        .replace(' ', ''),
+      lines: renderPoints.map((point, index, arr) => {
+        const nextIndex = index === arr.length - 1 ? 0 : index + 1;
+
+        return {
+          x1: arr[index].x,
+          x2: arr[nextIndex].x,
+          y1: arr[index].y,
+          y2: arr[nextIndex].y
+        };
+      })
+    };
+  })
+);
 
 export const history = {
   subscribe: historyStore.subscribe,
@@ -323,21 +358,3 @@ export const history = {
     return patch($polygons, entry.delta);
   }),
 };
-
-// convert polygons and their points to arrays (maps)
-export const polygonsMap = derived([polygonsStore],
-  ([$polygonsStore]) => Object.values($polygonsStore).reduce((acc, polygon) => {
-    return [...acc, {
-      ...polygon,
-      pointsMap: Object.values(polygon.points),
-    }]
-  }, []));
-
-// flatten points object to renderable string
-export const renderPolygons = derived([polygonsMap],
-  ([$polygonsMap]) => $polygonsMap.map((polygon) => {
-    return {
-      ...polygon,
-      points: polygon.pointsMap.reduce((acc, { x, y }) => `${acc} ${x},${y}`, '').replace(' ', ''),
-    }
-  }));

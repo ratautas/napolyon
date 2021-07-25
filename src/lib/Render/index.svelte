@@ -10,12 +10,11 @@
     isCmdPressed,
     isAltPressed,
     isDrawing,
-    polygons,
+    renderPolygons,
     drawedPolygon,
     drawedPolygonIndex,
     selectedPolygonIndex,
     draggedPolygon,
-    draggedPolygonId,
     hoveredPolygonIndex,
     hoveredPointIndex,
     hoveredLineIndex,
@@ -65,6 +64,7 @@
 
   const handlePointMousedown = ({ point, polygonIndex, pointIndex }) => {
     selectedPolygonIndex.set(polygonIndex);
+    console.log(point);
     draggedPoint.set({ ...point });
   };
 
@@ -82,39 +82,6 @@
       draggedPoint.set(null);
     }
   };
-
-  $: renderPolygons = $polygons.map((polygon) => {
-    // get points from dragged polygon or fall back to original polygon
-    const { points } =
-      $draggedPolygonId && polygon.id === $draggedPolygonId ? $draggedPolygon : polygon;
-
-    // get X and Y from dragged point or fall back to original values
-    const renderPoints = points.map((point) => {
-      const { x, y } = $draggedPointId && point.id === $draggedPointId ? $draggedPoint : point;
-      return { ...point, x, y };
-    });
-    return {
-      ...polygon,
-      points: renderPoints,
-      pointsReduced: renderPoints
-        .reduce((pointsString, point) => {
-          return `${pointsString} ${point.x},${point.y}`;
-        }, '')
-        .replace(' ', ''),
-      lines: renderPoints.map((point, index, arr) => {
-        const nextIndex = index === arr.length - 1 ? 0 : index + 1;
-
-        return {
-          x1: arr[index].x,
-          x2: arr[nextIndex].x,
-          y1: arr[index].y,
-          y2: arr[nextIndex].y
-        };
-      })
-    };
-  });
-
-  $: hoveredLine = renderPolygons[$hoveredPolygonIndex]?.lines[$hoveredLineIndex];
 
   $: lastDrawedPoint = $drawedPolygon
     ? $drawedPolygon.points[$drawedPolygon.points.length - 1]
@@ -153,7 +120,7 @@
       {#if $drawedPolygonIndex !== -1 && $isDrawing}
         <polygon class="placeholder" points={drawedPolygonPoints} />
       {/if}
-      {#each renderPolygons as polygon, polygonIndex}
+      {#each $renderPolygons as polygon, polygonIndex}
         <polygon
           points={polygon.pointsReduced}
           id={polygon.id}
@@ -167,7 +134,7 @@
           on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon, polygonIndex })}
         />
       {/each}
-      {#each renderPolygons as polygon, polygonIndex}
+      {#each $renderPolygons as polygon, polygonIndex}
         {#each polygon.lines as line, lineIndex}
           <line
             x1={line.x1}
@@ -185,7 +152,7 @@
       {/each}
     </svg>
   {/if}
-  {#each renderPolygons as polygon, polygonIndex}
+  {#each $renderPolygons as polygon, polygonIndex}
     {#each polygon.points as point, pointIndex}
       <div
         style={`left:${point.x}px;top:${point.y}px;`}
