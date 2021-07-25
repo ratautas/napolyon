@@ -9,10 +9,10 @@
   import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
 
   import { ACCEPT_TYPES } from '$lib/constants';
-  import { findClosestSnapPoint } from '$lib/utils/findClosestSnapPoint';
   import { findClosestLinePoint } from '$lib/utils/findClosestLinePoint';
   import ToolBar from '$lib/ToolBar/index.svelte';
   import Render from '$lib/Render/index.svelte';
+
   import {
     globalAttributes,
     isShiftPressed,
@@ -31,18 +31,17 @@
     hoveredLineIndex,
     draggedPoint,
     draggedPointId,
+    closestSnapPoint,
     isToolbarDragging,
     toolbarX,
     toolbarY,
     imageSrc,
-    imageWidth,
-    imageHeight,
     mouseX,
     mouseY,
     history
   } from '$lib/stores.js';
 
-  let closestSnapPoint = null;
+  // let closestSnapPoint = null;
   let closestLinePoint = null;
 
   let scrollX = 0;
@@ -58,29 +57,6 @@
     const y = e.y + scrollY;
     mouseX.set(x);
     mouseY.set(y);
-
-    if (($isDrawing || $draggedPoint) && $isCmdPressed) {
-      closestSnapPoint = $polygons
-        .filter((polygon, index) => index !== $selectedPolygonIndex)
-        .reduce((acc, { points }) => {
-          return findClosestSnapPoint({ points, x, y, radius: $snapRadius }) ?? acc;
-        }, null);
-
-      if (!closestSnapPoint?.id) {
-        if ($snapRadius > x) {
-          closestSnapPoint = { x: 0, y, id: 'snap-left' };
-        }
-        if ($snapRadius > y) {
-          closestSnapPoint = { x, y: 0, id: 'snap-top' };
-        }
-        if (imageWidth - $snapRadius < x) {
-          closestSnapPoint = { x: imageWidth, y, id: 'snap-right' };
-        }
-        if (imageHeight - $snapRadius < y) {
-          closestSnapPoint = { x, y: imageHeight, id: 'snap-bottom' };
-        }
-      }
-    }
 
     if ($isAltPressed) {
       closestLinePoint = findClosestLinePoint({
@@ -161,11 +137,11 @@
     }
 
     if ($draggedPoint) {
-      if ($isCmdPressed && closestSnapPoint) {
+      if ($isCmdPressed && $closestSnapPoint) {
         draggedPoint.set({
           ...$draggedPoint,
-          x: closestSnapPoint.x,
-          y: closestSnapPoint.y
+          x: $closestSnapPoint.x,
+          y: $closestSnapPoint.y
         });
       }
 
@@ -179,8 +155,8 @@
       }
 
       polygons.addPoint({
-        x: closestSnapPoint?.x ?? $mouseX,
-        y: closestSnapPoint?.y ?? $mouseY,
+        x: $closestSnapPoint?.x ?? $mouseX,
+        y: $closestSnapPoint?.y ?? $mouseY,
         polygonIndex: $drawedPolygonIndex,
         pointIndex: $drawedPolygon.points.length
       });

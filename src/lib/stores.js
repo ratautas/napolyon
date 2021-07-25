@@ -2,6 +2,9 @@ import { nanoid } from 'nanoid';
 import { writable, derived, get } from 'svelte/store';
 import { create, formatters, clone, patch, reverse } from 'jsondiffpatch';
 
+import { findClosestSnapPoint } from '$lib/utils/findClosestSnapPoint';
+import { findClosestLinePoint } from '$lib/utils/findClosestLinePoint';
+
 const MOCK_INITIAL_POLYGONS = [
   {
     id: 'L8EIvC',
@@ -288,7 +291,6 @@ export const renderPolygons = derived(
   [polygons, draggedPolygon, draggedPoint],
   ([$polygons, $draggedPolygon, $draggedPoint]) => $polygons.map((polygon) => {
     // get points from dragged polygon or fall back to original polygon
-    // const { points } = $draggedPolygon && polygon.id === $draggedPolygon.id ? $draggedPolygon : polygon;
     const { points } = ($draggedPolygon?.id && polygon.id === $draggedPolygon.id) ? $draggedPolygon : polygon;
 
     // get X and Y from dragged point or fall back to original values
@@ -316,6 +318,38 @@ export const renderPolygons = derived(
     };
   })
 );
+
+// flatten points object to renderable string
+export const closestSnapPoint = derived(
+  [polygons, selectedPolygonIndex, draggedPoint, isDrawing, isCmdPressed, snapRadius, mouseX, mouseY, imageWidth, imageHeight],
+  ([$polygons, $selectedPolygonIndex, $draggedPoint, $isDrawing, $isCmdPressed, $snapRadius, $mouseX, $mouseY, $imageWidth, $imageHeight]) => {
+    if (!$isCmdPressed) return null;
+    if (!$isDrawing && !$draggedPoint) return null;
+
+    let point = $polygons
+      .filter((polygon, index) => index !== $selectedPolygonIndex)
+      .reduce((acc, { points }) => findClosestSnapPoint({ points, x: $mouseX, y: $mouseY, radius: $snapRadius }) ?? acc, null);
+
+    if (!point?.id) {
+      if ($snapRadius > $mouseX) {
+        point = { x: 0, y: $mouseY, id: 'snap-left' };
+      }
+      if ($snapRadius > $mouseY) {
+        point = { x: $mouseX, y: 0, id: 'snap-top' };
+      }
+      if ($imageWidth - $snapRadius < $mouseX) {
+        point = { x: $imageWidth, y: $mouseY, id: 'snap-right' };
+      }
+      if ($imageHeight - $snapRadius < $mouseY) {
+        point = { x: $mouseX, y: $imageHeight, id: 'snap-bottom' };
+      }
+    }
+
+    return point;
+  }
+);
+
+
 
 export const history = {
   subscribe: historyStore.subscribe,
