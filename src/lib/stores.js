@@ -107,6 +107,9 @@ export const imageSrc = writable(null);
 export const imageWidth = writable(null);
 export const imageHeight = writable(null);
 
+export const mouseX = writable(null);
+export const mouseY = writable(null);
+
 imageSrc.set('https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=1900&height=1600&q=80');
 imageWidth.set(1900);
 imageHeight.set(1600);
@@ -226,8 +229,6 @@ export const polygons = {
     const polygons = clone($polygons);
     const polygonIndex = get(draggedPointPolygonIndex);
     const pointIndex = polygons[polygonIndex].points.findIndex(({ id }) => id === get(draggedPointId));
-
-    console.log({ polygonIndex, pointIndex, }, get(draggedPoint))
 
     polygons[polygonIndex].points[pointIndex] = clone(get(draggedPoint));
 

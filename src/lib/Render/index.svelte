@@ -1,9 +1,3 @@
-<script context="module">
-  export const prerender = true;
-  export const hydrate = false;
-  export const ssr = false; // Dropzone relies on window object :(
-</script>
-
 <script>
   import {
     isShiftPressed,
@@ -24,14 +18,13 @@
     imageEl,
     imageSrc,
     imageWidth,
-    imageHeight
+    imageHeight,
+    mouseX,
+    mouseY
   } from '$lib/stores.js';
 
   let closestSnapPoint = null;
   let closestLinePoint = null;
-
-  let localX;
-  let localY;
 
   const handlePolygonMouseenter = ({ polygonIndex }) => {
     hoveredPolygonIndex.set(polygonIndex);
@@ -64,7 +57,6 @@
 
   const handlePointMousedown = ({ point, polygonIndex, pointIndex }) => {
     selectedPolygonIndex.set(polygonIndex);
-    console.log(point);
     draggedPoint.set({ ...point });
   };
 
@@ -92,7 +84,7 @@
     $drawedPolygonIndex !== -1 &&
     $drawedPolygon.points.reduce((pointsString, { x, y }) => {
       return `${x},${y} ${pointsString}`;
-    }, `${localX},${localY}`);
+    }, `${$mouseX},${$mouseY}`);
 
   const handleImageLoad = async (e) => {
     imageWidth.set($imageEl.naturalWidth);

@@ -56,7 +56,6 @@
   };
 
   const handleFileInputChange = (e) => {
-    console.log({ e });
     const reader = new FileReader();
     const [file] = e.target.files;
     reader.readAsDataURL(file);

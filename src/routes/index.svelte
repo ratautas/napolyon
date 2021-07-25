@@ -37,14 +37,13 @@
     imageSrc,
     imageWidth,
     imageHeight,
+    mouseX,
+    mouseY,
     history
   } from '$lib/stores.js';
 
   let closestSnapPoint = null;
   let closestLinePoint = null;
-
-  let localX;
-  let localY;
 
   let scrollX = 0;
   let scrollY = 0;
@@ -57,8 +56,8 @@
   const handleCanvasMousemove = (e) => {
     const x = e.x + scrollX;
     const y = e.y + scrollY;
-    localX = x;
-    localY = y;
+    mouseX.set(x);
+    mouseY.set(y);
 
     if (($isDrawing || $draggedPoint) && $isCmdPressed) {
       closestSnapPoint = $polygons
@@ -86,8 +85,8 @@
     if ($isAltPressed) {
       closestLinePoint = findClosestLinePoint({
         ...hoveredLine,
-        x: localX,
-        y: localY
+        x: $mouseX,
+        y: $mouseY
       });
     }
 
@@ -97,8 +96,8 @@
       const diffX = Math.abs(x - lastDrawedPoint.x);
       const diffY = Math.abs(y - lastDrawedPoint.y);
 
-      if (diffX < diffY) localX = lastDrawedPoint.x;
-      if (diffX > diffY) localY = lastDrawedPoint.y;
+      if (diffX < diffY) mouseX.set(lastDrawedPoint.x);
+      if (diffX > diffY) mouseY.set(lastDrawedPoint.y);
     }
 
     if ($isToolbarDragging) {
@@ -139,8 +138,8 @@
     const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
 
     if (!$isShiftPressed) {
-      localX = e.x + scrollX;
-      localY = e.y + scrollY;
+      mouseX.set(e.x + scrollX);
+      mouseY.set(e.y + scrollY);
     }
 
     // unset selectedPolygonIndex if clicked outside polygon/point/toolbar
@@ -180,8 +179,8 @@
       }
 
       polygons.addPoint({
-        x: closestSnapPoint?.x ?? localX,
-        y: closestSnapPoint?.y ?? localY,
+        x: closestSnapPoint?.x ?? $mouseX,
+        y: closestSnapPoint?.y ?? $mouseY,
         polygonIndex: $drawedPolygonIndex,
         pointIndex: $drawedPolygon.points.length
       });
