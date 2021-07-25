@@ -43,6 +43,7 @@
   let closestSnapPoint = null;
   let closestLinePoint = null;
 
+  // dragged polygon/point is stored locally and saved to the store upon drag release
   let localDraggedPolygon;
   let localDraggedPoint;
 
@@ -66,10 +67,9 @@
     if (($isDrawing || $draggedPointIndex !== -1) && $isCmdPressed) {
       closestSnapPoint = $polygons
         .filter((polygon, index) => index !== $selectedPolygonIndex)
-        .reduce(
-          (acc, { points }) => findClosestSnapPoint({ points, x, y, radius: $snapRadius }) ?? acc,
-          null
-        );
+        .reduce((acc, { points }) => {
+          return findClosestSnapPoint({ points, x, y, radius: $snapRadius }) ?? acc;
+        }, null);
 
       if (!closestSnapPoint?.id) {
         if ($snapRadius > x) {
@@ -130,12 +130,15 @@
   };
 
   const handleCanvasMouseup = (e) => {
-    localX = e.x + scrollX;
-    localY = e.y + scrollY;
     const hasLineTarget = e.path.some((el) => el.matches?.('line'));
     const hasPolygonTarget = e.path.some((el) => el.matches?.('polygon'));
     const hasToolbarTarget = e.path.some((el) => el.matches?.('.toolbar'));
     const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
+
+    if (!$isShiftPressed) {
+      localX = e.x + scrollX;
+      localY = e.y + scrollY;
+    }
 
     // unset selectedPolygonIndex if clicked outside polygon/point/toolbar
     if (!hasPolygonTarget && !hasLineTarget && !hasPointTarget && !hasToolbarTarget) {
@@ -175,9 +178,10 @@
       if ($drawedPolygonIndex === -1) {
         polygons.addPolygon();
       }
+
       polygons.addPoint({
-        x: $isShiftPressed && closestSnapPoint ? closestSnapPoint.x : localX,
-        y: $isShiftPressed && closestSnapPoint ? closestSnapPoint.y : localY,
+        x: closestSnapPoint?.x ?? localX,
+        y: closestSnapPoint?.y ?? localY,
         polygonIndex: $drawedPolygonIndex,
         pointIndex: $drawedPolygon.points.length
       });
