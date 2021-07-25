@@ -25,7 +25,6 @@
     drawedPolygonIndex,
     selectedPolygonIndex,
     draggedPolygonIndex,
-    hoveredPolygon,
     hoveredPolygonIndex,
     draggedPointIndex,
     hoveredPointIndex,
@@ -190,7 +189,7 @@
         x: closestLinePoint.x,
         y: closestLinePoint.y,
         polygonIndex: $hoveredPolygonIndex,
-        pointIndex: $hoveredLineIndex + 1,
+        pointIndex: $hoveredLineIndex + 1
       });
     }
   };
@@ -357,12 +356,8 @@
   $: drawedPolygonPoints =
     lastDrawablePoint &&
     $drawedPolygonIndex !== -1 &&
-    $drawedPolygon.points.reduce((pointsString, point) => {
-      // serve X and Y from either localDraggedPoint or regularly
-      const { x, y } = localDraggedPoint?.id === point.id ? localDraggedPoint : point;
-      // return `${x},${y} ${pointsString}`;
-      return `${point.x},${point.y} ${pointsString}`;
-      // }, `${localDrawableX},${localDrawableY}`);
+    $drawedPolygon.points.reduce((pointsString, { x, y }) => {
+      return `${x},${y} ${pointsString}`;
     }, `${localX},${localY}`);
 
   const handleImageLoad = async (e) => {

@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { writable, derived, get } from 'svelte/store';
-import { create, formatters, clone, patch, unpatch, reverse } from 'jsondiffpatch';
+import { create, formatters, clone, patch, reverse } from 'jsondiffpatch';
 
 const MOCK_INITIAL_POLYGONS = [
   {

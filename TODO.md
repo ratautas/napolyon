@@ -1,4 +1,3 @@
-- split edge
 - large image points add
 - change cursor depending on point
 - onboarding window with shortcuts
