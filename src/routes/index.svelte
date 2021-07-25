@@ -63,34 +63,6 @@
 
   // let hoveredLineIndex = -1;
 
-  const handleCanvasMousedown = (e) => {
-    // only get elements which have .match() method (without 'window' and 'document')
-    const hasPolygonTarget = e.path.some((el) => el.matches?.('polygon'));
-    const hasLineTarget = e.path.some((el) => el.matches?.('line'));
-    const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
-    const hasToolbarTarget = e.path.some((el) => el.matches?.('.toolbar'));
-
-    // unset selectedPolygonIndex if clicked outside polygon/point/toolbar
-    if (!hasPolygonTarget && !hasLineTarget && !hasPointTarget && !hasToolbarTarget) {
-      selectedPolygonIndex.set(-1);
-    }
-
-    // unset drawedPolygon if clicked on toolbar
-    if (hasToolbarTarget) drawedPolygonIndex.set(-1);
-
-    if ($isDrawing) {
-      if ($drawedPolygonIndex === -1) {
-        polygons.addPolygon();
-      }
-      polygons.addPoint({
-        x: $isShiftPressed ? localX : closestSnapPoint?.x ?? e.x,
-        y: $isShiftPressed ? localY : closestSnapPoint?.y ?? e.y,
-        polygonIndex: $drawedPolygonIndex,
-        pointIndex: $drawedPolygon.points.length
-      });
-    }
-  };
-
   const handleCanvasMousemove = ({ x, y, movementX, movementY }) => {
     localX = x;
     localY = y;
@@ -167,6 +139,14 @@
     const hasToolbarTarget = e.path.some((el) => el.matches?.('.toolbar'));
     const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
 
+    // unset selectedPolygonIndex if clicked outside polygon/point/toolbar
+    if (!hasPolygonTarget && !hasLineTarget && !hasPointTarget && !hasToolbarTarget) {
+      selectedPolygonIndex.set(-1);
+    }
+
+    // unset drawedPolygon if clicked on toolbar
+    if (hasToolbarTarget) drawedPolygonIndex.set(-1);
+
     if (hasToolbarTarget && $isToolbarDragging) {
       isToolbarDragging.set(false);
     }
@@ -191,6 +171,18 @@
     if (!hasPolygonTarget && !hasToolbarTarget && !hasLineTarget && !hasPointTarget) {
       selectedPolygonIndex.set(-1);
       hoveredPolygonIndex.set(-1);
+    }
+
+    if ($isDrawing) {
+      if ($drawedPolygonIndex === -1) {
+        polygons.addPolygon();
+      }
+      polygons.addPoint({
+        x: $isShiftPressed ? localX : closestSnapPoint?.x ?? e.x,
+        y: $isShiftPressed ? localY : closestSnapPoint?.y ?? e.y,
+        polygonIndex: $drawedPolygonIndex,
+        pointIndex: $drawedPolygon.points.length
+      });
     }
 
     if ($isAltPressed && closestLinePoint) {
@@ -400,7 +392,6 @@
 
 <div
   class="canvas"
-  on:mousedown={handleCanvasMousedown}
   on:mousemove={handleCanvasMousemove}
   on:mouseup={handleCanvasMouseup}
   class:is-drawing={$isDrawing}

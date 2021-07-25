@@ -144,16 +144,19 @@ export const polygons = {
     }
     ];
   }),
-  addPoint: ({ x, y, polygonIndex, pointIndex}) => polygonsStore.update($polygons => {
+  addPoint: ({ x, y, polygonIndex, pointIndex }) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const newPointId = nanoid(6);
     const polygonPoints = polygons[polygonIndex].points;
+
 
     polygons[polygonIndex].points = [
       ...polygonPoints.slice(0, pointIndex),
       { x, y, id: newPointId },
       ...polygonPoints.slice(pointIndex),
     ];
+
+    console.log({ pointIndex });
 
     const delta = patcher.diff($polygons, polygons);
     if (delta) history.push({ delta, origin: 'addPoint' });

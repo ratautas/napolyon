@@ -14,12 +14,11 @@
 - remove SVG class before export
 
 Next iteration:
-- convert points/polygons to array
 - insert point between points
-- undo / redo
 - use paths instead of polygons
 - split polygons and points etc to small components 
 - Electron bundle
+- get back to y.js instead of diffing 
 
 
 - Hold ctrl to snap
