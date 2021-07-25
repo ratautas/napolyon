@@ -82,14 +82,12 @@
       if ($drawedPolygonIndex === -1) {
         polygons.addPolygon();
       }
-      polygons.addPoint(
-        {
-          x: $isShiftPressed ? localX : closestSnapPoint?.x ?? e.x,
-          y: $isShiftPressed ? localY : closestSnapPoint?.y ?? e.y
-        },
-        $drawedPolygonIndex,
-        $drawedPolygon.points.length
-      );
+      polygons.addPoint({
+        x: $isShiftPressed ? localX : closestSnapPoint?.x ?? e.x,
+        y: $isShiftPressed ? localY : closestSnapPoint?.y ?? e.y,
+        polygonIndex: $drawedPolygonIndex,
+        pointIndex: $drawedPolygon.points.length
+      });
     }
   };
 
@@ -198,14 +196,12 @@
     if ($isAltPressed && closestLinePoint) {
       const lineIndex =
         $hoveredLineIndex > $hoveredPolygon.points.length ? $hoveredLineIndex + 1 : 0;
-      polygons.addPoint(
-        {
-          x: closestLinePoint.x,
-          y: closestLinePoint.y
-        },
-        $hoveredPolygonIndex,
-        lineIndex
-      );
+      polygons.addPoint({
+        x: closestLinePoint.x,
+        y: closestLinePoint.y,
+        polygonIndex: $hoveredPolygonIndex,
+        pointIndex: lineIndex
+      });
     }
   };
 
@@ -474,7 +470,8 @@
             class:is-hoovered={polygonIndex === $hoveredPolygonIndex &&
               pointIndex === $hoveredPointIndex}
             class:is-closest-snapable={point.id === closestSnapPoint?.id && $isCmdPressed}
-            class:is-dragable={pointIndex === $draggedPointIndex}
+            class:is-dragable={pointIndex === $draggedPointIndex &&
+              polygonIndex === $hoveredPolygonIndex}
             id={point.id}
             tabindex="0"
             on:mouseenter={() => handlePointMouseenter({ pointIndex, polygonIndex })}

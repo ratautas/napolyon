@@ -144,7 +144,7 @@ export const polygons = {
     }
     ];
   }),
-  addPoint: ({ x, y }, polygonIndex, pointIndex) => polygonsStore.update($polygons => {
+  addPoint: ({ x, y, polygonIndex, pointIndex}) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const newPointId = nanoid(6);
     const polygonPoints = polygons[polygonIndex].points;
