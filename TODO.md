@@ -1,4 +1,3 @@
-- large image points add
 - change cursor depending on point
 - onboarding window with shortcuts
 - delete/enter without cmd

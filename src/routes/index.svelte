@@ -40,30 +40,27 @@
     history
   } from '$lib/stores.js';
 
-  // let svgEl;
-  // let imageEl;
-  // let src;
-  // let imageWidth;
-  // let imageHeight;
-
   let closestSnapPoint = null;
   let closestLinePoint = null;
 
   let localDraggedPolygon;
   let localDraggedPoint;
 
-  // let localDrawableX;
-  // let localDrawableY;
-
   let localX;
   let localY;
 
-  // let hoveredPointIndex = -1;
-  // let hoveredPointPolygonIndex = -1;
+  let scrollX = 0;
+  let scrollY = 0;
 
-  // let hoveredLineIndex = -1;
+  // const handleCanvasMousemove = ({ x, y, clientX, clientY, movementX, movementY, ...e }) => {
+  const handleCanvasScroll = (e) => {
+    scrollY = e.target.scrollTop;
+    scrollX = e.target.scrollLeft;
+  };
 
-  const handleCanvasMousemove = ({ x, y, movementX, movementY }) => {
+  const handleCanvasMousemove = (e) => {
+    const x = e.x + scrollX;
+    const y = e.y + scrollY;
     localX = x;
     localY = y;
 
@@ -102,22 +99,22 @@
     if ($isDrawing) {
       if (!$isShiftPressed) return;
 
-      const diffX = Math.abs(x - lastDrawablePoint.x);
-      const diffY = Math.abs(y - lastDrawablePoint.y);
+      const diffX = Math.abs(x - lastDrawedPoint.x);
+      const diffY = Math.abs(y - lastDrawedPoint.y);
 
-      if (diffX < diffY) localX = lastDrawablePoint.x;
-      if (diffX > diffY) localY = lastDrawablePoint.y;
+      if (diffX < diffY) localX = lastDrawedPoint.x;
+      if (diffX > diffY) localY = lastDrawedPoint.y;
     }
 
     if ($isToolbarDragging) {
-      toolbarX.set($toolbarX + movementX);
-      toolbarY.set($toolbarY + movementY);
+      toolbarX.set($toolbarX + e.movementX);
+      toolbarY.set($toolbarY + e.movementY);
       return;
     }
 
     if ($draggedPointIndex !== -1 && $selectedPolygonIndex !== -1) {
-      localDraggedPoint.x = localDraggedPoint.x + movementX;
-      localDraggedPoint.y = localDraggedPoint.y + movementY;
+      localDraggedPoint.x = localDraggedPoint.x + e.movementX;
+      localDraggedPoint.y = localDraggedPoint.y + e.movementY;
       return;
     }
 
@@ -126,14 +123,16 @@
       drawedPolygonIndex.set(-1);
       localDraggedPolygon.points = localDraggedPolygon.points.map((point) => ({
         id: point.id,
-        x: point.x + movementX,
-        y: point.y + movementY
+        x: point.x + e.movementX,
+        y: point.y + e.movementY
       }));
       return;
     }
   };
 
   const handleCanvasMouseup = (e) => {
+    localX = e.x + scrollX;
+    localY = e.y + scrollY;
     const hasLineTarget = e.path.some((el) => el.matches?.('line'));
     const hasPolygonTarget = e.path.some((el) => el.matches?.('polygon'));
     const hasToolbarTarget = e.path.some((el) => el.matches?.('.toolbar'));
@@ -178,8 +177,8 @@
         polygons.addPolygon();
       }
       polygons.addPoint({
-        x: $isShiftPressed ? localX : closestSnapPoint?.x ?? e.x,
-        y: $isShiftPressed ? localY : closestSnapPoint?.y ?? e.y,
+        x: $isShiftPressed && closestSnapPoint ? closestSnapPoint.x : localX,
+        y: $isShiftPressed && closestSnapPoint ? closestSnapPoint.y : localY,
         polygonIndex: $drawedPolygonIndex,
         pointIndex: $drawedPolygon.points.length
       });
@@ -236,7 +235,7 @@
     hoveredPointIndex.set(pointIndex);
   };
 
-  const handlePointMouseleave = ({ e, point, polygon }) => {
+  const handlePointMouseleave = ({ e }) => {
     const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
 
     hoveredPointIndex.set(-1);
@@ -350,19 +349,18 @@
 
   $: hoveredLine = renderPolygons[$hoveredPolygonIndex]?.lines[$hoveredLineIndex];
 
-  $: lastDrawablePoint = $drawedPolygon
+  $: lastDrawedPoint = $drawedPolygon
     ? $drawedPolygon.points[$drawedPolygon.points.length - 1]
     : {};
 
   $: drawedPolygonPoints =
-    lastDrawablePoint &&
+    lastDrawedPoint &&
     $drawedPolygonIndex !== -1 &&
     $drawedPolygon.points.reduce((pointsString, { x, y }) => {
       return `${x},${y} ${pointsString}`;
     }, `${localX},${localY}`);
 
   const handleImageLoad = async (e) => {
-    console.log(e)
     imageWidth.set($imageEl.naturalWidth);
     imageHeight.set($imageEl.naturalHeight);
   };
@@ -387,6 +385,7 @@
   class="canvas"
   on:mousemove={handleCanvasMousemove}
   on:mouseup={handleCanvasMouseup}
+  on:scroll={handleCanvasScroll}
   class:is-drawing={$isDrawing}
   style={`--snapRadius:${$snapRadius}px`}
 >

@@ -107,9 +107,9 @@ export const imageSrc = writable(null);
 export const imageWidth = writable(null);
 export const imageHeight = writable(null);
 
-// imageSrc.set('https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=900&height=600&q=80');
-// imageWidth.set(900);
-// imageHeight.set(600);
+imageSrc.set('https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=1900&height=1600&q=80');
+imageWidth.set(1900);
+imageHeight.set(1600);
 
 export const globalAttributesStore = writable({});
 
