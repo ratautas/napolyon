@@ -1,9 +1,7 @@
-- delete/enter without cmd
-- select/delete point
-
 - pen cursor icon (illustrator)
 - change cursor depending on point
 - onboarding window with shortcuts
+
 - add default  <image width="100%" height="100%" xlink:href="/IMAGE_URL.png"></image> 
 - hide snappable points while shift is pressed
 - cleanup CSS => BEM
