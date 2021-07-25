@@ -214,24 +214,27 @@ export const polygons = {
 
     return polygons;
   }),
-  setDraggablePolygonPosition: (localDragablePolygon) => polygonsStore.update($polygons => {
+  setDraggedPolygonPosition: () => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
-    polygons[get(draggedPolygonIndex)] = localDragablePolygon;
+    polygons[get(draggedPolygonIndex)] = clone(get(draggedPolygon));
 
     const delta = patcher.diff($polygons, polygons);
-    if (delta) history.push({ delta, origin: 'setDraggablePolygonPosition' });
+    if (delta) history.push({ delta, origin: 'setDraggedPolygonPosition' });
 
     return polygons;
   }),
-  setDraggablePointPosition: (localDragablePoint) => polygonsStore.update($polygons => {
+  setDraggedPointPosition: () => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const polygonIndex = get(selectedPolygonIndex);
-    const pointIndex = polygons[polygonIndex].points.findIndex(({ id }) => id === localDragablePoint.id);
+    const pointIndex = polygons[polygonIndex].points.findIndex(({ id }) => id === get(draggedPointId));
 
-    polygons[polygonIndex].points[pointIndex] = clone(localDragablePoint);
+    // TODO: this is a workaround whan there is no selected polygon :(
+    if (!polygons[polygonIndex]) return;
+    
+    polygons[polygonIndex].points[pointIndex] = clone(get(draggedPoint));
 
     const delta = patcher.diff($polygons, polygons);
-    if (delta) history.push({ delta, origin: 'setDraggablePointPosition' });
+    if (delta) history.push({ delta, origin: 'setDraggedPointPosition' });
 
     return polygons;
   }),
@@ -251,9 +254,9 @@ export const drawedPolygonIndex = writable(-1);
 export const drawedPolygon = derived([polygonsStore, drawedPolygonIndex], ([$store, $i]) => $store[$i]);
 export const drawedPolygonId = derived([drawedPolygon], ([$polygon]) => $polygon?.id);
 
-export const draggedPolygonIndex = writable(-1);
-export const draggedPolygon = derived([polygonsStore, draggedPolygonIndex], ([$store, $i]) => $store[$i]);
+export const draggedPolygon = writable(null);
 export const draggedPolygonId = derived([draggedPolygon], ([$polygon]) => $polygon?.id);
+export const draggedPolygonIndex = derived([polygonsStore, draggedPolygonId], ([$store, $id]) => $store.findIndex(({ id }) => $id === id));
 
 // POINTS:
 export const hoveredPointIndex = writable(-1);
@@ -264,9 +267,8 @@ export const selectedPointIndex = writable(-1);
 export const selectedPoint = derived([polygonsStore, selectedPointIndex], ([$store, $i]) => $store[$i]);
 export const selectedPointId = derived([selectedPoint], ([$polygon]) => $polygon?.id);
 
-export const draggedPointIndex = writable(-1);
-export const draggedPoint = derived([polygonsStore, draggedPointIndex], ([$store, $i]) => $store[$i]);
-export const draggedPointId = derived([draggedPoint], ([$polygon]) => $polygon?.id);
+export const draggedPoint = writable(null);
+export const draggedPointId = derived([draggedPoint], ([$point]) => $point?.id);
 
 // LINES:
 export const hoveredLineIndex = writable(-1);
@@ -277,7 +279,6 @@ export const history = {
   subscribe: historyStore.subscribe,
   set: historyStore.set,
   push: (entry) => historyStore.update($history => {
-
     return {
       undoQueue: [entry, ...$history.undoQueue],
       redoQueue: []
