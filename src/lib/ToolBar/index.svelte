@@ -10,6 +10,7 @@
   import ToolBarAttributes from '$lib/ToolBar/ToolBarAttributes.svelte';
 
   import {
+    isInputFocused,
     isCmdPressed,
     snapRadius,
     toolbarX,
@@ -29,6 +30,7 @@
 </script>
 
 <div class="toolbar" {style} bind:this={toolbarEl}>
+  {$isInputFocused}
   <ToolBarButtons />
   <Accordion>
     <!-- <AccordionItem>

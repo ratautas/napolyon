@@ -8,6 +8,7 @@
   import Add16 from 'carbon-icons-svelte/lib/Add16';
 
   import {
+    isInputFocused,
     selectedPolygon,
     selectedPolygonIndex,
     polygons,
@@ -53,6 +54,8 @@
             required
             labelText={attribute.name}
             bind:value={$polygons[$selectedPolygonIndex].attributes[attribute.name]}
+            on:focus={() => isInputFocused.set(true)}
+            on:blur={() => isInputFocused.set(false)}
           />
           <Button
             class="attributes__delete"
@@ -83,8 +86,16 @@
           size="sm"
           placeholder="Attribute Name"
           bind:value={newAttributeName}
+          on:focus={() => isInputFocused.set(true)}
+          on:blur={() => isInputFocused.set(false)}
         />
-        <TextInput required placeholder="Attribute Value" bind:value={newAttributeValue} />
+        <TextInput
+          required
+          placeholder="Attribute Value"
+          bind:value={newAttributeValue}
+          on:focus={() => isInputFocused.set(true)}
+          on:blur={() => isInputFocused.set(false)}
+        />
       </div>
       <div class="attributes__add">
         <Button size="large" type="submit" icon={Add16}>ADD</Button>
@@ -93,6 +104,8 @@
           labelA=""
           labelB="Add To All Polygons"
           bind:toggled={isNewAttributeGlobal}
+          on:focus={() => isInputFocused.set(true)}
+          on:blur={() => isInputFocused.set(false)}
         />
       </div>
     </Form>

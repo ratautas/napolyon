@@ -3,7 +3,6 @@ import { writable, derived, get } from 'svelte/store';
 import { create, formatters, clone, patch, reverse } from 'jsondiffpatch';
 
 import { findClosestSnapPoint } from '$lib/utils/findClosestSnapPoint';
-import { findClosestLinePoint } from '$lib/utils/findClosestLinePoint';
 
 const MOCK_INITIAL_POLYGONS = [
   {
@@ -94,8 +93,10 @@ export const patcher = create({
 });
 
 export const mode = writable(null);
+
 export const isDrawing = writable(false);
 export const snapRadius = writable(20);
+export const isInputFocused = writable(false);
 
 export const isToolbarDragging = writable(false);
 export const toolbarX = writable(30);

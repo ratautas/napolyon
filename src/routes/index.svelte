@@ -15,6 +15,7 @@
 
   import {
     globalAttributes,
+    isInputFocused,
     isShiftPressed,
     isCmdPressed,
     isAltPressed,
@@ -112,10 +113,15 @@
     const hasPolygonTarget = e.path.some((el) => el.matches?.('polygon'));
     const hasToolbarTarget = e.path.some((el) => el.matches?.('.toolbar'));
     const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
+    const hasInputTarget = e.path.some((el) => el.matches?.('input'));
 
     if (!$isShiftPressed) {
       mouseX.set(e.x + scrollX);
       mouseY.set(e.y + scrollY);
+    }
+
+    if (!hasInputTarget) {
+      isInputFocused.set(false);
     }
 
     // unset selectedPolygonIndex if clicked outside polygon/point/toolbar
@@ -202,7 +208,7 @@
       drawedPolygonIndex.set(-1);
       isDrawing.set(false);
     }
-    if ($isCmdPressed && (e.key === 'Backspace' || e.key === 'Delete')) {
+    if (!$isInputFocused && (e.key === 'Backspace' || e.key === 'Delete')) {
       if ($drawedPolygonIndex !== -1) {
         polygons.deletePolygon($drawedPolygonIndex);
         isDrawing.set(false);
