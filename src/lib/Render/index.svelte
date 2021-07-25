@@ -16,6 +16,7 @@
     mouseY
   } from '$lib/stores.js';
 
+  import RenderImage from '$lib/Render/RenderImage.svelte';
   import RenderPoints from '$lib/Render/RenderPoints.svelte';
   import RenderLines from '$lib/Render/RenderLines.svelte';
 
@@ -48,24 +49,10 @@
     $drawedPolygon.points.reduce((pointsString, { x, y }) => {
       return `${x},${y} ${pointsString}`;
     }, `${$mouseX},${$mouseY}`);
-
-  const handleImageLoad = async (e) => {
-    imageWidth.set($imageEl.naturalWidth);
-    imageHeight.set($imageEl.naturalHeight);
-  };
 </script>
 
 <div class="render">
-  <img
-    src={$imageSrc}
-    alt=""
-    width={$imageWidth}
-    height={$imageHeight}
-    style={`width:${$imageWidth}px;height:${$imageHeight}px;`}
-    bind:this={$imageEl}
-    on:load={handleImageLoad}
-  />
-
+  <RenderImage />
   {#if $imageWidth && $imageHeight}
     <svg
       xmlns="http://www.w3.org/2000/svg"
