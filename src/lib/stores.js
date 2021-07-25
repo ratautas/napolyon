@@ -225,12 +225,9 @@ export const polygons = {
   }),
   setDraggedPointPosition: () => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
-    const polygonIndex = get(selectedPolygonIndex);
+    const polygonIndex = get(draggedPointPolygonIndex);
     const pointIndex = polygons[polygonIndex].points.findIndex(({ id }) => id === get(draggedPointId));
 
-    // TODO: this is a workaround whan there is no selected polygon :(
-    if (!polygons[polygonIndex]) return;
-    
     polygons[polygonIndex].points[pointIndex] = clone(get(draggedPoint));
 
     const delta = patcher.diff($polygons, polygons);
@@ -269,6 +266,15 @@ export const selectedPointId = derived([selectedPoint], ([$polygon]) => $polygon
 
 export const draggedPoint = writable(null);
 export const draggedPointId = derived([draggedPoint], ([$point]) => $point?.id);
+export const draggedPointPolygon = derived(
+  [polygonsStore, draggedPoint],
+  ([$store, $point]) => $store.find((polygon) => polygon.points.find((point) => point.id === $point.id))
+);
+export const draggedPointPolygonId = derived([draggedPointPolygon], ([$polygon]) => $polygon?.id);
+export const draggedPointPolygonIndex = derived(
+  [polygonsStore, draggedPointPolygonId],
+  ([$store, $id]) => $store.findIndex(({ id }) => $id === id)
+);
 
 // LINES:
 export const hoveredLineIndex = writable(-1);

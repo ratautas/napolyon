@@ -61,7 +61,7 @@
     localX = x;
     localY = y;
 
-    if (($isDrawing || !!$draggedPoint) && $isCmdPressed) {
+    if (($isDrawing || $draggedPoint) && $isCmdPressed) {
       closestSnapPoint = $polygons
         .filter((polygon, index) => index !== $selectedPolygonIndex)
         .reduce((acc, { points }) => {
@@ -108,7 +108,7 @@
       return;
     }
 
-    if (!!$draggedPoint && $selectedPolygonIndex !== -1) {
+    if ($draggedPoint) {
       draggedPoint.set({
         ...$draggedPoint,
         x: $draggedPoint.x + e.movementX,
