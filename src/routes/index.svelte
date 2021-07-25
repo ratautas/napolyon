@@ -22,15 +22,14 @@
     fileUploader,
     snapRadius,
     polygons,
+    renderPolygons,
     drawedPolygon,
     drawedPolygonIndex,
     selectedPolygonIndex,
     draggedPolygon,
-    draggedPolygonId,
     hoveredPolygonIndex,
     hoveredLineIndex,
     draggedPoint,
-    draggedPointId,
     closestSnapPoint,
     isToolbarDragging,
     toolbarX,
@@ -41,7 +40,6 @@
     history
   } from '$lib/stores.js';
 
-  // let closestSnapPoint = null;
   let closestLinePoint = null;
 
   let scrollX = 0;
@@ -93,6 +91,7 @@
 
     if ($draggedPolygon) {
       isDrawing.set(false);
+      drawedPolygonIndex.set(-1);
       draggedPolygon.set({
         ...$draggedPolygon,
         points: $draggedPolygon.points.map((point) => ({
@@ -101,7 +100,6 @@
           y: point?.y + e.movementY
         }))
       });
-      drawedPolygonIndex.set(-1);
 
       return;
     }
@@ -242,43 +240,7 @@
     globalAttributes.add({ name: 'data-shape-row2', value: 'Laisvų komercinių patalpų - 1' });
   }
 
-  $: renderPolygons = $polygons.map((polygon) => {
-    const { points } = polygon.id === $draggedPolygonId ? $draggedPolygon : polygon;
-    const renderPoints = points.map((point) => {
-      // const { x, y } = point.id === $draggedPointId ? $draggedPoint : point;
-      // const { x, y } = point;
-      const { x, y } = $draggedPoint && point.id === $draggedPointId ? $draggedPoint : point;
-      return { ...point, x, y };
-    });
-    return {
-      ...polygon,
-      // points: points.map((point) => {
-      //   const { x } = $draggedPoint?.id === point.id ? $draggedPoint : point;
-      //   const { y } = $draggedPoint?.id === point.id ? $draggedPoint : point;
-      //   return { ...point, x, y };
-      // }),
-      points: renderPoints,
-      pointsReduced: renderPoints
-        .reduce((pointsString, point) => {
-          // const { x } = $draggedPoint?.id === point.id ? $draggedPoint : point;
-          // const { y } = $draggedPoint?.id === point.id ? $draggedPoint : point;
-          return `${pointsString} ${point.x},${point.y}`;
-        }, '')
-        .replace(' ', ''),
-      lines: renderPoints.map((point, index, arr) => {
-        const nextIndex = index === arr.length - 1 ? 0 : index + 1;
-
-        return {
-          x1: arr[index].x,
-          x2: arr[nextIndex].x,
-          y1: arr[index].y,
-          y2: arr[nextIndex].y
-        };
-      })
-    };
-  });
-
-  $: hoveredLine = renderPolygons[$hoveredPolygonIndex]?.lines[$hoveredLineIndex];
+  $: hoveredLine = $renderPolygons[$hoveredPolygonIndex]?.lines[$hoveredLineIndex];
 
   $: lastDrawedPoint = $drawedPolygon
     ? $drawedPolygon.points[$drawedPolygon.points.length - 1]

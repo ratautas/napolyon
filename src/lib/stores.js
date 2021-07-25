@@ -319,7 +319,6 @@ export const renderPolygons = derived(
   })
 );
 
-// flatten points object to renderable string
 export const closestSnapPoint = derived(
   [polygons, selectedPolygonIndex, draggedPoint, isDrawing, isCmdPressed, snapRadius, mouseX, mouseY, imageWidth, imageHeight],
   ([$polygons, $selectedPolygonIndex, $draggedPoint, $isDrawing, $isCmdPressed, $snapRadius, $mouseX, $mouseY, $imageWidth, $imageHeight]) => {
@@ -348,8 +347,6 @@ export const closestSnapPoint = derived(
     return point;
   }
 );
-
-
 
 export const history = {
   subscribe: historyStore.subscribe,

@@ -10,22 +10,22 @@
     draggedPointId,
     closestSnapPoint,
     imageWidth,
-    imageHeight,
+    imageHeight
   } from '$lib/stores.js';
 
   let closestLinePoint = null;
-
-  const handlePointMousedown = ({ point, polygonIndex, pointIndex }) => {
-    selectedPolygonIndex.set(polygonIndex);
-    draggedPoint.set({ ...point });
-  };
 
   const handlePointMouseenter = ({ pointIndex, polygonIndex }) => {
     hoveredPolygonIndex.set(polygonIndex);
     hoveredPointIndex.set(pointIndex);
   };
 
-  const handlePointMouseleave = ({ e }) => {
+  const handlePointMousedown = ({ point, polygonIndex }) => {
+    selectedPolygonIndex.set(polygonIndex);
+    draggedPoint.set({ ...point });
+  };
+
+  const handlePointMouseleave = (e) => {
     const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
 
     hoveredPointIndex.set(-1);
@@ -49,9 +49,8 @@
       id={point.id}
       tabindex="0"
       on:mouseenter={() => handlePointMouseenter({ pointIndex, polygonIndex })}
-      on:mouseleave={(e) =>
-        handlePointMouseleave({ e, point, polygon, polygonIndex, polygonIndex })}
-      on:mousedown={(e) => handlePointMousedown({ e, point, polygon, polygonIndex, pointIndex })}
+      on:mousedown={() => handlePointMousedown({ point, polygonIndex })}
+      on:mouseleave={handlePointMouseleave}
     />
   {/each}
 {/each}

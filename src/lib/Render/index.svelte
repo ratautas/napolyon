@@ -2,23 +2,19 @@
   import {
     isDrawing,
     renderPolygons,
-    drawedPolygon,
     drawedPolygonIndex,
     selectedPolygonIndex,
     draggedPolygon,
     hoveredPolygonIndex,
     svgEl,
-    imageEl,
-    imageSrc,
     imageWidth,
-    imageHeight,
-    mouseX,
-    mouseY
+    imageHeight
   } from '$lib/stores.js';
 
   import RenderImage from '$lib/Render/RenderImage.svelte';
   import RenderPoints from '$lib/Render/RenderPoints.svelte';
   import RenderLines from '$lib/Render/RenderLines.svelte';
+  import RenderPlaceholderPolygon from '$lib/Render/RenderPlaceholderPolygon.svelte';
 
   const handlePolygonMouseenter = ({ polygonIndex }) => {
     hoveredPolygonIndex.set(polygonIndex);
@@ -38,17 +34,6 @@
       draggedPolygon.set(null);
     }
   };
-
-  $: lastDrawedPoint = $drawedPolygon
-    ? $drawedPolygon.points[$drawedPolygon.points.length - 1]
-    : {};
-
-  $: drawedPolygonPoints =
-    lastDrawedPoint &&
-    $drawedPolygonIndex !== -1 &&
-    $drawedPolygon.points.reduce((pointsString, { x, y }) => {
-      return `${x},${y} ${pointsString}`;
-    }, `${$mouseX},${$mouseY}`);
 </script>
 
 <div class="render">
@@ -60,7 +45,7 @@
       bind:this={$svgEl}
     >
       {#if $drawedPolygonIndex !== -1 && $isDrawing}
-        <polygon class="placeholder" points={drawedPolygonPoints} />
+        <RenderPlaceholderPolygon />
       {/if}
       {#each $renderPolygons as polygon, polygonIndex}
         <polygon
@@ -71,9 +56,9 @@
           class:is-dragging={polygonIndex === $drawedPolygonIndex}
           class:is-hovered={polygonIndex === $hoveredPolygonIndex}
           class:is-selected={polygonIndex === $selectedPolygonIndex}
-          on:mousedown={(e) => handlePolygonMousedown({ e, polygon, polygonIndex })}
-          on:mouseenter={(e) => handlePolygonMouseenter({ e, polygon, polygonIndex })}
-          on:mouseleave={(e) => handlePolygonMouseleave({ e, polygon, polygonIndex })}
+          on:mouseenter={(e) => handlePolygonMouseenter({ polygonIndex })}
+          on:mousedown={(e) => handlePolygonMousedown({ polygon, polygonIndex })}
+          on:mouseleave={(e) => handlePolygonMouseleave({ e })}
         />
       {/each}
       <RenderLines />

@@ -23,7 +23,7 @@
       stroke-width="5"
       class:is-hovered={lineIndex === $hoveredLineIndex && polygonIndex === $hoveredPolygonIndex}
       on:mouseenter={() => handleLineMouseenter({ polygonIndex, lineIndex })}
-      on:mouseleave={() => handleLineMouseleave()}
+      on:mouseleave={handleLineMouseleave}
     />
   {/each}
 {/each}
