@@ -162,6 +162,14 @@ export const polygons = {
     }
     ];
   }),
+  deletePolygon: (polygonIndex) => polygonsStore.update($polygons => {
+    const polygons = $polygons.filter((polygon, index) => index !== polygonIndex);
+
+    const delta = patcher.diff($polygons, polygons);
+    if (delta) history.push({ delta, origin: 'deletePolygon' });
+
+    return polygons;
+  }),
   addPoint: ({ x, y, polygonIndex, pointIndex }) => polygonsStore.update($polygons => {
     const polygons = clone($polygons);
     const newPointId = nanoid(6);
@@ -178,11 +186,14 @@ export const polygons = {
 
     return polygons;
   }),
-  deletePolygon: (polygonIndex) => polygonsStore.update($polygons => {
-    const polygons = $polygons.filter((polygon, index) => index !== polygonIndex);
+  deleteSelectedPoint: () => polygonsStore.update($polygons => {
+    const polygons = clone($polygons);
+    const polygonIndex = get(selectedPolygonIndex);
+
+    polygons[polygonIndex].points = polygons[polygonIndex].points.filter((point) => point.id !== get(selectedPoint)?.id)
 
     const delta = patcher.diff($polygons, polygons);
-    if (delta) history.push({ delta, origin: 'deletePolygon' });
+    if (delta) history.push({ delta, origin: 'addPoint' });
 
     return polygons;
   }),

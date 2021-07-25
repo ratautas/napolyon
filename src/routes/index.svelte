@@ -209,17 +209,19 @@
       isDrawing.set(false);
     }
     if (!$isInputFocused && (e.key === 'Backspace' || e.key === 'Delete')) {
-      if ($drawedPolygonIndex !== -1) {
-        polygons.deletePolygon($drawedPolygonIndex);
-        isDrawing.set(false);
-        // additional escape if dragging gets out of hand
-        draggedPolygon.set(null);
-        selectedPolygonIndex.set(-1);
-        drawedPolygonIndex.set(-1);
+      if ($selectedPoint) {
+        polygons.deleteSelectedPoint();
+        return;
       }
       if ($selectedPolygonIndex !== -1) {
         polygons.deletePolygon($selectedPolygonIndex);
         selectedPolygonIndex.set(-1);
+        return;
+      }
+      if ($drawedPolygonIndex !== -1) {
+        polygons.deletePolygon($drawedPolygonIndex);
+        isDrawing.set(false);
+        return;
       }
     }
     if ($isCmdPressed && $isShiftPressed && e.key === 'z') {
