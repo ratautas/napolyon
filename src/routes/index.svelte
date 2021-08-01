@@ -63,6 +63,8 @@
   const handleCanvasMousemove = (e) => {
     const x = e.x + scrollX;
     const y = e.y + scrollY;
+    mouseX.set(x);
+    mouseY.set(y);
 
     if ($isSpacePressed && isCanvasGrabbing) {
       canvasEl.scrollBy(-e.movementX, -e.movementY);

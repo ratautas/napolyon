@@ -17,7 +17,9 @@
   import RenderPlaceholderPolygon from '$lib/Render/RenderPlaceholderPolygon.svelte';
 
   const handlePolygonMouseenter = ({ polygonIndex }) => {
-    hoveredPolygonIndex.set(polygonIndex);
+    if (!$isDrawing) {
+      hoveredPolygonIndex.set(polygonIndex);
+    }
   };
 
   const handlePolygonMousedown = ({ polygon, polygonIndex }) => {

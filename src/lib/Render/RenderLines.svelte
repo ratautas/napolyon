@@ -1,9 +1,11 @@
 <script>
-  import { renderPolygons, hoveredPolygonIndex, hoveredLineIndex } from '$lib/stores.js';
+  import { renderPolygons, hoveredPolygonIndex, hoveredLineIndex, isDrawing } from '$lib/stores.js';
 
   const handleLineMouseenter = ({ polygonIndex, lineIndex }) => {
-    hoveredLineIndex.set(lineIndex);
-    hoveredPolygonIndex.set(polygonIndex);
+    if (!$isDrawing) {
+      hoveredLineIndex.set(lineIndex);
+      hoveredPolygonIndex.set(polygonIndex);
+    }
   };
 
   const handleLineMouseleave = () => {
