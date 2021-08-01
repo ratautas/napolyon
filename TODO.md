@@ -1,3 +1,4 @@
+[RETHINK INTERACTIONS / SHORTCUTS]
 - pen cursor icon (illustrator)
 - change cursor depending on point
 - onboarding window with shortcuts

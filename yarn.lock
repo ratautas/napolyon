@@ -528,28 +528,23 @@ camelcase@^5.0.0, camelcase@^5.3.1:
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-5.3.1.tgz#e3c9b31569e106811df242f715725a1f4c494320"
   integrity sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg==
 
-carbon-components-svelte@^0.42.0:
-  version "0.42.0"
-  resolved "https://registry.yarnpkg.com/carbon-components-svelte/-/carbon-components-svelte-0.42.0.tgz#19aaffcf48771011959c2182b61125506598c1b4"
-  integrity sha512-semOzSRlc7pa2EGOXuiUmcu/tv1FDRdSazxrfyfEsgoJ4SYBt7fNLi15AsTtMS544Sj3JsHJseQxHAlLl9dCLA==
+carbon-components-svelte@^0.42.2:
+  version "0.42.2"
+  resolved "https://registry.yarnpkg.com/carbon-components-svelte/-/carbon-components-svelte-0.42.2.tgz#54cacedc6be7e0dad518da2de051f9c49107c3cb"
+  integrity sha512-O1eLYa+kzDEZSqN+TiO60MTXk9FMuB2IcoogFh6d1GzyjoGu7awMunukNxh5LSdDG7OEPTfVtQ2+5C6frgGqEQ==
   dependencies:
-    carbon-icons-svelte "^10.27.0"
+    carbon-icons-svelte "^10.36.0"
     flatpickr "4.6.9"
 
-carbon-components@^10.40.0:
-  version "10.40.0"
-  resolved "https://registry.yarnpkg.com/carbon-components/-/carbon-components-10.40.0.tgz#59c339dd964624cd07802dc695ceed6f32a07ef7"
-  integrity sha512-tIc0qHVLilWCelkH56al4ILwZRA4AbbwJEFt0mnGtefmgQ3O1UJLm5/ybp7VnWeHwUnip7PljHSDwHUzQcj5zg==
+carbon-components@^10.40.1:
+  version "10.40.1"
+  resolved "https://registry.yarnpkg.com/carbon-components/-/carbon-components-10.40.1.tgz#622625738718d6cbff0b09c94b9d57927c9a200d"
+  integrity sha512-cfbX61r76vWX7yfPHELB2tp68MUJnhNeAiGSCo1cgLmPBRqra4XXiQXymTR5UN4AEsJiuXjc9U0vivWsZdE9Ow==
   dependencies:
     "@carbon/telemetry" "0.0.0-alpha.6"
     flatpickr "4.6.1"
     lodash.debounce "^4.0.8"
     warning "^3.0.0"
-
-carbon-icons-svelte@^10.27.0:
-  version "10.33.0"
-  resolved "https://registry.yarnpkg.com/carbon-icons-svelte/-/carbon-icons-svelte-10.33.0.tgz#d890147c01e4d722229fcff1e8b34ad248b4535b"
-  integrity sha512-0NsHAASuNNbRUVZZudgPeCdaTepkWbbKjjH1Xb+tK4NsSRrtTEk6zyWL6EwUNL4x64OuJ1kbcrSHe1Vao0PlOw==
 
 carbon-icons-svelte@^10.36.0:
   version "10.36.0"
@@ -968,10 +963,10 @@ eslint-visitor-keys@^2.0.0:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-2.1.0.tgz#f65328259305927392c938ed44eb0a5c9b2bd303"
   integrity sha512-0rSmRBzXgDzIsD6mGdJgevzgezI534Cer5L/vyMX0kHzT/jiB43jRhd9YUlMGYLQy2zprNmoT8qasCGtY+QaKw==
 
-eslint@^7.31.0:
-  version "7.31.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-7.31.0.tgz#f972b539424bf2604907a970860732c5d99d3aca"
-  integrity sha512-vafgJpSh2ia8tnTkNUkwxGmnumgckLh5aAbLa1xRmIn9+owi8qBNGKL+B881kNKNTy7FFqTEkpNkUvmw0n6PkA==
+eslint@^7.32.0:
+  version "7.32.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-7.32.0.tgz#c6d328a14be3fb08c8d1d21e12c02fdb7a2a812d"
+  integrity sha512-VHZ8gX+EDfz+97jGcgyGCyRia/dPOd6Xh9yPv8Bl1+SoaIwD+a/vlrOmGRUyOYu7MwUhc7CxqeaDZU13S4+EpA==
   dependencies:
     "@babel/code-frame" "7.12.11"
     "@eslint/eslintrc" "^0.4.3"
@@ -2369,10 +2364,10 @@ sass-graph@2.2.5:
     scss-tokenizer "^0.2.3"
     yargs "^13.3.2"
 
-sass@^1.36.0:
-  version "1.36.0"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.36.0.tgz#5912ef9d5d16714171ba11cb17edb274c4bbc07e"
-  integrity sha512-fQzEjipfOv5kh930nu3Imzq3ie/sGDc/4KtQMJlt7RRdrkQSfe37Bwi/Rf/gfuYHsIuE1fIlDMvpyMcEwjnPvg==
+sass@^1.37.0:
+  version "1.37.0"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.37.0.tgz#f1b03a9d072ee9053a29d125c8130c78e92827c2"
+  integrity sha512-B+Tu6cSAG8ffs/cqsZl/bgSH2pCmavDaPTYAoW8QA1qNHh/RqndNfVKuABKYkLjUQ5aq/BnCENVpE80cqdSM1w==
   dependencies:
     chokidar ">=3.0.0 <4.0.0"
 
@@ -2647,10 +2642,10 @@ svelte-preprocess@^4.7.4:
     detect-indent "^6.0.0"
     strip-indent "^3.0.0"
 
-svelte@^3.40.2:
-  version "3.40.2"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.40.2.tgz#93ab56e9ba45ed8647a19ebdc242a31939ae0134"
-  integrity sha512-FrxVBISeRK0fEeg17D5TftKpaFTLPS7S1C+hf21w5gzzi11MlkJZdqJ9XYmPkAeLGeVpQSQDyWET65NVJjTJ4A==
+svelte@^3.41.0:
+  version "3.41.0"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.41.0.tgz#2009fd6681453ffb8b5aaa57f4a89a8be3dedd78"
+  integrity sha512-X9/lnTcRBCrMdyFBVjfmqy1T2vyN8ejUE1OfbWSccc2Z42Amn3ab3XdBgVl+oDkZvzPfPMoxo6CEbWca7pXOew==
 
 table@^6.0.9:
   version "6.7.1"

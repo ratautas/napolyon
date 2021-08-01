@@ -114,9 +114,9 @@ export const imageHeight = writable(null);
 export const mouseX = writable(null);
 export const mouseY = writable(null);
 
-imageSrc.set('https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=1900&height=1600&q=80');
-imageWidth.set(1900);
-imageHeight.set(1600);
+// imageSrc.set('https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=1900&height=1600&q=80');
+// imageWidth.set(1900);
+// imageHeight.set(1600);
 
 export const globalAttributesStore = writable({});
 
@@ -145,7 +145,8 @@ export const globalAttributesMap = derived([globalAttributes],
   ([$globalAttributes]) => Object.entries($globalAttributes)
     .reduce((acc, [name, value]) => [...acc, { [name]: value }], []));
 
-export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
+// export const polygonsStore = writable(MOCK_INITIAL_POLYGONS);
+export const polygonsStore = writable([]);
 
 export const polygons = {
   subscribe: polygonsStore.subscribe,
