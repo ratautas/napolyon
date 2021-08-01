@@ -44,26 +44,29 @@
     history
   } from '$lib/stores.js';
 
+  let isCanvasGrabbing;
+  let canvasEl;
   let scrollX = 0;
   let scrollY = 0;
 
   const handleCanvasScroll = (e) => {
-    scrollY = e.target.scrollTop;
-    scrollX = e.target.scrollLeft;
+    scrollY = canvasEl.scrollTop;
+    scrollX = canvasEl.scrollLeft;
   };
 
-const handleCanvasMouseDown = (e) => {
-
-};
+  const handleCanvasMousedown = (e) => {
+    if ($isSpacePressed) {
+      isCanvasGrabbing = true;
+    }
+  };
 
   const handleCanvasMousemove = (e) => {
     const x = e.x + scrollX;
     const y = e.y + scrollY;
-    mouseX.set(x);
-    mouseY.set(y);
 
-    if ($isSpacePressed) {
-      console.log('space move')
+    if ($isSpacePressed && isCanvasGrabbing) {
+      canvasEl.scrollBy(-e.movementX, -e.movementY);
+      return;
     }
 
     if ($isAltPressed) {
@@ -122,6 +125,11 @@ const handleCanvasMouseDown = (e) => {
     const hasToolbarTarget = e.path.some((el) => el.matches?.('.toolbar'));
     const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
     const hasInputTarget = e.path.some((el) => el.matches?.('input'));
+
+    if (isCanvasGrabbing) {
+      isCanvasGrabbing = false;
+      return;
+    }
 
     if (!$isShiftPressed) {
       mouseX.set(e.x + scrollX);
@@ -195,7 +203,7 @@ const handleCanvasMouseDown = (e) => {
     isShiftPressed.set(e.shiftKey);
     isAltPressed.set(e.altKey);
     isCmdPressed.set(e.metaKey);
-    isSpacePressed.set((e.code === "Space"));
+    isSpacePressed.set(e.code === 'Space');
 
     if (e.key === 'Escape') {
       // polygons = $polygonsMap.reduce(
@@ -267,9 +275,7 @@ const handleCanvasMouseDown = (e) => {
 
   $: hoveredLine = $renderPolygons[$hoveredPolygonIndex]?.lines[$hoveredLineIndex];
 
-  $: lastDrawnPoint = $drawnPolygon
-    ? $drawnPolygon.points[$drawnPolygon.points.length - 1]
-    : {};
+  $: lastDrawnPoint = $drawnPolygon ? $drawnPolygon.points[$drawnPolygon.points.length - 1] : {};
 
   const handleFilesAdd = (e) => {
     const reader = new FileReader();
@@ -290,11 +296,14 @@ const handleCanvasMouseDown = (e) => {
 <div
   class="canvas"
   on:mousemove={handleCanvasMousemove}
-  on:mousedown={handleCanvasMouseDown}
+  on:mousedown={handleCanvasMousedown}
   on:mouseup={handleCanvasMouseup}
   on:scroll={handleCanvasScroll}
   class:is-drawing={$isDrawing}
+  class:can-grab={$isSpacePressed}
+  class:is-grabbing={isCanvasGrabbing}
   style={`--snapRadius:${$snapRadius}px`}
+  bind:this={canvasEl}
 >
   <ToolBar />
   {#if $imageSrc}

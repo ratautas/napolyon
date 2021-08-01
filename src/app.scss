@@ -50,6 +50,16 @@ main {
     cursor: copy;
     cursor: url('pen-tool-cursor.svg'), auto;
   }
+  &.can-grab {
+    cursor: grab;
+    // cursor: copy;
+    // cursor: url('pen-tool-cursor.svg'), auto;
+  }
+  &.is-grabbing {
+    cursor: grabbing;
+    // cursor: copy;
+    // cursor: url('pen-tool-cursor.svg'), auto;
+  }
 
   &__upload {
     .bx--file-browse-btn {
