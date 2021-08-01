@@ -9,7 +9,7 @@
     hoveredPolygonIndex,
     svgEl,
     imageWidth,
-    imageHeight,
+    imageHeight
   } from '$lib/stores';
 
   import RenderImage from '$lib/Render/RenderImage.svelte';
@@ -22,6 +22,8 @@
   };
 
   const handlePolygonMousedown = ({ polygon, polygonIndex }) => {
+    if ($isDrawing) return;
+    
     draggedPolygon.set({ ...polygon });
     selectedPolygonIndex.set(polygonIndex);
   };

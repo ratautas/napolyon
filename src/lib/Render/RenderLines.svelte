@@ -3,20 +3,27 @@
     renderPolygons,
     hoveredPolygonIndex,
     hoveredLineIndex,
+    selectedPolygonIndex,
     isDrawing,
     isExporting
   } from '$lib/stores';
 
   const handleLineMouseenter = ({ polygonIndex, lineIndex }) => {
-    if (!$isDrawing) {
-      hoveredLineIndex.set(lineIndex);
-      hoveredPolygonIndex.set(polygonIndex);
-    }
+    if ($isDrawing) return;
+
+    hoveredLineIndex.set(lineIndex);
+    hoveredPolygonIndex.set(polygonIndex);
   };
 
   const handleLineMouseleave = () => {
     hoveredPolygonIndex.set(-1);
     hoveredLineIndex.set(-1);
+  };
+
+  const handleLineMouseup = ({ polygonIndex }) => {
+    if ($isDrawing) return;
+
+    selectedPolygonIndex.set(polygonIndex);
   };
 </script>
 
@@ -33,6 +40,7 @@
         class:is-hovered={lineIndex === $hoveredLineIndex && polygonIndex === $hoveredPolygonIndex}
         on:mouseenter={() => handleLineMouseenter({ polygonIndex, lineIndex })}
         on:mouseleave={handleLineMouseleave}
+        on:mouseup={() => handleLineMouseup({ polygonIndex })}
       />
     {/each}
   {/each}

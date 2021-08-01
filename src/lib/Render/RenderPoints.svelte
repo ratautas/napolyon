@@ -1,5 +1,6 @@
 <script>
   import {
+    isDrawing,
     isCmdPressed,
     isAltPressed,
     renderPolygons,
@@ -30,6 +31,8 @@
   };
 
   const handlePointMousedown = ({ point, polygonIndex }) => {
+    if ($isDrawing) return;
+    
     selectedPolygonIndex.set(polygonIndex);
     draggedPoint.set({ ...point });
   };
