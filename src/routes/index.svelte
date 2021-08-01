@@ -235,6 +235,8 @@
       isDrawing.set(false);
       isToolbarDragging.set(false);
       drawnPolygonIndex.set(-1);
+      selectedPolygonIndex.set(-1);
+      selectedPoint.set(null);
     }
     if (e.key === 'Enter') {
       if ($drawnPolygonIndex !== -1) {
