@@ -114,8 +114,8 @@ export const imageHeight = writable(null);
 export const mouseX = writable(null);
 export const mouseY = writable(null);
 
-imageSrc.set('https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=1900&height=1600&q=80');
-imageWidth.set(1900);
+imageSrc.set('https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=2400&height=1600&q=80');
+imageWidth.set(2400);
 imageHeight.set(1600);
 
 export const globalAttributesStore = writable({});
@@ -359,7 +359,7 @@ export const closestSnapPoint = derived(
       .filter((polygon, index) => index !== $selectedPolygonIndex)
       .reduce((acc, { points }) => findClosestSnapPoint({ points, x: $mouseX, y: $mouseY, radius: $snapRadius }) ?? acc, null);
 
-    if (!point?.id) {
+    if (!point) {
       if ($snapRadius > $mouseX) {
         point = { x: 0, y: $mouseY, id: 'snap-left' };
       }

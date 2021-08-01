@@ -1,8 +1,5 @@
 <script>
-  import Accordion from 'carbon-components-svelte/src/Accordion/Accordion.svelte';
-  import AccordionItem from 'carbon-components-svelte/src/Accordion/AccordionItem.svelte';
-  import Toggle from 'carbon-components-svelte/src/Toggle/Toggle.svelte';
-  import Slider from 'carbon-components-svelte/src/Slider/Slider.svelte';
+  import { Accordion, AccordionItem, Toggle, Slider } from 'carbon-components-svelte';
 
   import { onMount } from 'svelte';
 

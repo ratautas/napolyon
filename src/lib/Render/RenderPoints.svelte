@@ -75,10 +75,10 @@
       class="point is-polygon-selected"
     />
   {/if}
-  {#if $closestLinePoint && $isAltPressed}
-    <div
-      style={`left:${$closestLinePoint?.x}px;top:${$closestLinePoint?.y}px;pointer-events:none`}
-      class="point is-polygon-hovered yololo"
-    />
-  {/if}
+{/if}
+{#if $closestLinePoint && $isAltPressed}
+  <div
+    style={`left:${$closestLinePoint?.x}px;top:${$closestLinePoint?.y}px;pointer-events:none`}
+    class="point is-polygon-hovered yololo"
+  />
 {/if}

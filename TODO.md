@@ -1,8 +1,8 @@
 [RETHINK INTERACTIONS / SHORTCUTS]
-- split stores into separate files
+- onboarding window with shortcuts
 - pen cursor icon (illustrator)
 - change cursor depending on point
-- onboarding window with shortcuts
+- hide lines on export
 
 - add default  <image width="100%" height="100%" xlink:href="/IMAGE_URL.png"></image> 
 - hide snappable points while shift is pressed
@@ -13,12 +13,8 @@
 - remove SVG class before export
 
 Next iteration:
-- insert point between points
 - use paths instead of polygons
 - split polygons and points etc to small components 
 - Electron bundle
 - get back to y.js instead of diffing 
-
-- Hold ctrl to snap
-- Hold shift to fix on straight axis
-- Hold alt to add new point
+- split stores into separate files

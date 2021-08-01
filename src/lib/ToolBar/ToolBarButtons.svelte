@@ -1,14 +1,15 @@
 <script>
-  import Button from 'carbon-components-svelte/src/Button/Button.svelte';
-  import Toggle from 'carbon-components-svelte/src/Toggle/Toggle.svelte';
+  import { Button, Toggle } from 'carbon-components-svelte';
 
-  import AreaCustom24 from 'carbon-icons-svelte/lib/AreaCustom24';
-  import CloudDownload24 from 'carbon-icons-svelte/lib/CloudDownload24';
-  import CloudUpload24 from 'carbon-icons-svelte/lib/CloudUpload24';
-  import Switcher24 from 'carbon-icons-svelte/lib/Switcher24';
-  import CopyFile24 from 'carbon-icons-svelte/lib/CopyFile24';
-  import Undo24 from 'carbon-icons-svelte/lib/Undo24';
-  import Redo24 from 'carbon-icons-svelte/lib/Redo24';
+  import {
+    AreaCustom24,
+    CloudDownload24,
+    CloudUpload24,
+    CopyFile24,
+    Redo24,
+    Switcher24,
+    Undo24
+  } from 'carbon-icons-svelte';
   import { saveAs } from 'file-saver';
 
   import { tick } from 'svelte';

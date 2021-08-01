@@ -1,11 +1,6 @@
 <script>
-  import Button from 'carbon-components-svelte/src/Button/Button.svelte';
-  import TextInput from 'carbon-components-svelte/src/TextInput/TextInput.svelte';
-  import Toggle from 'carbon-components-svelte/src/Toggle/Toggle.svelte';
-  import Form from 'carbon-components-svelte/src/Form/Form.svelte';
-
-  import TrashCan16 from 'carbon-icons-svelte/lib/TrashCan16';
-  import Add16 from 'carbon-icons-svelte/lib/Add16';
+  import { Button, Form, TextInput, Toggle } from 'carbon-components-svelte';
+  import { Add16, TrashCan16 } from 'carbon-icons-svelte';
 
   import {
     isInputFocused,

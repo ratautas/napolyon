@@ -6,7 +6,7 @@
 
 <script>
   import { page } from '$app/stores';
-  import FileUploaderDropContainer from 'carbon-components-svelte/src/FileUploader/FileUploaderDropContainer.svelte';
+  import { CodeSnippet, Modal, FileUploaderDropContainer } from 'carbon-components-svelte';
 
   import { ACCEPT_TYPES } from '$lib/constants';
   import { findClosestLinePoint } from '$lib/utils/findClosestLinePoint';
@@ -327,3 +327,17 @@
     />
   {/if}
 </div>
+
+<Modal open={true} passiveModal={true} modalHeading="" size="sm">
+  <ul>
+    <li>Press <strong>d</strong> to start drawing a new shape.</li>
+    <li>Press <strong>⏎</strong> (enter / return) while drawing to finish drawing.</li>
+    <li>&nbsp;</li>
+    <li>Hold <strong>⌘</strong> (cmd) while adding or dragging a point to snap to the closest point or the edge fo the image.</li>
+    <li>Hold <strong>⇧</strong> (shift) while dragging a point to fix on a closest axis.</li>
+    <li>Hold <strong>⌥</strong> (alt / option) while clicking on a line to add a new point.</li>
+    <li>&nbsp;</li>
+    <li>Press <strong>⌫</strong> (delete) when a single point is selected to delete it.</li>
+    <li>Press <strong>⌫</strong> (delete) when a shape is selected to delete it.</li>
+  </ul>
+</Modal>
