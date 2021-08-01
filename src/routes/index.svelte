@@ -43,7 +43,6 @@
     mouseX,
     mouseY,
     history,
-hoveredLineId
   } from '$lib/stores';
   import { isInfoModalEnabled, showInfoModal } from '$lib/stores/infoModal';
   import { PREVENT_INFO_MODAL_KEY } from '$lib/constants';
@@ -83,7 +82,6 @@ hoveredLineId
     }
 
     if ($isAltPressed) {
-      console.log(hoveredLine);
       closestLinePoint.set(
         findClosestLinePoint({
           ...hoveredLine,
@@ -334,7 +332,10 @@ hoveredLineId
   on:mouseup={handleCanvasMouseup}
   on:scroll={handleCanvasScroll}
   class:is-drawing={$isDrawing}
+  class:is-straight={$isShiftPressed}
+  class:is-splitting={$isAltPressed}
   class:can-grab={$isSpacePressed}
+  class:can-snap={$isCmdPressed || $closestSnapPoint}
   class:is-grabbing={isCanvasGrabbing}
   style={`--snapRadius:${$snapRadius}px`}
   bind:this={canvasEl}

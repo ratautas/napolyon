@@ -12,7 +12,8 @@
     closestSnapPoint,
     closestLinePoint,
     imageWidth,
-    imageHeight
+    imageHeight,
+    hoveredLineIndex
   } from '$lib/stores';
 
   const handlePointMouseenter = ({ point, polygonIndex }) => {
@@ -32,7 +33,7 @@
 
   const handlePointMousedown = ({ point, polygonIndex }) => {
     if ($isDrawing) return;
-    
+
     selectedPolygonIndex.set(polygonIndex);
     draggedPoint.set({ ...point });
   };
@@ -79,7 +80,7 @@
     />
   {/if}
 {/if}
-{#if $closestLinePoint && $isAltPressed}
+{#if $closestLinePoint && $isAltPressed && $hoveredLineIndex}
   <div
     style={`left:${$closestLinePoint?.x}px;top:${$closestLinePoint?.y}px;pointer-events:none`}
     class="point is-midline"

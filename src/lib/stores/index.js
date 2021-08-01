@@ -95,7 +95,7 @@ export const patcher = create({
 export const mode = writable(null);
 
 export const isDrawing = writable(false);
-export const snapRadius = writable(20);
+export const snapRadius = writable(10);
 export const isInputFocused = writable(false);
 
 export const isToolbarDragging = writable(false);

@@ -1,4 +1,3 @@
-// @import 'carbon-components-svelte/css/g10';
 @import 'carbon-components-svelte/css/all.css';
 
 :root {
@@ -7,6 +6,12 @@
 
 html {
   font-size: 14px;
+  // cursor: url('./svg/pointer.svg'), auto;
+  // cursor: url('./png/busybutclickable.png'), auto;
+  // cursor: url('./cursor--snap2.svg'), auto;
+  // cursor: url('./cursor--add2.svg'), auto;
+  // cursor: url('./cursor--grab2.svg'), auto;
+  // cursor: url('./svg/poof.svg'), auto;
   // cursor: url('./pen-tool-cursor.svg'), auto;
 }
 
@@ -45,20 +50,22 @@ main {
   width: 100vw;
   height: 100vh;
   overflow: auto;
-  // background-image: url('pen-tool-cursor.svg');
+
   &.is-drawing {
     cursor: copy;
-    cursor: url('pen-tool-cursor.svg'), auto;
+    cursor: url('./cursor--add.svg'), auto;
   }
+
   &.can-grab {
     cursor: grab;
-    // cursor: copy;
-    // cursor: url('pen-tool-cursor.svg'), auto;
   }
+
   &.is-grabbing {
     cursor: grabbing;
-    // cursor: copy;
-    // cursor: url('pen-tool-cursor.svg'), auto;
+  }
+
+  &.is-straight {
+    cursor: url('./cursor--ruler.svg'), auto;
   }
 
   &__upload {
@@ -121,10 +128,6 @@ polygon {
   fill: rgba(0, 0, 0, 0.5);
   transition: stroke 160ms var(--e), fill 160ms var(--e);
 
-  &.is-drawing {
-  }
-  &.is-dragging {
-  }
   &.is-hovered {
     stroke: rgba(255, 255, 255, 1);
   }
@@ -200,6 +203,16 @@ polygon {
       background-color: #0080f3;
     }
   }
+
+  cursor: url('./cursor--move.svg'), auto;
+
+  .is-drawing & {
+    cursor: url('./cursor--add.svg'), auto;
+  }
+
+  .can-snap & {
+    cursor: url('./cursor--snap.svg'), auto;
+  }
 }
 
 .snap {
@@ -219,7 +232,6 @@ polygon {
 @media all {
   .bx--accordion__content {
     padding-right: 1rem;
-    // padding: 0;
   }
 }
 
@@ -261,4 +273,10 @@ polygon {
   z-index: 2;
   display: block;
   overflow: hidden;
+}
+
+line {
+  .is-splitting & {
+    cursor: url('./cursor--add.svg'), auto;
+  }
 }
