@@ -19,13 +19,14 @@
     isShiftPressed,
     isCmdPressed,
     isAltPressed,
+    isSpacePressed,
     isDrawing,
     fileUploader,
     snapRadius,
     polygons,
     renderPolygons,
-    drawedPolygon,
-    drawedPolygonIndex,
+    drawnPolygon,
+    drawnPolygonIndex,
     selectedPolygonIndex,
     draggedPolygon,
     hoveredPolygonIndex,
@@ -51,11 +52,19 @@
     scrollX = e.target.scrollLeft;
   };
 
+const handleCanvasMouseDown = (e) => {
+
+};
+
   const handleCanvasMousemove = (e) => {
     const x = e.x + scrollX;
     const y = e.y + scrollY;
     mouseX.set(x);
     mouseY.set(y);
+
+    if ($isSpacePressed) {
+      console.log('space move')
+    }
 
     if ($isAltPressed) {
       closestLinePoint.set(
@@ -70,11 +79,11 @@
     if ($isDrawing) {
       if (!$isShiftPressed) return;
 
-      const diffX = Math.abs(x - lastDrawedPoint.x);
-      const diffY = Math.abs(y - lastDrawedPoint.y);
+      const diffX = Math.abs(x - lastDrawnPoint.x);
+      const diffY = Math.abs(y - lastDrawnPoint.y);
 
-      if (diffX < diffY) mouseX.set(lastDrawedPoint.x);
-      if (diffX > diffY) mouseY.set(lastDrawedPoint.y);
+      if (diffX < diffY) mouseX.set(lastDrawnPoint.x);
+      if (diffX > diffY) mouseY.set(lastDrawnPoint.y);
     }
 
     if ($isToolbarDragging) {
@@ -94,7 +103,7 @@
 
     if ($draggedPolygon) {
       isDrawing.set(false);
-      drawedPolygonIndex.set(-1);
+      drawnPolygonIndex.set(-1);
       draggedPolygon.set({
         ...$draggedPolygon,
         points: $draggedPolygon.points.map((point) => ({
@@ -103,7 +112,6 @@
           y: point?.y + e.movementY
         }))
       });
-
       return;
     }
   };
@@ -135,8 +143,8 @@
       selectedPoint.set(null);
     }
 
-    // unset drawedPolygon if clicked on toolbar
-    if (hasToolbarTarget) drawedPolygonIndex.set(-1);
+    // unset drawnPolygon if clicked on toolbar
+    if (hasToolbarTarget) drawnPolygonIndex.set(-1);
 
     if (hasToolbarTarget && $isToolbarDragging) {
       isToolbarDragging.set(false);
@@ -161,15 +169,15 @@
     }
 
     if ($isDrawing) {
-      if ($drawedPolygonIndex === -1) {
+      if ($drawnPolygonIndex === -1) {
         polygons.addPolygon();
       }
 
       polygons.addPoint({
         x: $closestSnapPoint?.x ?? $mouseX,
         y: $closestSnapPoint?.y ?? $mouseY,
-        polygonIndex: $drawedPolygonIndex,
-        pointIndex: $drawedPolygon.points.length
+        polygonIndex: $drawnPolygonIndex,
+        pointIndex: $drawnPolygon.points.length
       });
     }
 
@@ -187,28 +195,29 @@
     isShiftPressed.set(e.shiftKey);
     isAltPressed.set(e.altKey);
     isCmdPressed.set(e.metaKey);
+    isSpacePressed.set((e.code === "Space"));
 
     if (e.key === 'Escape') {
       // polygons = $polygonsMap.reduce(
       //   (acc, polygon) => ({
       //     ...acc,
-      //     ...(polygon.id !== $drawedPolygon.id && { [polygon.id]: polygon })
+      //     ...(polygon.id !== $drawnPolygon.id && { [polygon.id]: polygon })
       //   }),
       //   {}
       // );
       // additional escape if dragging gets out of hand
       isDrawing.set(false);
       isToolbarDragging.set(false);
-      drawedPolygonIndex.set(-1);
+      drawnPolygonIndex.set(-1);
     }
     if (e.key === 'Enter') {
-      if ($drawedPolygonIndex !== -1) {
-        selectedPolygonIndex.set($drawedPolygonIndex);
+      if ($drawnPolygonIndex !== -1) {
+        selectedPolygonIndex.set($drawnPolygonIndex);
       }
-      drawedPolygonIndex.set(-1);
+      drawnPolygonIndex.set(-1);
       isDrawing.set(false);
     }
-    if (!$isInputFocused && (e.key === 'Backspace' || e.key === 'Delete')) {
+    if ((e.key === 'Backspace' || e.key === 'Delete') && !$isInputFocused) {
       if ($selectedPoint) {
         polygons.deleteSelectedPoint();
         return;
@@ -218,16 +227,16 @@
         selectedPolygonIndex.set(-1);
         return;
       }
-      if ($drawedPolygonIndex !== -1) {
-        polygons.deletePolygon($drawedPolygonIndex);
+      if ($drawnPolygonIndex !== -1) {
+        polygons.deletePolygon($drawnPolygonIndex);
         isDrawing.set(false);
         return;
       }
     }
-    if ($isCmdPressed && $isShiftPressed && e.key === 'z') {
+    if (e.key === 'z' && $isCmdPressed && $isShiftPressed) {
       history.redo();
     }
-    if ($isCmdPressed && !$isShiftPressed && e.key === 'z') {
+    if (e.key === 'z' && $isCmdPressed && !$isShiftPressed) {
       history.undo();
     }
   };
@@ -236,6 +245,7 @@
     isShiftPressed.set(false);
     isAltPressed.set(false);
     isCmdPressed.set(false);
+    isSpacePressed.set(false);
   };
 
   const preset = $page.query.get('preset');
@@ -257,8 +267,8 @@
 
   $: hoveredLine = $renderPolygons[$hoveredPolygonIndex]?.lines[$hoveredLineIndex];
 
-  $: lastDrawedPoint = $drawedPolygon
-    ? $drawedPolygon.points[$drawedPolygon.points.length - 1]
+  $: lastDrawnPoint = $drawnPolygon
+    ? $drawnPolygon.points[$drawnPolygon.points.length - 1]
     : {};
 
   const handleFilesAdd = (e) => {
@@ -280,6 +290,7 @@
 <div
   class="canvas"
   on:mousemove={handleCanvasMousemove}
+  on:mousedown={handleCanvasMouseDown}
   on:mouseup={handleCanvasMouseup}
   on:scroll={handleCanvasScroll}
   class:is-drawing={$isDrawing}

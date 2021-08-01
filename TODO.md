@@ -1,4 +1,5 @@
 [RETHINK INTERACTIONS / SHORTCUTS]
+- SPACE grab scroll
 - pen cursor icon (illustrator)
 - change cursor depending on point
 - onboarding window with shortcuts

@@ -2,7 +2,7 @@
   import {
     isDrawing,
     renderPolygons,
-    drawedPolygonIndex,
+    drawnPolygonIndex,
     selectedPolygonIndex,
     draggedPolygon,
     hoveredPolygonIndex,
@@ -44,7 +44,7 @@
       viewBox={`0 0 ${$imageWidth} ${$imageHeight}`}
       bind:this={$svgEl}
     >
-      {#if $drawedPolygonIndex !== -1 && $isDrawing}
+      {#if $drawnPolygonIndex !== -1 && $isDrawing}
         <RenderPlaceholderPolygon />
       {/if}
       {#each $renderPolygons as polygon, polygonIndex}
@@ -52,8 +52,8 @@
           points={polygon.pointsReduced}
           id={polygon.id}
           {...polygon.attributes}
-          class:is-drawing={$isDrawing && polygonIndex === $drawedPolygonIndex}
-          class:is-dragging={polygonIndex === $drawedPolygonIndex}
+          class:is-drawing={$isDrawing && polygonIndex === $drawnPolygonIndex}
+          class:is-dragging={polygonIndex === $drawnPolygonIndex}
           class:is-hovered={polygonIndex === $hoveredPolygonIndex}
           class:is-selected={polygonIndex === $selectedPolygonIndex}
           on:mouseenter={(e) => handlePolygonMouseenter({ polygonIndex })}

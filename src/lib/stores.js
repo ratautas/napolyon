@@ -114,9 +114,9 @@ export const imageHeight = writable(null);
 export const mouseX = writable(null);
 export const mouseY = writable(null);
 
-// imageSrc.set('https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=1900&height=1600&q=80');
-// imageWidth.set(1900);
-// imageHeight.set(1600);
+imageSrc.set('https://images.unsplash.com/photo-1607629823685-ae0850607241?auto=format&fit=crop&w=1900&height=1600&q=80');
+imageWidth.set(1900);
+imageHeight.set(1600);
 
 export const globalAttributesStore = writable({});
 
@@ -128,6 +128,7 @@ export const historyStore = writable({
 export const isShiftPressed = writable(null);
 export const isCmdPressed = writable(null);
 export const isAltPressed = writable(null);
+export const isSpacePressed = writable(null);
 
 export const addLocalAttribute = ({ name, value }) =>
   globalAttributesStore.update(($globalAttributesStore) => ({ ...$globalAttributesStore, [name]: value }))
@@ -154,7 +155,7 @@ export const polygons = {
     const polygons = clone($polygons);
     const newPolygonId = nanoid(6);
 
-    drawedPolygonIndex.set(polygons.length);
+    drawnPolygonIndex.set(polygons.length);
 
     return [...polygons, {
       id: newPolygonId,
@@ -265,9 +266,9 @@ export const selectedPolygonIndex = writable(-1);
 export const selectedPolygon = derived([polygonsStore, selectedPolygonIndex], ([$store, $i]) => $store[$i]);
 export const selectedPolygonId = derived([selectedPolygon], ([$polygon]) => $polygon?.id);
 
-export const drawedPolygonIndex = writable(-1);
-export const drawedPolygon = derived([polygonsStore, drawedPolygonIndex], ([$store, $i]) => $store[$i]);
-export const drawedPolygonId = derived([drawedPolygon], ([$polygon]) => $polygon?.id);
+export const drawnPolygonIndex = writable(-1);
+export const drawnPolygon = derived([polygonsStore, drawnPolygonIndex], ([$store, $i]) => $store[$i]);
+export const drawnPolygonId = derived([drawnPolygon], ([$polygon]) => $polygon?.id);
 
 export const draggedPolygon = writable(null);
 export const draggedPolygonId = derived([draggedPolygon], ([$polygon]) => $polygon?.id);
