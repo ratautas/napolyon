@@ -1,20 +1,20 @@
 <script>
   import { Button, Toggle } from 'carbon-components-svelte';
-
   import {
     AreaCustom24,
     CloudDownload24,
     CloudUpload24,
     CopyFile24,
+    Help24,
     Redo24,
     Switcher24,
     Undo24
   } from 'carbon-icons-svelte';
   import { saveAs } from 'file-saver';
-
   import { tick } from 'svelte';
 
   import { ACCEPT_TYPES } from '$lib/constants';
+  import { showInfoModal } from '$lib/stores/infoModal';
 
   import {
     isDrawing,
@@ -133,6 +133,14 @@
     icon={Redo24}
     disabled={$history.redoQueue.length === 0}
     on:click={history.redo}
+  />
+  <Button
+    kind="ghost"
+    tooltipPosition="bottom"
+    tooltipAlignment="center"
+    iconDescription="Show Info Modal"
+    icon={Help24}
+    on:click={() => showInfoModal.set(true)}
   />
   <Toggle labelA="" size="sm" labelB="SNAP" disabled toggled={$isCmdPressed} />
 </div>
