@@ -50,8 +50,8 @@
       class:is-polygon-selected={polygonIndex === $selectedPolygonIndex}
       class:is-polygon-hovered={polygonIndex === $hoveredPolygonIndex}
       class:is-hovered={polygonIndex === $hoveredPolygonIndex && point.id === $hoveredPoint?.id}
-      class:is-closest-snapable={point.id === $closestSnapPoint?.id && $isCmdPressed}
-      class:is-dragable={point.id === $draggedPoint?.id}
+      class:is-closest-snappable={point.id === $closestSnapPoint?.id && $isCmdPressed}
+      class:is-dragged={point.id === $draggedPoint?.id}
       class:is-selected={point.id === $selectedPoint?.id}
       id={point.id}
       tabindex="0"
@@ -82,6 +82,6 @@
 {#if $closestLinePoint && $isAltPressed}
   <div
     style={`left:${$closestLinePoint?.x}px;top:${$closestLinePoint?.y}px;pointer-events:none`}
-    class="point is-polygon-hovered yololo"
+    class="point is-midline"
   />
 {/if}

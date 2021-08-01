@@ -18,3 +18,4 @@ Next iteration:
 - move selected point / polygon with keyboard
 - get back to y.js instead of diffing 
 - split stores into separate files
+- animate snaps

@@ -9,8 +9,6 @@
   } from '$lib/stores';
 
   const handleLineMouseenter = ({ polygonIndex, lineIndex }) => {
-    if ($isDrawing) return;
-
     hoveredLineIndex.set(lineIndex);
     hoveredPolygonIndex.set(polygonIndex);
   };
@@ -36,7 +34,7 @@
         y1={line.y1}
         y2={line.y2}
         stroke="transparent"
-        stroke-width="5"
+        stroke-width="10"
         class:is-hovered={lineIndex === $hoveredLineIndex && polygonIndex === $hoveredPolygonIndex}
         on:mouseenter={() => handleLineMouseenter({ polygonIndex, lineIndex })}
         on:mouseleave={handleLineMouseleave}

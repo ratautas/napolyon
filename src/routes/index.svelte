@@ -42,7 +42,8 @@
     imageSrc,
     mouseX,
     mouseY,
-    history
+    history,
+hoveredLineId
   } from '$lib/stores';
   import { isInfoModalEnabled, showInfoModal } from '$lib/stores/infoModal';
   import { PREVENT_INFO_MODAL_KEY } from '$lib/constants';
@@ -82,6 +83,7 @@
     }
 
     if ($isAltPressed) {
+      console.log(hoveredLine);
       closestLinePoint.set(
         findClosestLinePoint({
           ...hoveredLine,
@@ -207,7 +209,7 @@
       });
     }
 
-    if ($isAltPressed && $closestLinePoint) {
+    if ($isAltPressed && $closestLinePoint && !$isDrawing) {
       polygons.addPoint({
         x: $closestLinePoint.x,
         y: $closestLinePoint.y,
