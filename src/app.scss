@@ -125,10 +125,10 @@ polygon {
   &.is-dragging {
   }
   &.is-hovered {
-    stroke: #0080f3;
+    stroke: red;
   }
   &.is-selected {
-    // stroke: #0080f3;
+    stroke: #0080f3;
   }
   &.placeholder {
     opacity: 0.4;

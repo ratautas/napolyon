@@ -5,10 +5,11 @@
     drawnPolygonIndex,
     selectedPolygonIndex,
     draggedPolygon,
+    draggedPolygonIndex,
     hoveredPolygonIndex,
     svgEl,
     imageWidth,
-    imageHeight
+    imageHeight,
   } from '$lib/stores';
 
   import RenderImage from '$lib/Render/RenderImage.svelte';
@@ -17,9 +18,7 @@
   import RenderPlaceholderPolygon from '$lib/Render/RenderPlaceholderPolygon.svelte';
 
   const handlePolygonMouseenter = ({ polygonIndex }) => {
-    if (!$isDrawing) {
-      hoveredPolygonIndex.set(polygonIndex);
-    }
+    hoveredPolygonIndex.set(polygonIndex);
   };
 
   const handlePolygonMousedown = ({ polygon, polygonIndex }) => {
@@ -55,7 +54,7 @@
           id={polygon.id}
           {...polygon.attributes}
           class:is-drawing={$isDrawing && polygonIndex === $drawnPolygonIndex}
-          class:is-dragging={polygonIndex === $drawnPolygonIndex}
+          class:is-dragging={polygonIndex === $draggedPolygonIndex}
           class:is-hovered={polygonIndex === $hoveredPolygonIndex}
           class:is-selected={polygonIndex === $selectedPolygonIndex}
           on:mouseenter={(e) => handlePolygonMouseenter({ polygonIndex })}

@@ -196,7 +196,11 @@ export const polygons = {
     const polygons = clone($polygons);
     const polygonIndex = get(selectedPolygonIndex);
 
-    polygons[polygonIndex].points = polygons[polygonIndex].points.filter((point) => point.id !== get(selectedPoint)?.id)
+    polygons[polygonIndex].points = polygons[polygonIndex].points.filter((point) => point.id !== get(selectedPoint)?.id);
+
+    if (get(isDrawing)) {
+      selectedPoint.set(clone(polygons[polygonIndex].points[polygons[polygonIndex].points.length - 1]));
+    }
 
     const delta = patcher.diff($polygons, polygons);
     if (delta) history.push({ delta, origin: 'addPoint' });

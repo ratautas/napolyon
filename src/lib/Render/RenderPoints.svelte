@@ -21,12 +21,12 @@
 
   const handlePointMouseleave = (e) => {
     const hasPointTarget = e.path.some((el) => el.matches?.('.point'));
+    const hasPolygonTarget = e.path.some((el) => el.matches?.('polygon'));
 
     hoveredPoint.set(null);
 
-    if (!hasPointTarget) {
-      draggedPoint.set(null);
-    }
+    if (!hasPolygonTarget) hoveredPolygonIndex.set(-1);
+    if (!hasPointTarget) draggedPoint.set(null);
   };
 
   const handlePointMousedown = ({ point, polygonIndex }) => {

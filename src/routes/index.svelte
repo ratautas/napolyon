@@ -153,7 +153,13 @@
     }
 
     // unset selectedPolygonIndex if clicked outside polygon/point/toolbar
-    if (!hasPolygonTarget && !hasLineTarget && !hasPointTarget && !hasToolbarTarget) {
+    if (
+      !hasPolygonTarget &&
+      !hasLineTarget &&
+      !hasPointTarget &&
+      !hasToolbarTarget &&
+      !$isDrawing
+    ) {
       selectedPolygonIndex.set(-1);
       hoveredPolygonIndex.set(-1);
     }
@@ -232,6 +238,7 @@
     }
     if (e.key === 'Enter') {
       if ($drawnPolygonIndex !== -1) {
+        selectedPoint.set(null);
         selectedPolygonIndex.set($drawnPolygonIndex);
       }
       drawnPolygonIndex.set(-1);
