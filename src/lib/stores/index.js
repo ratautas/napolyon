@@ -103,6 +103,7 @@ export const toolbarX = writable(30);
 export const toolbarY = writable(30);
 
 export const svgEl = writable(null);
+export const isExporting = writable(false);
 
 export const fileUploader = writable(null);
 

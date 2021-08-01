@@ -18,6 +18,7 @@
 
   import {
     isDrawing,
+    isExporting,
     isCmdPressed,
     svgEl,
     selectedPolygonIndex,
@@ -27,14 +28,18 @@
     history
   } from '$lib/stores';
 
-  const clearAttributes = () => {
+  const clearExport = async () => {
+    await tick();
+    isExporting.set(true);
     $svgEl.querySelectorAll('polygon').forEach((polygonEl) => {
-      // polygonEl.removeAttribute('class');
+      // remove 'class' attribute if it's empty
+      if (!polygonEl.classList.length) polygonEl.removeAttribute('class');
       polygonEl.removeAttribute('id');
     });
+    await tick();
   };
 
-  const handleAddClick = (e, targetMode) => {
+  const handleAddClick = (e) => {
     e.stopPropagation();
     isDrawing.set(!$isDrawing);
   };
@@ -42,18 +47,18 @@
   const handleCopyClick = async () => {
     selectedPolygonIndex.set(-1);
     hoveredPolygonIndex.set(-1);
-    await tick();
-    clearAttributes();
+    await clearExport();
     await navigator.clipboard.writeText($svgEl.outerHTML);
+    isExporting.set(false);
   };
 
   const handleDowloadClick = async () => {
     selectedPolygonIndex.set(-1);
     hoveredPolygonIndex.set(-1);
-    await tick();
-    clearAttributes();
+    await clearExport();
     const blob = new Blob([$svgEl.outerHTML], { type: 'image/svg+xml' });
     saveAs(blob, 'graph.svg');
+    isExporting.set(false);
   };
 
   const handleFileInputChange = (e) => {

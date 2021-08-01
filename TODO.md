@@ -1,7 +1,7 @@
 [RETHINK INTERACTIONS / SHORTCUTS]
 - pen cursor icon (illustrator)
 - change cursor depending on point
-- hide lines on export
+
 - add indications for snap / fix / add point
 
 - add default  <image width="100%" height="100%" xlink:href="/IMAGE_URL.png"></image> 
