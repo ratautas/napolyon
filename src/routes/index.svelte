@@ -205,17 +205,13 @@
     isShiftPressed.set(e.shiftKey);
     isAltPressed.set(e.altKey);
     isCmdPressed.set(e.metaKey);
-    isSpacePressed.set(e.code === 'Space');
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      isSpacePressed.set(true);
+    }
 
     if (e.key === 'Escape') {
-      // polygons = $polygonsMap.reduce(
-      //   (acc, polygon) => ({
-      //     ...acc,
-      //     ...(polygon.id !== $drawnPolygon.id && { [polygon.id]: polygon })
-      //   }),
-      //   {}
-      // );
-      // additional escape if dragging gets out of hand
       isDrawing.set(false);
       isToolbarDragging.set(false);
       drawnPolygonIndex.set(-1);
@@ -287,9 +283,20 @@
       imageSrc.set(reader.result);
     };
   };
+
+  const handleWindowBeforeunload = (e) => {
+    if ($history.undoQueue.length || $history.redoQueue.length) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  };
 </script>
 
-<svelte:window on:keydown={handleWindowKeydown} on:keyup={handleWindowKeyup} />
+<svelte:window
+  on:keydown={handleWindowKeydown}
+  on:keyup={handleWindowKeyup}
+  on:beforeunload={handleWindowBeforeunload}
+/>
 
 <svelte:head>
   <title>Napolyon</title>

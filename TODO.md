@@ -1,5 +1,5 @@
 [RETHINK INTERACTIONS / SHORTCUTS]
-- SPACE grab scroll
+- split stores into separate files
 - pen cursor icon (illustrator)
 - change cursor depending on point
 - onboarding window with shortcuts
