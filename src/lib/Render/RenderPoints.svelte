@@ -12,7 +12,7 @@
     closestLinePoint,
     imageWidth,
     imageHeight
-  } from '$lib/stores.js';
+  } from '$lib/stores';
 
   const handlePointMouseenter = ({ point, polygonIndex }) => {
     hoveredPolygonIndex.set(polygonIndex);

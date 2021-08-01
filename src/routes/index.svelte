@@ -6,7 +6,7 @@
 
 <script>
   import { page } from '$app/stores';
-  import { CodeSnippet, Modal, FileUploaderDropContainer } from 'carbon-components-svelte';
+  import { Checkbox, CodeSnippet, Modal, FileUploaderDropContainer } from 'carbon-components-svelte';
 
   import { ACCEPT_TYPES } from '$lib/constants';
   import { findClosestLinePoint } from '$lib/utils/findClosestLinePoint';
@@ -42,7 +42,7 @@
     mouseX,
     mouseY,
     history
-  } from '$lib/stores.js';
+  } from '$lib/stores';
 
   let isCanvasGrabbing;
   let canvasEl;
@@ -210,6 +210,10 @@
       e.preventDefault();
       isSpacePressed.set(true);
     }
+    
+    if (e.key === 'd' && !$isInputFocused) {
+      isDrawing.set(true);
+    }
 
     if (e.key === 'Escape') {
       isDrawing.set(false);
@@ -331,13 +335,38 @@
 <Modal open={true} passiveModal={true} modalHeading="" size="sm">
   <ul>
     <li>Press <strong>d</strong> to start drawing a new shape.</li>
-    <li>Press <strong>⏎</strong> (enter / return) while drawing to finish drawing.</li>
+    <li>Press <strong>enter ⏎</strong> while drawing to finish drawing a shape.</li>
     <li>&nbsp;</li>
-    <li>Hold <strong>⌘</strong> (cmd) while adding or dragging a point to snap to the closest point or the edge fo the image.</li>
-    <li>Hold <strong>⇧</strong> (shift) while dragging a point to fix on a closest axis.</li>
-    <li>Hold <strong>⌥</strong> (alt / option) while clicking on a line to add a new point.</li>
+    <li>
+      Hold <strong>cmd ⌘</strong> while adding or dragging a point to snap to the closest point or the
+      edge fo the image.
+    </li>
+    <li>Hold <strong>shift ⇧</strong> while dragging a point to fix on a closest axis.</li>
+    <li>Hold <strong>alt ⌥</strong> while clicking on a line to add a new point.</li>
+    <li>Hold <strong>space</strong> to grab and drag canvas.</li>
     <li>&nbsp;</li>
-    <li>Press <strong>⌫</strong> (delete) when a single point is selected to delete it.</li>
-    <li>Press <strong>⌫</strong> (delete) when a shape is selected to delete it.</li>
+    <li>Press <strong>delete ⌫</strong> when a single point is selected to delete it.</li>
+    <li>Press <strong>delete ⌫</strong> when a shape is selected to delete it.</li>
+    <li>&nbsp;</li>
+    <li>Use <strong>delete ⌘ + z</strong> to undo and <strong>⌘ + ⇧ + z</strong> to redo.</li>
+    <li>&nbsp;</li>
+    <li>You can always revisit these instructions from toolbar. Have fun!</li>
+    <li>&nbsp;</li>
   </ul>
+  <Checkbox labelText="Show this on startup" />
 </Modal>
+
+<style>
+  strong {
+    display: inline-block;
+    margin: 0 0.2em;
+    padding: 0 0.6em;
+    color: var(--black-800);
+    text-shadow: 0 1px 0 var(--white);
+    background-color: var(--black-075);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+    box-shadow: 0 1px 1px rgb(12 13 14 / 15%), inset 0 1px 0 0 #fff;
+    overflow-wrap: break-word;
+  }
+</style>

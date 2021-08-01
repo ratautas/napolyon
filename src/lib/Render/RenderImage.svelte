@@ -1,5 +1,5 @@
 <script>
-  import { imageEl, imageSrc, imageWidth, imageHeight } from '$lib/stores.js';
+  import { imageEl, imageSrc, imageWidth, imageHeight } from '$lib/stores';
 
   const handleImageLoad = async (e) => {
     imageWidth.set($imageEl.naturalWidth);

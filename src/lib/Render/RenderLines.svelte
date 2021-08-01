@@ -1,5 +1,5 @@
 <script>
-  import { renderPolygons, hoveredPolygonIndex, hoveredLineIndex, isDrawing } from '$lib/stores.js';
+  import { renderPolygons, hoveredPolygonIndex, hoveredLineIndex, isDrawing } from '$lib/stores';
 
   const handleLineMouseenter = ({ polygonIndex, lineIndex }) => {
     if (!$isDrawing) {

@@ -8,7 +8,7 @@
     selectedPolygonIndex,
     polygons,
     globalAttributes
-  } from '$lib/stores.js';
+  } from '$lib/stores';
 
   let isNewOpen = false;
   let newAttributeName = '';

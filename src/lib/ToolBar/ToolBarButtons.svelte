@@ -25,7 +25,7 @@
     isToolbarDragging,
     imageSrc,
     history
-  } from '$lib/stores.js';
+  } from '$lib/stores';
 
   const clearAttributes = () => {
     $svgEl.querySelectorAll('polygon').forEach((polygonEl) => {

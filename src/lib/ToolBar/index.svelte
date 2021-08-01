@@ -12,7 +12,7 @@
     toolbarX,
     toolbarY,
     selectedPolygonIndex
-  } from '$lib/stores.js';
+  } from '$lib/stores';
 
   let toolbarEl;
 

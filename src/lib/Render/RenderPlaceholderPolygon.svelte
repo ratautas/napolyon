@@ -1,5 +1,5 @@
 <script>
-  import { drawnPolygon, drawnPolygonIndex, mouseX, mouseY } from '$lib/stores.js';
+  import { drawnPolygon, drawnPolygonIndex, mouseX, mouseY } from '$lib/stores';
 
   $: lastDrawnPoint = $drawnPolygon
     ? $drawnPolygon.points[$drawnPolygon.points.length - 1]

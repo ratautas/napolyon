@@ -9,7 +9,7 @@
     svgEl,
     imageWidth,
     imageHeight
-  } from '$lib/stores.js';
+  } from '$lib/stores';
 
   import RenderImage from '$lib/Render/RenderImage.svelte';
   import RenderPoints from '$lib/Render/RenderPoints.svelte';
