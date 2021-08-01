@@ -143,6 +143,7 @@ polygon {
   height: 10px;
   transform: translate3d(-5px, -5px, 0);
   border-radius: 50%;
+  outline: none;
 
   &:after {
     content: '';
@@ -187,6 +188,7 @@ polygon {
     z-index: 5;
     &:after {
       transform: scale(1);
+      border-color: #0080f3;
     }
   }
 
