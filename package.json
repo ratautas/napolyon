@@ -9,8 +9,8 @@
     "format": "prettier --write --plugin-search-dir=. ."
   },
   "devDependencies": {
-    "@sveltejs/adapter-static": "^1.0.0-next.13",
-    "@sveltejs/kit": "next",
+    "@sveltejs/adapter-static": "^1.0.0-next.0",
+    "@sveltejs/kit": "1.0.0-next.1",
     "carbon-preprocess-svelte": "^0.6.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.1.0",
@@ -18,14 +18,14 @@
     "node-sass": "^6.0.1",
     "prettier": "~2.3.2",
     "prettier-plugin-svelte": "^2.2.0",
-    "sass": "^1.37.0",
-    "svelte": "^3.41.0",
+    "sass": "^1.37.5",
+    "svelte": "^3.42.1",
     "svelte-preprocess": "^4.7.4"
   },
   "type": "module",
   "dependencies": {
     "@lukeed/uuid": "^2.0.0",
-    "carbon-components": "^10.40.1",
+    "carbon-components": "^10.41.0",
     "carbon-components-svelte": "^0.42.2",
     "carbon-icons-svelte": "^10.36.0",
     "cookie": "^0.4.1",
