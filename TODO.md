@@ -5,7 +5,6 @@
 - add default  <image width="100%" height="100%" xlink:href="/IMAGE_URL.png"></image> 
 - use [points="xyz"] selectors for styling instead of classnames
 
-
 Next iteration:
 - use paths instead of polygons
 - split polygons and points etc to small components 
